@@ -21,6 +21,7 @@ class OrdersTable
             ->modifyQueryUsing(fn ($query) => $query->withCount('items'))
             ->columns([
                 TextColumn::make('number')->label('Nr.')->searchable()->placeholder('–'),
+                TextColumn::make('stack_number')->label('Post-it')->prefix('#')->sortable()->placeholder('–')->toggleable(),
                 TextColumn::make('billing_last_name')
                     ->label('Name')
                     ->formatStateUsing(fn (Order $record) => $record->billingName() ?: '–')
