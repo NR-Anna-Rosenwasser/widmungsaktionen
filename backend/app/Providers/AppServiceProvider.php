@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Services\Payments\PaymentGateway;
+use App\Services\Payments\StripeGateway;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -12,7 +14,7 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        $this->app->bind(PaymentGateway::class, StripeGateway::class);
     }
 
     public function boot(): void

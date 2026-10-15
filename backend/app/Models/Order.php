@@ -89,8 +89,11 @@ class Order extends Model
         ]);
     }
 
+    /**
+     * Personal tracking link, on the shop's own domain if it has one.
+     */
     public function storefrontUrl(): string
     {
-        return rtrim(config('widmungen.storefront_url'), '/')."/{$this->tenant->slug}/bestellung/{$this->token}";
+        return $this->tenant->storefrontUrl("/bestellung/{$this->token}");
     }
 }
