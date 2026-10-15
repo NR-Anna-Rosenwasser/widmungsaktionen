@@ -28,28 +28,24 @@ The workflow can also be started by hand (Actions → Release → Run workflow);
 
 ## 2. First installation on the VPS
 
-Requirements: Docker Engine with the Compose plugin.
+Requirements: Docker Engine with the Compose plugin. The images are public; if a package is ever set to private, log in once with a GitHub token that has only the `read:packages` scope: `docker login ghcr.io`.
 
 ```sh
 # 1. Folder with the stack files (only the docker/ folder is needed)
 mkdir -p /opt/widmungen && cd /opt/widmungen
 # copy docker/compose.yml, docker/.env.example and docker/web/ from the repo here
 
-# 2. Allow the server to pull the private images (one-time).
-#    Create a GitHub token (classic) with only the "read:packages" scope.
-echo "<TOKEN>" | docker login ghcr.io -u <github-username> --password-stdin
-
-# 3. Settings
+# 2. Settings
 cp .env.example .env
 nano .env        # domains, database password, Mailgun SMTP, APP_VERSION
 docker compose pull
 docker compose run --rm app php artisan key:generate --show   # paste the output into APP_KEY in .env
 
-# 4. Start. Migrations run automatically when the app container starts.
+# 3. Start. Migrations run automatically when the app container starts.
 docker compose up -d
 docker compose ps
 
-# 5. First super admin (prompts for name and password)
+# 4. First super admin (prompts for name and password)
 docker compose exec app php artisan users:create-super-admin
 ```
 
