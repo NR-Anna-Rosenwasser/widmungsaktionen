@@ -10,6 +10,8 @@ use App\Models\Order;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\Payments\PaymentGateway;
+use App\Services\Payments\PaymentService;
+use App\Services\Pdf\InvoicePdf;
 use Database\Seeders\DatabaseSeeder;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -83,5 +85,63 @@ class OrderAdminTest extends TestCase
             ->assertHasNoActionErrors();
 
         $this->assertTrue($this->order->fresh()->aktion->is($next));
+    }
+
+    public function test_wrongly_marked_payment_can_be_reverted(): void
+    {
+        Livewire::test(ViewOrder::class, ['record' => $this->order->id])
+            ->callAction('markPaid', ['paid_at' => now()->toDateString()])
+            ->assertActionVisible('revertPayment')
+            ->callAction('revertPayment', ['reason' => 'Falsche Bestellung'])
+            ->assertHasNoActionErrors();
+
+        $order = $this->order->fresh();
+        $this->assertSame(PaymentStatus::Unpaid, $order->payment_status);
+        $this->assertSame(OrderStatus::PendingPayment, $order->status);
+        $this->assertSame('pending', $order->payments()->sole()->status->value);
+
+        // ... and can then be marked paid again.
+        Livewire::test(ViewOrder::class, ['record' => $order->id])
+            ->callAction('markPaid', ['paid_at' => now()->toDateString()]);
+        $this->assertSame(PaymentStatus::Paid, $order->fresh()->payment_status);
+    }
+
+    public function test_online_and_refunded_payments_cannot_be_reverted(): void
+    {
+        $payments = app(PaymentService::class);
+        $payments->markOrderPaid($this->order, now(), auth()->user());
+        $payments->refund($this->order->fresh(), 500, null, auth()->user());
+
+        Livewire::test(ViewOrder::class, ['record' => $this->order->id])
+            ->assertActionHidden('revertPayment');
+    }
+
+    public function test_cancellation_can_be_undone(): void
+    {
+        Livewire::test(ViewOrder::class, ['record' => $this->order->id])
+            ->callAction('cancel', ['reason' => 'Versehen', 'notify' => false])
+            ->assertActionVisible('reopen')
+            ->callAction('reopen')
+            ->assertHasNoActionErrors();
+
+        $order = $this->order->fresh();
+        $this->assertSame(OrderStatus::PendingPayment, $order->status);
+        $this->assertNull($order->cancel_reason);
+        // The invoice is payable again.
+        $this->assertSame('pending', $order->payments()->sole()->status->value);
+    }
+
+    public function test_cancelled_invoice_says_so_and_has_no_payment_slip(): void
+    {
+        app(PaymentService::class)->cancel($this->order, null, notify: false);
+
+        $html = app(InvoicePdf::class)->html($this->order->fresh());
+
+        $this->assertStringContainsString('Diese Bestellung wurde storniert', $html);
+        $this->assertStringNotContainsString('Bitte bezahle', $html);
+        $this->assertStringNotContainsString('data:image/svg+xml;base64', $html);
+        $this->getJson("/api/tenants/{$this->tenant->slug}/orders/{$this->order->token}")
+            ->assertJsonPath('has_invoice', false)
+            ->assertJsonPath('can_pay_online', false);
     }
 }

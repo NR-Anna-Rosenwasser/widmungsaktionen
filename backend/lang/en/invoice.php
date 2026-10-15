@@ -16,4 +16,6 @@ return [
     'aktion' => 'Signing round',
     'questions' => 'Questions? Write to :email.',
     'paid' => 'Already paid, thank you!',
+    'cancelled' => 'This order has been cancelled. There is nothing to pay.',
+    'cancelled_stamp' => 'CANCELLED',
 ];

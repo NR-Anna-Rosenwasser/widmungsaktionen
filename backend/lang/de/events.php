@@ -14,4 +14,6 @@ return [
     'invoice_sent' => 'Rechnung gesendet',
     'reminder_sent' => 'Zahlungserinnerung gesendet',
     'checkout_started' => 'Online-Zahlung gestartet',
+    'payment_reverted' => 'Zahlung zurückgesetzt',
+    'reopened' => 'Stornierung aufgehoben',
 ];

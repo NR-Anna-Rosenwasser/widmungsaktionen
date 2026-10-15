@@ -64,9 +64,42 @@ class ViewOrder extends ViewRecord
                     $this->refreshRecord();
                 }),
 
+            Action::make('reopen')
+                ->label('Stornierung aufheben')
+                ->icon(Heroicon::OutlinedArrowPath)
+                ->color('warning')
+                ->visible(fn () => $payments->canReopen($this->record))
+                ->requiresConfirmation()
+                ->modalDescription(fn () => 'Die Bestellung wird wieder aktiv'
+                    .($this->record->payment_status === PaymentStatus::Unpaid ? ' und wartet wieder auf die Zahlung.' : '.')
+                    .($this->record->aktion->order_deadline->isPast() ? ' Achtung: Der Bestellschluss dieser Aktion ist vorbei. Verschiebe sie allenfalls in eine andere Aktion.' : '')
+                    .' Die Kund*in wird nicht automatisch informiert.')
+                ->action(function () use ($payments) {
+                    $payments->reopen($this->record, auth()->user());
+                    Notification::make()->title('Stornierung aufgehoben')->success()->send();
+                    $this->refreshRecord();
+                }),
+
             ActionGroup::make([
+                Action::make('revertPayment')
+                    ->label('Zahlung zurücksetzen')
+                    ->icon(Heroicon::OutlinedBackward)
+                    ->color('warning')
+                    ->visible(fn () => $payments->revertablePayment($this->record) !== null)
+                    ->requiresConfirmation()
+                    ->modalHeading('Zahlung zurücksetzen?')
+                    ->modalDescription('Für den Fall, dass die falsche Bestellung als bezahlt markiert wurde: Die Zahlung wird wieder als offen geführt. Die Kund*in wird nicht informiert. Hat sie bereits eine «Zahlung erhalten»-Mail bekommen, melde dich am besten persönlich.')
+                    ->schema([
+                        TextInput::make('reason')->label('Grund (optional)')->placeholder('z. B. falsche Bestellung markiert'),
+                    ])
+                    ->action(function (array $data) use ($payments) {
+                        $payments->revertPayment($this->record, auth()->user(), $data['reason'] ?? null);
+                        Notification::make()->title('Zahlung zurückgesetzt')->success()->send();
+                        $this->refreshRecord();
+                    }),
+
                 Action::make('invoice')
-                    ->label('Rechnung (PDF)')
+                    ->label(fn () => $this->record->status === OrderStatus::Cancelled ? 'Rechnung (PDF, storniert)' : 'Rechnung (PDF)')
                     ->icon(Heroicon::OutlinedDocumentText)
                     ->visible(fn () => $this->record->payments()->whereNotNull('reference')->exists())
                     ->action(function (InvoicePdf $invoices) {

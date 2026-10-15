@@ -2,6 +2,7 @@
 
 namespace App\Services\Pdf;
 
+use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentState;
 use App\Models\Order;
@@ -40,6 +41,7 @@ class InvoicePdf
             'reference' => PaymentReference::format($payment->reference),
             'paymentPart' => $this->paymentPart($order, $payment, $locale),
             'envelope' => $order->tenant->setting('print.envelope_mode'),
+            'cancelled' => $order->status === OrderStatus::Cancelled,
         ])->render();
     }
 
