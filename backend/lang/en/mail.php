@@ -52,4 +52,18 @@ return [
         'online' => 'The amount will be credited to your original payment method. This can take a few days.',
         'manual' => 'We’ll transfer the amount to you in the next few days.',
     ],
+    'signed' => [
+        'subject' => 'Your book has been dedicated! (:number)',
+        'intro' => 'Good news: your book was personally dedicated today. ✍️',
+        'next' => 'Next, we’ll pack it and send it off, expected from :date.',
+    ],
+    'shipped' => [
+        'subject' => 'Your book is on its way (:number)',
+        'intro' => 'Your book is on its way to you!',
+        'intro_gift' => 'The book is on its way to :name.',
+        'letter' => 'It comes as a letter, usually within 2–3 working days.',
+        'parcel' => 'It comes as a parcel, usually within 2–3 working days.',
+        'tracking' => 'Tracking number: :number',
+        'invoice_in_parcel' => 'The invoice is in the parcel.',
+    ],
 ];

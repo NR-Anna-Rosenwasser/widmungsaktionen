@@ -7,12 +7,16 @@ use App\Events\OrderCancelled;
 use App\Events\OrderMoved;
 use App\Events\OrderPaid;
 use App\Events\OrderRefunded;
+use App\Events\OrderShipped;
+use App\Events\OrderSigned;
+use App\Jobs\SendSignedMail;
 use App\Events\OrderSubmitted;
 use App\Mail\OrderCancelledMail;
 use App\Mail\OrderConfirmationMail;
 use App\Mail\OrderMail;
 use App\Mail\OrderMovedMail;
 use App\Mail\OrderRefundedMail;
+use App\Mail\OrderShippedMail;
 use App\Mail\PaymentReceivedMail;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Support\Facades\Mail;
@@ -54,6 +58,16 @@ class SendOrderMails
         $this->send(new OrderRefundedMail($event->order, $event->amount));
     }
 
+    public function signed(OrderSigned $event): void
+    {
+        SendSignedMail::dispatch($event->order)->delay(now()->addMinutes(30));
+    }
+
+    public function shipped(OrderShipped $event): void
+    {
+        $this->send(new OrderShippedMail($event->order));
+    }
+
     protected function send(OrderMail $mail): void
     {
         Mail::to($mail->order->email)->queue($mail);
@@ -68,6 +82,8 @@ class SendOrderMails
             OrderMoved::class => 'moved',
             OrderCancelled::class => 'cancelled',
             OrderRefunded::class => 'refunded',
+            OrderSigned::class => 'signed',
+            OrderShipped::class => 'shipped',
         ];
     }
 }

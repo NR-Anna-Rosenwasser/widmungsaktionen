@@ -52,4 +52,18 @@ return [
         'online' => 'Der Betrag wird dir über die ursprüngliche Zahlungsart gutgeschrieben. Das kann einige Tage dauern.',
         'manual' => 'Wir überweisen dir den Betrag in den nächsten Tagen.',
     ],
+    'signed' => [
+        'subject' => 'Dein Buch ist gewidmet! (:number)',
+        'intro' => 'Gute Nachrichten: Dein Buch wurde heute persönlich gewidmet. ✍️',
+        'next' => 'Als Nächstes packen wir es ein und schicken es los, voraussichtlich ab :date.',
+    ],
+    'shipped' => [
+        'subject' => 'Dein Buch ist unterwegs (:number)',
+        'intro' => 'Dein Buch ist auf dem Weg zu dir!',
+        'intro_gift' => 'Das Buch ist auf dem Weg zu :name.',
+        'letter' => 'Es kommt als Brief, in der Regel innert 2–3 Arbeitstagen.',
+        'parcel' => 'Es kommt als Paket, in der Regel innert 2–3 Arbeitstagen.',
+        'tracking' => 'Sendungsnummer: :number',
+        'invoice_in_parcel' => 'Die Rechnung liegt dem Paket bei.',
+    ],
 ];
