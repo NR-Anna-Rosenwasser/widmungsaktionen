@@ -26,13 +26,16 @@ class InvoicePdf
 {
     public function __construct(protected PdfRenderer $renderer) {}
 
-    public function html(Order $order): string
+    /**
+     * View data for one invoice page (also used inside the cover letters PDF).
+     */
+    public function pageData(Order $order): array
     {
         $order->loadMissing('tenant', 'aktion', 'items.book');
         $payment = $this->invoicePayment($order);
         $locale = $order->locale === 'en' ? 'en' : 'de';
 
-        return view('pdf.invoice', [
+        return [
             'order' => $order,
             'tenant' => $order->tenant,
             'payment' => $payment,
@@ -42,7 +45,12 @@ class InvoicePdf
             'paymentPart' => $this->paymentPart($order, $payment, $locale),
             'envelope' => $order->tenant->setting('print.envelope_mode'),
             'cancelled' => $order->status === OrderStatus::Cancelled,
-        ])->render();
+        ];
+    }
+
+    public function html(Order $order): string
+    {
+        return view('pdf.invoice', $this->pageData($order))->render();
     }
 
     public function render(Order $order): string

@@ -34,7 +34,21 @@ class AdminPanelProvider extends PanelProvider
             ->passwordReset()
             ->brandName('Widmungen')
             ->colors([
-                'primary' => Color::hex('#2B3C69'),
+                // Hand-made scale around the brand navy (#2B3C69 = 600, used for buttons);
+                // Color::hex() would normalise it to a much lighter blue.
+                'primary' => [
+                    50 => '#f3f5fa',
+                    100 => '#e6eaf3',
+                    200 => '#c9d1e5',
+                    300 => '#a3b0d1',
+                    400 => '#6f80ad',
+                    500 => '#4a5a85',
+                    600 => '#2b3c69',
+                    700 => '#24335a',
+                    800 => '#1e2a4a',
+                    900 => '#18223b',
+                    950 => '#10172a',
+                ],
                 'gray' => Color::Slate,
             ])
             ->tenant(Tenant::class, slugAttribute: 'slug')

@@ -285,16 +285,17 @@ class OrderController extends Controller
         foreach (array_values($copies) as $index => $copy) {
             $signatureOnly = (bool) ($copy['signature_only'] ?? false);
             $wish = $signatureOnly ? null : (trim((string) ($copy['wish'] ?? '')) ?: null);
+            $recipient = $signatureOnly ? null : (trim((string) ($copy['recipient_name'] ?? '')) ?: null);
 
             $order->items()->create([
                 'book_id' => $copy['book_id'],
                 'unit_price' => 0,
                 'position' => $index + 1,
                 'signature_only' => $signatureOnly,
-                'recipient_name' => $signatureOnly ? null : (trim((string) ($copy['recipient_name'] ?? '')) ?: null),
+                'recipient_name' => $recipient,
                 'wish' => $wish,
-                // Plain signatures need no review.
-                'moderation_status' => $wish === null ? ModerationStatus::Approved : ModerationStatus::Pending,
+                // Anything customers wrote gets reviewed; plain signatures don't need it.
+                'moderation_status' => $wish === null && $recipient === null ? ModerationStatus::Approved : ModerationStatus::Pending,
             ]);
         }
 

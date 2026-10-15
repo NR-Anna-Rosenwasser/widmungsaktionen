@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Aktions\Tables;
 
 use App\Enums\AktionStatus;
 use App\Enums\OrderStatus;
+use App\Filament\Resources\Aktions\Pages\EditAktion;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -31,6 +32,7 @@ class AktionsTable
                 TextColumn::make('submitted_orders_count')->label('Bestellungen'),
             ])
             ->recordActions([
+                EditAktion::prepareAction()->iconButton()->tooltip('Widmen vorbereiten'),
                 EditAction::make(),
             ]);
     }

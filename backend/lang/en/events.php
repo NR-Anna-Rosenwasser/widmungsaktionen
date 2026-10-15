@@ -16,4 +16,9 @@ return [
     'checkout_started' => 'Online payment started',
     'payment_reverted' => 'Payment reverted',
     'reopened' => 'Cancellation undone',
+    'moderation_approved' => 'Dedication approved',
+    'moderation_flagged' => 'Dedication: query',
+    'stacked' => 'Stack number assigned',
+    'item_signed' => 'Book signed',
+    'item_unsigned' => 'Signing undone',
 ];

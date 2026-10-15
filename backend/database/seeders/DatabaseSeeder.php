@@ -57,7 +57,7 @@ class DatabaseSeeder extends Seeder
         $rosa = $anna->books()->create([
             'author_name' => 'Anna Rosenwasser',
             'title' => 'Rosa Buch',
-            'subtitle' => 'Lesbisch, schwul, bi, trans, inter und queer in der Schweiz',
+            'subtitle' => 'Queere Texte von Herzen',
             'price' => 2800,
             'weight_grams' => 400,
             'sort' => 2,
@@ -81,5 +81,10 @@ class DatabaseSeeder extends Seeder
             'signing_date' => now()->addWeeks(13)->toDateString(),
             'estimated_shipping_date' => now()->addWeeks(14)->toDateString(),
         ])->books()->attach([$herz->id => ['sort' => 1]]);
+
+        // Demo orders for local development only; tests need a predictable database.
+        if (app()->environment('local')) {
+            $this->call(DemoOrdersSeeder::class);
+        }
     }
 }

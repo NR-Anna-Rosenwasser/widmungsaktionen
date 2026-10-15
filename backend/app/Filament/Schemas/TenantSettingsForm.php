@@ -11,6 +11,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Illuminate\Support\Str;
 
@@ -171,6 +172,41 @@ class TenantSettingsForm
                 ->columns(3)
                 ->minItems(1)
                 ->reorderable(false),
+        ];
+    }
+
+    public static function print(): array
+    {
+        $custom = fn (Get $get) => $get('settings.print.label_preset') === 'custom';
+
+        return [
+            Select::make('settings.print.envelope_mode')
+                ->label('Couverts')
+                ->options([
+                    'labels' => 'Normale Couverts, Adressetiketten',
+                    'window_right' => 'Fenstercouverts, Fenster rechts (Adresse im Begleitbrief)',
+                    'window_left' => 'Fenstercouverts, Fenster links (Adresse im Begleitbrief)',
+                    'direct_print' => 'Couverts C5 direkt bedrucken',
+                ])
+                ->helperText('Pakete bekommen immer eine Etikette.')
+                ->required(),
+            Select::make('settings.print.label_preset')
+                ->label('Etikettenbogen')
+                ->options(collect(config('widmungen.label_presets'))->map(fn ($preset) => $preset['name'])->put('custom', 'Eigenes Format …'))
+                ->live()
+                ->required(),
+            Grid::make(4)->visible($custom)->schema([
+                TextInput::make('settings.print.label_custom.cols')->label('Spalten')->numeric()->minValue(1)->required($custom),
+                TextInput::make('settings.print.label_custom.rows')->label('Zeilen')->numeric()->minValue(1)->required($custom),
+                TextInput::make('settings.print.label_custom.width')->label('Breite (mm)')->numeric()->required($custom),
+                TextInput::make('settings.print.label_custom.height')->label('Höhe (mm)')->numeric()->required($custom),
+                TextInput::make('settings.print.label_custom.top')->label('Rand oben (mm)')->numeric()->required($custom),
+                TextInput::make('settings.print.label_custom.left')->label('Rand links (mm)')->numeric()->required($custom),
+                TextInput::make('settings.print.label_custom.gap_x')->label('Abstand horizontal (mm)')->numeric()->default(0),
+                TextInput::make('settings.print.label_custom.gap_y')->label('Abstand vertikal (mm)')->numeric()->default(0),
+            ]),
+            Toggle::make('settings.print.letter_qr')
+                ->label('QR-Code zur Bestellseite auf Begleitbriefen'),
         ];
     }
 
