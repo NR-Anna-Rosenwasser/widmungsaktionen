@@ -79,6 +79,24 @@ class Order extends Model
             : $this->billingName();
     }
 
+    /**
+     * Where the parcel goes: the gift address or the billing address.
+     *
+     * @return array<int, string>
+     */
+    public function shippingAddressLines(): array
+    {
+        $prefix = $this->is_gift ? 'shipping' : 'billing';
+
+        return array_values(array_filter([
+            $this->{"{$prefix}_company"},
+            trim($this->{"{$prefix}_first_name"}.' '.$this->{"{$prefix}_last_name"}),
+            $this->{"{$prefix}_street"},
+            trim($this->{"{$prefix}_postal_code"}.' '.$this->{"{$prefix}_town"}),
+            ($this->{"{$prefix}_country"} ?? 'CH') === 'LI' ? 'Liechtenstein' : null,
+        ]));
+    }
+
     public function log(string $type, array $data = [], bool $public = false, ?User $user = null): OrderEvent
     {
         return $this->events()->create([

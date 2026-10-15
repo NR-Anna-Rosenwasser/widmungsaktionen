@@ -9,6 +9,15 @@ return [
     // Slugs that would collide with storefront routes.
     'reserved_slugs' => ['new', 'login', 'logout', 'password-reset', 'horizon', 'livewire', 'filament', 'storage', 'webhooks', 'api', 'admin', 'bestellen', 'bestellung', 'order', 'en', 'de', '_nuxt', 'fonts', 'datenschutz', 'impressum'],
 
+    // A4 label sheets (mm). Dimensions from the manufacturers' specs; please
+    // measure a sheet before the first big print run.
+    'label_presets' => [
+        'avery_3475' => ['name' => 'Avery Zweckform 3475 (70 × 36 mm, 24 pro Blatt)', 'cols' => 3, 'rows' => 8, 'width' => 70, 'height' => 36, 'top' => 4.5, 'left' => 0, 'gap_x' => 0, 'gap_y' => 0],
+        'avery_3424' => ['name' => 'Avery Zweckform 3424 (105 × 48 mm, 12 pro Blatt)', 'cols' => 2, 'rows' => 6, 'width' => 105, 'height' => 48, 'top' => 4.5, 'left' => 0, 'gap_x' => 0, 'gap_y' => 0],
+        'avery_3425' => ['name' => 'Avery Zweckform 3425 (105 × 57 mm, 10 pro Blatt)', 'cols' => 2, 'rows' => 5, 'width' => 105, 'height' => 57, 'top' => 6, 'left' => 0, 'gap_x' => 0, 'gap_y' => 0],
+        'avery_l7163' => ['name' => 'Avery L7163 (99,1 × 38,1 mm, 14 pro Blatt)', 'cols' => 2, 'rows' => 7, 'width' => 99.1, 'height' => 38.1, 'top' => 15.1, 'left' => 4.7, 'gap_x' => 2.5, 'gap_y' => 0],
+    ],
+
     // Defaults for Tenant::$settings; each tenant can override them.
     'tenant_defaults' => [
         'payment_methods' => ['online', 'invoice_advance', 'invoice_in_parcel'],
@@ -26,7 +35,9 @@ return [
         'checkpoint_interval' => 5,
         'print' => [
             'label_preset' => 'avery_3475',
-            'label_custom' => null,
+            'label_custom' => ['cols' => 3, 'rows' => 8, 'width' => 70, 'height' => 36, 'top' => 4.5, 'left' => 0, 'gap_x' => 0, 'gap_y' => 0],
+            // Letters to customers carry a QR code linking to the order page.
+            'letter_qr' => true,
             'envelope_mode' => 'labels',
         ],
         'legal' => [
