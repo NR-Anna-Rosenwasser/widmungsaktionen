@@ -19,6 +19,8 @@ ddev artisan migrate:fresh --seed
 ddev artisan storage:link
 ```
 
+Locally, the seeder also creates about 40 demo orders for the «Herbst-Widmungsaktion 2026» in every payment method and status before signing day (paid, unpaid, invoice in parcel, reminded, refunded, cancelled, abandoned drafts), some with gifts and dedication wishes still to be moderated. No emails are sent. To add them again: `ddev artisan db:seed --class=DemoOrdersSeeder`.
+
 `ddev start` also runs the Nuxt dev server, Horizon (queues) and the scheduler as background processes inside the web container.
 
 | URL | What |
