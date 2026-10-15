@@ -1,0 +1,110 @@
+# Production stack. See docs/DEPLOYMENT.md.
+# Images are built by GitHub Actions on every published release (GHCR).
+
+x-backend: &backend
+  image: ghcr.io/nr-anna-rosenwasser/widmungsaktionen-backend:${APP_VERSION:-latest}
+  env_file: .env
+  restart: unless-stopped
+  volumes:
+    - uploads:/var/www/html/storage/app/public
+  depends_on:
+    postgres: { condition: service_healthy }
+    redis: { condition: service_healthy }
+
+services:
+  # Internal router; the only port exposed to the host (CloudPanel proxies to it).
+  web:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${HTTP_PORT:-8080}:80"
+    environment:
+      ADMIN_DOMAIN: ${ADMIN_DOMAIN}
+    volumes:
+      - ./web/default.conf.template:/etc/nginx/templates/default.conf.template:ro
+    depends_on: [app, frontend]
+
+  app:
+    <<: *backend
+    environment:
+      # Migrations, storage link and caches on start (serversideup image).
+      AUTORUN_ENABLED: "true"
+      AUTORUN_LARAVEL_MIGRATION_ISOLATION: "true"
+
+  horizon:
+    <<: *backend
+    command: ["php", "/var/www/html/artisan", "horizon"]
+    stop_signal: SIGTERM
+    healthcheck:
+      test: ["CMD", "healthcheck-horizon"]
+      start_period: 15s
+
+  scheduler:
+    <<: *backend
+    command: ["php", "/var/www/html/artisan", "schedule:work"]
+    stop_signal: SIGTERM
+    healthcheck:
+      test: ["CMD", "healthcheck-schedule"]
+      start_period: 15s
+
+  frontend:
+    image: ghcr.io/nr-anna-rosenwasser/widmungsaktionen-frontend:${APP_VERSION:-latest}
+    restart: unless-stopped
+    environment:
+      NUXT_API_INTERNAL_URL: http://app:8080
+      NUXT_PUBLIC_UMAMI_SRC: ${UMAMI_SRC:-}
+      NUXT_PUBLIC_UMAMI_WEBSITE_ID: ${UMAMI_WEBSITE_ID:-}
+
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}"]
+      interval: 10s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      retries: 5
+
+  gotenberg:
+    image: gotenberg/gotenberg:8
+    restart: unless-stopped
+
+  backup:
+    image: ghcr.io/nr-anna-rosenwasser/widmungsaktionen-backup:${APP_VERSION:-latest}
+    restart: unless-stopped
+    environment:
+      TZ: Europe/Zurich
+      PGHOST: postgres
+      PGDATABASE: ${DB_DATABASE}
+      PGUSER: ${DB_USERNAME}
+      PGPASSWORD: ${DB_PASSWORD}
+      BACKUP_SCHEDULE: ${BACKUP_SCHEDULE:-30 2 * * *}
+      BACKUP_KEEP_DAILY: ${BACKUP_KEEP_DAILY:-14}
+      BACKUP_KEEP_WEEKLY: ${BACKUP_KEEP_WEEKLY:-8}
+      RCLONE_REMOTE: ${RCLONE_REMOTE:-}
+    volumes:
+      - ${BACKUP_PATH:-./backups}:/backups
+      - uploads:/uploads:ro
+      - ./rclone:/config:ro
+    depends_on:
+      postgres: { condition: service_healthy }
+
+volumes:
+  postgres:
+  redis:
+  uploads:

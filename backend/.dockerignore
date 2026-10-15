@@ -1,0 +1,17 @@
+.env
+.env.*
+!.env.example
+vendor
+node_modules
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/app/public/*
+storage/app/private/*
+public/storage
+public/css/filament
+public/js/filament
+public/fonts/filament
+tests
+.phpunit.cache

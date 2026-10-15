@@ -204,7 +204,7 @@ Every email links to the tracking page.
 
 - **Newsletter**: on opt-in, Laravel sends a queued, HMAC-signed webhook to a per-tenant URL (n8n → Notifuse).
 - **PDFs**: Blade templates rendered by **Gotenberg** (Chromium), merged by Gotenberg.
-- **Monitoring**: Laravel Horizon (queues). Laravel Nightwatch is optional via env.
+- **Monitoring**: Laravel Horizon (queues). Error tracking and business monitoring are on the backlog (issues #4, #5).
 
 ## 11. Privacy & retention
 

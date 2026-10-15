@@ -1,0 +1,62 @@
+# Internal router. The host's reverse proxy (CloudPanel) forwards every
+# domain of the app to this container; it only splits by host and path.
+#   admin domain           → Laravel (admin panel, webhooks)
+#   storefront /api, /storage → Laravel
+#   storefront everything else → Nuxt
+
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+# Keep the scheme the outer proxy saw (https), else what we got.
+map $http_x_forwarded_proto $forwarded_proto {
+    default $http_x_forwarded_proto;
+    ''      $scheme;
+}
+
+# Resolve container names at request time via Docker's DNS, so recreated
+# containers (new IPs after an update) are found without restarting nginx.
+resolver 127.0.0.11 valid=10s ipv6=off;
+
+proxy_http_version 1.1;
+proxy_set_header Host $host;
+proxy_set_header X-Forwarded-Host $host;
+proxy_set_header X-Forwarded-Proto $forwarded_proto;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header Upgrade $http_upgrade;
+proxy_set_header Connection $connection_upgrade;
+proxy_read_timeout 120s;
+
+server {
+    listen 80;
+    server_name ${ADMIN_DOMAIN};
+    client_max_body_size 20m;
+
+    location / {
+        set $laravel http://app:8080;
+        proxy_pass $laravel;
+    }
+}
+
+server {
+    listen 80 default_server;
+    server_name _;
+    client_max_body_size 2m;
+
+    set $laravel http://app:8080;
+    set $nuxt http://frontend:3000;
+
+    location /api/ {
+        proxy_pass $laravel;
+    }
+
+    location /storage/ {
+        proxy_pass $laravel;
+    }
+
+    location / {
+        proxy_pass $nuxt;
+    }
+}

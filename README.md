@@ -6,6 +6,7 @@ Order signed, personally dedicated books during recurring signing rounds ("Widmu
 - `frontend/`: Nuxt (public storefront)
 - `docs/SPEC.md`: specification and phases
 - `.ddev/`: local development environment
+- `docker/`: production images and Compose stack, see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
 
 ## Local development
 
