@@ -183,7 +183,7 @@ class PaymentService
             ]), $by);
         });
 
-        OrderRefunded::dispatch($order->refresh());
+        OrderRefunded::dispatch($order->refresh(), $amount);
     }
 
     /**
@@ -191,21 +191,21 @@ class PaymentService
      */
     public function syncStripeRefunds(string $paymentIntentId, int $amountRefunded): void
     {
-        $order = DB::transaction(function () use ($paymentIntentId, $amountRefunded) {
+        [$order, $missing] = DB::transaction(function () use ($paymentIntentId, $amountRefunded) {
             $payment = Payment::query()->where('stripe_payment_intent_id', $paymentIntentId)->lockForUpdate()->first();
             $missing = $payment ? $amountRefunded - $payment->refunded_amount : 0;
 
             if ($missing <= 0) {
-                return null;
+                return [null, 0];
             }
 
             $this->bookRefund($payment, $missing, ['source' => 'stripe_dashboard']);
 
-            return $payment->order;
+            return [$payment->order, $missing];
         });
 
         if ($order) {
-            OrderRefunded::dispatch($order);
+            OrderRefunded::dispatch($order, $missing);
         }
     }
 

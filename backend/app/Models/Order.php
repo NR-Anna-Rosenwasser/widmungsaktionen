@@ -24,6 +24,7 @@ class Order extends Model
             'newsletter_opt_in' => 'boolean',
             'reminders_opt_out' => 'boolean',
             'abandoned_reminder_sent_at' => 'datetime',
+            'payment_reminder_sent_at' => 'datetime',
             'submitted_at' => 'datetime',
             'cancelled_at' => 'datetime',
         ];

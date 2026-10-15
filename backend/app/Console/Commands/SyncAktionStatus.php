@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Enums\AktionStatus;
 use App\Models\Aktion;
+use App\Services\UnpaidOrders;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -13,12 +14,17 @@ use Illuminate\Support\Facades\DB;
 #[Description('Close Aktionen past their deadline and open scheduled ones')]
 class SyncAktionStatus extends Command
 {
-    public function handle(): void
+    public function handle(UnpaidOrders $unpaid): void
     {
-        $closed = Aktion::query()
+        $closed = 0;
+        Aktion::query()
             ->where('status', AktionStatus::Open)
             ->where('order_deadline', '<=', now())
-            ->update(['status' => AktionStatus::Closed]);
+            ->each(function (Aktion $aktion) use ($unpaid, &$closed) {
+                $aktion->update(['status' => AktionStatus::Closed]);
+                $unpaid->handleClosedAktion($aktion);
+                $closed++;
+            });
 
         $opened = 0;
         Aktion::query()
