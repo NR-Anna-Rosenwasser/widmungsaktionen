@@ -10,6 +10,7 @@ use App\Filament\Resources\Orders\OrderResource;
 use App\Models\Aktion;
 use App\Models\Order;
 use App\Services\Payments\PaymentService;
+use App\Services\Pdf\InvoicePdf;
 use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -64,6 +65,16 @@ class ViewOrder extends ViewRecord
                 }),
 
             ActionGroup::make([
+                Action::make('invoice')
+                    ->label('Rechnung (PDF)')
+                    ->icon(Heroicon::OutlinedDocumentText)
+                    ->visible(fn () => $this->record->payments()->whereNotNull('reference')->exists())
+                    ->action(function (InvoicePdf $invoices) {
+                        $pdf = $invoices->render($this->record);
+
+                        return response()->streamDownload(fn () => print ($pdf), $invoices->filename($this->record), ['Content-Type' => 'application/pdf']);
+                    }),
+
                 Action::make('refund')
                     ->label('Rückerstattung')
                     ->icon(Heroicon::OutlinedArrowUturnLeft)

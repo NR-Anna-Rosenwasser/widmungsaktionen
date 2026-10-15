@@ -17,6 +17,7 @@ Route::middleware('throttle:storefront')->group(function () {
     Route::patch('tenants/{tenant:slug}/orders/{token}', [OrderController::class, 'update']);
     Route::post('tenants/{tenant:slug}/orders/{token}/submit', [OrderController::class, 'submit']);
     Route::post('tenants/{tenant:slug}/orders/{token}/pay', [OrderController::class, 'pay']);
+    Route::get('tenants/{tenant:slug}/orders/{token}/invoice', [OrderController::class, 'invoice']);
 });
 
 Route::post('webhooks/stripe/{tenant:slug}', StripeWebhookController::class)->name('webhooks.stripe');

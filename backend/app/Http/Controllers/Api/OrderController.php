@@ -13,6 +13,8 @@ use App\Models\Tenant;
 use App\Events\OrderSubmitted;
 use App\Services\OrderPricer;
 use App\Services\Payments\PaymentService;
+use App\Services\Pdf\InvoicePdf;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 use Illuminate\Http\JsonResponse;
@@ -174,6 +176,20 @@ class OrderController extends Controller
             Log::error('Could not start checkout', ['order' => $order->id, 'error' => $e->getMessage()]);
             abort(502, 'Die Online-Zahlung ist gerade nicht verfügbar. Bitte versuch es später nochmals.');
         }
+    }
+
+    /**
+     * The QR invoice as PDF (invoice payment methods only).
+     */
+    public function invoice(Tenant $tenant, string $token, InvoicePdf $invoices): Response
+    {
+        $order = $this->findOrder($tenant, $token);
+        abort_unless($order->number && in_array($order->payment_method, [PaymentMethod::InvoiceAdvance, PaymentMethod::InvoiceInParcel], true), 404);
+
+        return response($invoices->render($order), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="'.$invoices->filename($order).'"',
+        ]);
     }
 
     /**
