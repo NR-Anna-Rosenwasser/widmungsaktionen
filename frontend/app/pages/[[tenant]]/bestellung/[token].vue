@@ -26,6 +26,7 @@ if (order.value?.status === 'draft') {
 
 const isNew = computed(() => route.query.neu === '1')
 const returnedFromCheckout = computed(() => route.query.bezahlt === '1')
+const isCancelled = computed(() => order.value?.status === 'cancelled')
 const isPaid = computed(() => !!order.value && order.value.payment_status !== 'unpaid')
 
 // Stripe sends the customer back before its webhook may have arrived: poll briefly.
@@ -113,6 +114,10 @@ useSeoMeta({ title: () => `${t('tracking.title')} ${order.value?.number ?? ''}`,
       {{ $t('tracking.title') }}
     </h2>
 
+    <p v-if="isCancelled" class="mt-8 rounded-sm border-2 border-danger p-4 font-semibold text-danger" role="status">
+      {{ $t('tracking.cancelledNotice', { email: storefront?.tenant.contact_email ?? '' }) }}
+    </p>
+
     <!-- Timeline -->
     <ol class="mt-10 space-y-0">
       <li v-for="(step, i) in steps" :key="step.key" class="relative flex gap-5 pb-8 last:pb-0">
@@ -137,10 +142,10 @@ useSeoMeta({ title: () => `${t('tracking.title')} ${order.value?.number ?? ''}`,
           <p v-if="step.done && step.at" class="text-sm text-navy-soft">
             {{ formatDate(step.at, locale) }}
           </p>
-          <p v-else-if="!step.done && step.key === 'paid' && order.payment_method" class="text-sm text-navy-soft">
+          <p v-else-if="!step.done && step.key === 'paid' && order.payment_method && !isCancelled" class="text-sm text-navy-soft">
             {{ $t(`tracking.paymentPending.${order.payment_method}`, { date: formatDate(order.aktion.order_deadline, locale) }) }}
           </p>
-          <p v-else-if="!step.done" class="text-sm text-navy-soft">
+          <p v-else-if="!step.done && !isCancelled" class="text-sm text-navy-soft">
             {{ expectedFor(step.key) }}
           </p>
           <p v-if="step.key === 'shipped' && order.shipments[0]?.tracking_number" class="text-sm">

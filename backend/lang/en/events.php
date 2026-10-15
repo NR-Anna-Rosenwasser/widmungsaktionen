@@ -14,4 +14,6 @@ return [
     'invoice_sent' => 'Invoice sent',
     'reminder_sent' => 'Payment reminder sent',
     'checkout_started' => 'Online payment started',
+    'payment_reverted' => 'Payment reverted',
+    'reopened' => 'Cancellation undone',
 ];

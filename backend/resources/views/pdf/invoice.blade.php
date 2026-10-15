@@ -36,6 +36,8 @@
     .muted { color: #4a5a85; font-size: 9pt; }
     .facts { margin-top: 4mm; font-size: 9pt; color: #4a5a85; }
     .paid { margin-top: 8mm; font-family: 'Barlow', Arial, sans-serif; font-weight: 700; font-size: 14pt; color: #b8668f; }
+    .cancelled { margin-top: 8mm; padding: 4mm 5mm; border: 1.5pt solid #a8324a; border-radius: 1mm; font-family: 'Barlow', Arial, sans-serif; font-weight: 700; font-size: 13pt; color: #a8324a; }
+    .cancelled-stamp { position: absolute; bottom: 40mm; left: 0; width: 210mm; text-align: center; font-family: 'Barlow', Arial, sans-serif; font-weight: 700; font-size: 44pt; letter-spacing: 0.08em; color: rgba(168, 50, 74, 0.18); transform: rotate(-8deg); }
     .payment-part { position: absolute; bottom: 0; left: 0; width: 210mm; height: 105mm; }
     .accent { position: absolute; top: 0; left: 0; width: 210mm; height: 5mm; background: #D989B2; }
 </style>
@@ -58,7 +60,9 @@
 
         <h1>{{ $t('title', ['number' => $order->number]) }}</h1>
         <p>{{ $t('greeting', ['name' => $order->billing_first_name]) }}</p>
-        <p>{{ $t($payment->method->value === 'invoice_advance' ? 'intro_advance' : 'intro_parcel', ['date' => $date($dueDate)]) }}</p>
+        @unless ($cancelled)
+            <p>{{ $t($payment->method->value === 'invoice_advance' ? 'intro_advance' : 'intro_parcel', ['date' => $date($dueDate)]) }}</p>
+        @endunless
 
         <table class="items">
             <thead>
@@ -87,12 +91,16 @@
             @if ($tenant->contact_email)<br>{{ $t('questions', ['email' => $tenant->contact_email]) }}@endif
         </div>
 
-        @if ($payment->status->value === 'paid')
+        @if ($cancelled)
+            <div class="cancelled">{{ $t('cancelled') }}</div>
+        @elseif ($payment->status->value === 'paid')
             <div class="paid">{{ $t('paid') }}</div>
         @endif
     </div>
 
-    @if ($payment->status->value !== 'paid')
+    @if ($cancelled)
+        <div class="cancelled-stamp">{{ $t('cancelled_stamp') }}</div>
+    @elseif ($payment->status->value !== 'paid')
         <div class="payment-part">{!! $paymentPart !!}</div>
     @endif
 </div>

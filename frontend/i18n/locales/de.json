@@ -194,7 +194,8 @@
     "paymentProcessing": "Danke! Deine Zahlung wird gerade bestätigt. Das dauert meist nur ein paar Sekunden.",
     "paymentConfirmed": "Zahlung erhalten, danke! 💗",
     "paymentFailed": "Die Online-Zahlung ist gerade nicht verfügbar. Bitte versuch es später nochmals.",
-    "invoice": "Rechnung herunterladen (PDF)"
+    "invoice": "Rechnung herunterladen (PDF)",
+    "cancelledNotice": "Diese Bestellung wurde storniert. Bei Fragen erreichst du uns unter {email}."
   },
   "consent": {
     "title": "Darf’s ein Keks sein? 🍪",

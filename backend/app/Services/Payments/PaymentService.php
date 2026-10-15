@@ -236,4 +236,84 @@ class PaymentService
             OrderCancelled::dispatch($order);
         }
     }
+
+    /**
+     * The manually recorded payment that can still be undone, if any:
+     * bank payments only (online payments are refunded instead), nothing refunded yet.
+     */
+    public function revertablePayment(Order $order): ?Payment
+    {
+        return $order->payments()
+            ->where('status', PaymentState::Paid)
+            ->where('method', '!=', PaymentMethod::Online)
+            ->where('refunded_amount', 0)
+            ->latest('paid_at')
+            ->first();
+    }
+
+    /**
+     * Undo "mark as paid", e.g. when the wrong order was marked.
+     */
+    public function revertPayment(Order $order, User $by, ?string $reason = null): void
+    {
+        $payment = $this->revertablePayment($order)
+            ?? throw new RuntimeException('Diese Zahlung kann nicht zurückgesetzt werden.');
+
+        DB::transaction(function () use ($order, $payment, $by, $reason) {
+            $payment->update([
+                'status' => PaymentState::Pending,
+                'paid_at' => null,
+                'meta' => array_merge($payment->meta ?? [], ['reverted_at' => now()->toIso8601String(), 'reverted_by' => $by->id]),
+            ]);
+
+            $order->payment_status = PaymentStatus::Unpaid;
+            // Invoice-in-parcel orders are confirmed without payment, all others wait for it again.
+            if ($order->status === OrderStatus::Confirmed && $order->payment_method !== PaymentMethod::InvoiceInParcel) {
+                $order->status = OrderStatus::PendingPayment;
+            }
+            $order->save();
+
+            $order->log('payment_reverted', array_filter(['amount' => $payment->amount, 'reason' => $reason]), user: $by);
+        });
+    }
+
+    public function canReopen(Order $order): bool
+    {
+        return $order->status === OrderStatus::Cancelled
+            && ! in_array($order->payment_status, [PaymentStatus::Refunded, PaymentStatus::PartiallyRefunded], true);
+    }
+
+    /**
+     * Undo a cancellation. The order goes back to where it was before.
+     */
+    public function reopen(Order $order, User $by): void
+    {
+        if (! $this->canReopen($order)) {
+            throw new RuntimeException('Diese Bestellung kann nicht wiederhergestellt werden.');
+        }
+
+        DB::transaction(function () use ($order, $by) {
+            $paid = $order->payment_status === PaymentStatus::Paid;
+
+            if (! $paid && $order->payment_method !== PaymentMethod::Online) {
+                // Reactivate the invoice so it can be paid (and printed) again.
+                $order->payments()
+                    ->where('status', PaymentState::Cancelled)
+                    ->whereNotNull('reference')
+                    ->latest()
+                    ->first()
+                    ?->update(['status' => PaymentState::Pending]);
+            }
+
+            $order->update([
+                'status' => $paid || $order->payment_method === PaymentMethod::InvoiceInParcel
+                    ? OrderStatus::Confirmed
+                    : OrderStatus::PendingPayment,
+                'cancelled_at' => null,
+                'cancel_reason' => null,
+            ]);
+
+            $order->log('reopened', public: true, user: $by);
+        });
+    }
 }

@@ -194,7 +194,8 @@
     "paymentProcessing": "Thanks! We’re confirming your payment, this usually takes just a few seconds.",
     "paymentConfirmed": "Payment received, thank you! 💗",
     "paymentFailed": "Online payment isn’t available right now. Please try again later.",
-    "invoice": "Download invoice (PDF)"
+    "invoice": "Download invoice (PDF)",
+    "cancelledNotice": "This order has been cancelled. Questions? Write to {email}."
   },
   "consent": {
     "title": "Fancy a cookie? 🍪",

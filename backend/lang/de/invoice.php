@@ -16,4 +16,6 @@ return [
     'aktion' => 'Widmungsaktion',
     'questions' => 'Fragen? Schreib uns an :email.',
     'paid' => 'Bereits bezahlt, danke!',
+    'cancelled' => 'Diese Bestellung wurde storniert. Du musst nichts bezahlen.',
+    'cancelled_stamp' => 'STORNIERT',
 ];
