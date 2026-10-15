@@ -1,0 +1,197 @@
+@import 'tailwindcss';
+
+/* Self-hosted fonts (bundled from @fontsource, no third-party requests). */
+@import '@fontsource/barlow/500.css';
+@import '@fontsource/barlow/600.css';
+@import '@fontsource/barlow/700.css';
+@import '@fontsource/hanken-grotesk/400.css';
+@import '@fontsource/hanken-grotesk/400-italic.css';
+@import '@fontsource/hanken-grotesk/500.css';
+@import '@fontsource/hanken-grotesk/600.css';
+
+@theme {
+  --color-navy: #2b3c69;
+  --color-navy-soft: #4a5a85;
+  --color-rose: #d989b2;
+  --color-rose-dark: #b8668f;
+  --color-blush: #eec6d8;
+  --color-blush-light: #f8e8ef;
+  --color-ink: #2b3c69;
+  --color-danger: #a8324a;
+
+  --font-display: 'Barlow', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif;
+
+  --radius-sm: 2px;
+  --radius: 3px;
+  --radius-md: 4px;
+}
+
+@layer base {
+  html {
+    color: var(--color-ink);
+    background: white;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: 1.0625rem;
+    line-height: 1.6;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+  }
+
+  ::selection {
+    background: var(--color-blush);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-rose);
+    outline-offset: 3px;
+  }
+}
+
+@layer components {
+  /* Underlined text link with arrow, as on the book landing page. */
+  .arrow-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    font-family: var(--font-display);
+    font-weight: 600;
+    padding-bottom: 0.15em;
+    border-bottom: 2px solid currentColor;
+    transition: gap 0.15s ease;
+  }
+  .arrow-link:hover {
+    gap: 0.75em;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6em;
+    border-radius: var(--radius);
+    padding: 0.8em 1.4em;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.0625rem;
+    transition: background-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+  }
+  .btn:active {
+    transform: translateY(1px);
+  }
+  .btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .btn-primary {
+    background: var(--color-navy);
+    color: white;
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--color-navy-soft);
+  }
+  .btn-secondary {
+    background: transparent;
+    color: var(--color-navy);
+    box-shadow: inset 0 0 0 2px var(--color-navy);
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background: var(--color-blush-light);
+  }
+
+  .field-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+  }
+  .field-input {
+    width: 100%;
+    border-radius: var(--radius);
+    border: 2px solid color-mix(in srgb, var(--color-navy) 25%, white);
+    background: white;
+    padding: 0.7rem 0.9rem;
+    font-size: 1.0625rem;
+    transition: border-color 0.15s ease;
+  }
+  .field-input:focus {
+    outline: none;
+    border-color: var(--color-navy);
+  }
+  .field-input[aria-invalid='true'] {
+    border-color: var(--color-danger);
+  }
+  .field-error {
+    color: var(--color-danger);
+    font-size: 0.9rem;
+    margin-top: 0.3rem;
+  }
+  .field-hint {
+    color: var(--color-navy-soft);
+    font-size: 0.9rem;
+    margin-top: 0.3rem;
+  }
+
+  .card {
+    border-radius: var(--radius-md);
+    background: var(--color-blush-light);
+    padding: 1.5rem;
+  }
+}
+
+/* Page and step transitions */
+.page-enter-active,
+.page-leave-active,
+.step-enter-active,
+.step-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.page-enter-from,
+.page-leave-to {
+  opacity: 0;
+}
+.step-enter-from {
+  opacity: 0;
+  transform: translateY(12px);
+}
+.step-leave-to {
+  opacity: 0;
+  transform: translateY(-12px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-enter-active,
+  .page-leave-active,
+  .step-enter-active,
+  .step-leave-active {
+    transition: none;
+  }
+}
+
+/* Cookie consent in brand colours */
+#cc-main {
+  --cc-font-family: var(--font-sans);
+  --cc-modal-border-radius: var(--radius-md);
+  --cc-btn-border-radius: var(--radius);
+  --cc-primary-color: var(--color-navy);
+  --cc-secondary-color: var(--color-navy-soft);
+  --cc-btn-primary-bg: var(--color-navy);
+  --cc-btn-primary-border-color: var(--color-navy);
+  --cc-btn-primary-hover-bg: var(--color-navy-soft);
+  --cc-btn-primary-hover-border-color: var(--color-navy-soft);
+  --cc-btn-secondary-bg: var(--color-blush-light);
+  --cc-btn-secondary-border-color: var(--color-blush-light);
+  --cc-btn-secondary-hover-bg: var(--color-blush);
+  --cc-btn-secondary-hover-border-color: var(--color-blush);
+  --cc-toggle-on-bg: var(--color-navy);
+  --cc-cookie-category-block-bg: var(--color-blush-light);
+}
