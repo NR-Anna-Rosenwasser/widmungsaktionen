@@ -222,7 +222,7 @@ Every email links to the tracking page.
   - colours `#2B3C69` (navy), `#D989B2` (pink), `#EEC6D8` (light pink), white
   - fonts: Barlow (headings), Hanken Grotesk (body), self-hosted
   - small radius (~2–4 px), lots of whitespace
-  - underlined arrow links and curved-text motifs, as in `docs/brand/Frame 1.png`
+  - underlined arrow links and curved-text motifs, as on the landing page for «Herz» (brand assets are not stored in this repository)
 - **Repo layout**:
   ```
   backend/    Laravel + Filament
