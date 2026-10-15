@@ -57,12 +57,7 @@ class Versand extends Page
 
     public function mount(): void
     {
-        // Default to the Aktion that is currently being worked on.
-        $priority = [AktionStatus::Signing, AktionStatus::Shipping, AktionStatus::Closed, AktionStatus::Open, AktionStatus::Scheduled, AktionStatus::Done];
-
-        $this->aktion ??= $this->aktionen()
-            ->sortBy(fn (Aktion $aktion) => array_search($aktion->status, $priority, true))
-            ->first()?->id;
+        $this->aktion ??= filament()->getTenant()->currentAktion()?->id;
     }
 
     /**
