@@ -18,6 +18,7 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -190,6 +191,22 @@ class OrderController extends Controller
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="'.$invoices->filename($order).'"',
         ]);
+    }
+
+    /**
+     * Link in the abandoned-order mail: delete the draft, no more reminders.
+     */
+    public function optOut(Tenant $tenant, string $token): RedirectResponse
+    {
+        $order = $tenant->orders()->where('token', $token)->first();
+
+        if ($order?->status === OrderStatus::Draft) {
+            $order->delete();
+        } else {
+            $order?->forceFill(['reminders_opt_out' => true])->save();
+        }
+
+        return redirect()->away($tenant->storefrontUrl('/?abgemeldet=1'));
     }
 
     /**

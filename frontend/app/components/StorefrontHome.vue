@@ -12,6 +12,8 @@ const aktion = computed(() => data.value!.aktion)
 const next = computed(() => data.value!.next_aktion)
 const books = computed(() => aktion.value?.books ?? next.value?.books ?? [])
 const canOrder = computed(() => !!aktion.value?.accepting_orders)
+const route = useRoute()
+const optedOut = computed(() => route.query.abgemeldet === '1')
 
 useSeoMeta({
   title: () => `${tenant.value.name} · ${t('meta.title')}`,
@@ -21,6 +23,10 @@ useSeoMeta({
 
 <template>
   <div>
+    <p v-if="optedOut" class="bg-blush-light px-5 py-3 text-center font-semibold" role="status">
+      {{ $t('home.optedOut') }}
+    </p>
+
     <!-- Hero -->
     <section class="bg-rose">
       <div class="mx-auto grid max-w-6xl items-center gap-10 px-5 py-14 sm:px-8 md:grid-cols-[1.4fr_1fr] md:py-20">

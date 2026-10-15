@@ -66,4 +66,14 @@ return [
         'tracking' => 'Tracking number: :number',
         'invoice_in_parcel' => 'The invoice is in the parcel.',
     ],
+    'abandoned' => [
+        'subject' => 'Would you like to finish your order?',
+        'greeting' => 'Hello',
+        'intro' => 'You started ordering a personally dedicated book but haven’t submitted it yet. Your details are saved, so you can pick up right where you left off.',
+        'deadline' => 'The order deadline for this signing round is **:date**.',
+        'resume' => 'Continue order',
+        'no_more' => 'This is the only reminder, promise.',
+        'opt_out_text' => 'Not interested anymore?',
+        'opt_out' => 'Delete the draft and stop reminders',
+    ],
 ];

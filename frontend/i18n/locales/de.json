@@ -54,7 +54,8 @@
     "lookupNumber": "Bestellnummer",
     "lookupEmail": "E-Mail-Adresse",
     "lookupSubmit": "Bestellung anzeigen",
-    "lookupNotFound": "Wir konnten keine passende Bestellung finden."
+    "lookupNotFound": "Wir konnten keine passende Bestellung finden.",
+    "optedOut": "Erledigt: Dein Entwurf ist gelöscht und du bekommst keine Erinnerungen mehr."
   },
   "order": {
     "stepOf": "Schritt {current} von {total}",

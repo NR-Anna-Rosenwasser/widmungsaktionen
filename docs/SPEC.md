@@ -204,7 +204,7 @@ Every email links to the tracking page.
 
 - **Newsletter**: on opt-in, Laravel sends a queued, HMAC-signed webhook to a per-tenant URL (n8n → Notifuse).
 - **PDFs**: Blade templates rendered by **Gotenberg** (Chromium), merged by Gotenberg.
-- **Monitoring**: Laravel Horizon (queues). Laravel Nightwatch is optional via env.
+- **Monitoring**: Laravel Horizon (queues). Error tracking and business monitoring are on the backlog (issues #4, #5).
 
 ## 11. Privacy & retention
 
@@ -222,14 +222,14 @@ Every email links to the tracking page.
   - colours `#2B3C69` (navy), `#D989B2` (pink), `#EEC6D8` (light pink), white
   - fonts: Barlow (headings), Hanken Grotesk (body), self-hosted
   - small radius (~2–4 px), lots of whitespace
-  - underlined arrow links and curved-text motifs, as in `docs/brand/Frame 1.png`
+  - underlined arrow links and curved-text motifs, as on the landing page for «Herz» (brand assets are not stored in this repository)
 - **Repo layout**:
   ```
   backend/    Laravel + Filament
   frontend/   Nuxt
   docker/     production Dockerfiles + compose
   .ddev/      local development
-  docs/       spec, brand assets
+  docs/       spec, deployment guide
   ```
 
 ### Production (VPS, behind existing reverse proxy)

@@ -100,6 +100,22 @@ class Tenant extends Model implements HasName
     }
 
     /**
+     * The Aktion currently being worked on: signing beats shipping beats
+     * waiting for signing day beats taking orders.
+     */
+    public function currentAktion(): ?Aktion
+    {
+        $priority = [AktionStatus::Signing, AktionStatus::Shipping, AktionStatus::Closed, AktionStatus::Open, AktionStatus::Scheduled, AktionStatus::Done];
+
+        return $this->aktionen()
+            ->whereNot('status', AktionStatus::Draft)
+            ->orderByDesc('signing_date')
+            ->get()
+            ->sortBy(fn (Aktion $aktion) => array_search($aktion->status, $priority, true))
+            ->first();
+    }
+
+    /**
      * Absolute storefront URL: the first custom domain, else the platform domain with slug.
      */
     public function storefrontUrl(string $path = ''): string
