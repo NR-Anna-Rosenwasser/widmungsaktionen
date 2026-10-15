@@ -39,4 +39,11 @@ return [
         'approved' => 'Freigegeben',
         'flagged' => 'Rückfrage',
     ],
+    'PaymentState' => [
+        'pending' => 'Offen',
+        'paid' => 'Bezahlt',
+        'failed' => 'Fehlgeschlagen',
+        'expired' => 'Abgelaufen',
+        'cancelled' => 'Storniert',
+    ],
 ];

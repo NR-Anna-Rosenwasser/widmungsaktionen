@@ -20,6 +20,9 @@ return [
         'dedication_max_length' => 200,
         'dedication_retention_months' => 12,
         'invoice_payment_days' => 10,
+        'reminder_days_before_deadline' => 3,
+        // What happens to unpaid orders when an Aktion closes: move (once) or cancel.
+        'unpaid_after_deadline' => 'move',
         'checkpoint_interval' => 5,
         'print' => [
             'label_preset' => 'avery_3475',

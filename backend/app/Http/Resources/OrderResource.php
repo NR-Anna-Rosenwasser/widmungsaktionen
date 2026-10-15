@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use App\Enums\OrderStatus;
 use App\Models\Order;
+use App\Services\Payments\PaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -53,6 +54,10 @@ class OrderResource extends JsonResource
             'shipping_cost' => $this->shipping_cost,
             'total' => $this->total,
             'submitted_at' => $this->submitted_at?->toIso8601String(),
+            'can_pay_online' => app(PaymentService::class)->canPayOnline($this->resource),
+            'has_invoice' => $this->number !== null
+                && $this->status !== OrderStatus::Cancelled
+                && in_array($this->payment_method?->value, ['invoice_advance', 'invoice_in_parcel'], true),
             'aktion' => [
                 'name' => $this->aktion->name,
                 'order_deadline' => $this->aktion->order_deadline->toIso8601String(),

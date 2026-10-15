@@ -188,7 +188,14 @@
     "delivery": "Delivery to",
     "trackingNumber": "Tracking number {number}",
     "aktion": "Round",
-    "notFound": "We couldn’t find this order."
+    "notFound": "We couldn’t find this order.",
+    "payNow": "Pay online now",
+    "payNowHint": "By card or TWINT, instead of by invoice.",
+    "paymentProcessing": "Thanks! We’re confirming your payment, this usually takes just a few seconds.",
+    "paymentConfirmed": "Payment received, thank you! 💗",
+    "paymentFailed": "Online payment isn’t available right now. Please try again later.",
+    "invoice": "Download invoice (PDF)",
+    "cancelledNotice": "This order has been cancelled. Questions? Write to {email}."
   },
   "consent": {
     "title": "Fancy a cookie? 🍪",

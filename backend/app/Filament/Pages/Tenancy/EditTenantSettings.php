@@ -59,7 +59,7 @@ class EditTenantSettings extends EditTenantProfile
                     Tab::make('Bestellungen & Versand')->schema(TenantSettingsForm::ordering()),
                     Tab::make('Zahlung & E-Mail')->schema([
                         Section::make('Stripe')
-                            ->description(fn (Tenant $record) => 'Webhook-URL: '.url("/webhooks/stripe/{$record->slug}"))
+                            ->description(fn (Tenant $record) => 'Webhook-URL für Stripe: '.route('webhooks.stripe', $record).' (Events: checkout.session.completed, checkout.session.async_payment_succeeded, checkout.session.async_payment_failed, checkout.session.expired, charge.refunded)')
                             ->schema(TenantSettingsForm::stripe()),
                         Section::make('E-Mail')->schema(TenantSettingsForm::mail()),
                     ]),

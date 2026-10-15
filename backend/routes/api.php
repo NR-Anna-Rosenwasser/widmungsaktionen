@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\StorefrontController;
+use App\Http\Controllers\StripeWebhookController;
 use Illuminate\Support\Facades\Route;
 
 // Public storefront API, consumed by the Nuxt server (proxied under the storefront's own origin).
@@ -15,4 +16,8 @@ Route::middleware('throttle:storefront')->group(function () {
     Route::get('tenants/{tenant:slug}/orders/{token}', [OrderController::class, 'show']);
     Route::patch('tenants/{tenant:slug}/orders/{token}', [OrderController::class, 'update']);
     Route::post('tenants/{tenant:slug}/orders/{token}/submit', [OrderController::class, 'submit']);
+    Route::post('tenants/{tenant:slug}/orders/{token}/pay', [OrderController::class, 'pay']);
+    Route::get('tenants/{tenant:slug}/orders/{token}/invoice', [OrderController::class, 'invoice']);
 });
+
+Route::post('webhooks/stripe/{tenant:slug}', StripeWebhookController::class)->name('webhooks.stripe');

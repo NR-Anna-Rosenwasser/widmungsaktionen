@@ -24,6 +24,7 @@ class Order extends Model
             'newsletter_opt_in' => 'boolean',
             'reminders_opt_out' => 'boolean',
             'abandoned_reminder_sent_at' => 'datetime',
+            'payment_reminder_sent_at' => 'datetime',
             'submitted_at' => 'datetime',
             'cancelled_at' => 'datetime',
         ];
@@ -89,8 +90,11 @@ class Order extends Model
         ]);
     }
 
+    /**
+     * Personal tracking link, on the shop's own domain if it has one.
+     */
     public function storefrontUrl(): string
     {
-        return rtrim(config('widmungen.storefront_url'), '/')."/{$this->tenant->slug}/bestellung/{$this->token}";
+        return $this->tenant->storefrontUrl("/bestellung/{$this->token}");
     }
 }
