@@ -10,6 +10,7 @@ use App\Filament\Resources\Orders\OrderResource;
 use App\Models\Aktion;
 use App\Models\Order;
 use App\Services\Payments\PaymentService;
+use App\Services\ShippingService;
 use App\Services\Pdf\InvoicePdf;
 use Carbon\Carbon;
 use Filament\Actions\Action;
@@ -61,6 +62,22 @@ class ViewOrder extends ViewRecord
                 ->action(function (array $data) use ($payments) {
                     $payments->markOrderPaid($this->record, Carbon::parse($data['paid_at']), auth()->user(), $data['note'] ?? null);
                     Notification::make()->title('Als bezahlt markiert')->success()->send();
+                    $this->refreshRecord();
+                }),
+
+            Action::make('ship')
+                ->label('Versenden')
+                ->icon(Heroicon::OutlinedTruck)
+                ->color('success')
+                ->visible(fn () => $this->record->status === OrderStatus::Signed)
+                ->schema([
+                    DatePicker::make('date')->label('Versanddatum')->default(now())->required(),
+                    TextInput::make('tracking_number')->label('Sendungsnummer (optional)'),
+                    Toggle::make('notify')->label('Kund*in per E-Mail informieren')->default(true),
+                ])
+                ->action(function (array $data) {
+                    app(ShippingService::class)->ship($this->record, Carbon::parse($data['date']), auth()->user(), $data['tracking_number'] ?? null, notify: $data['notify']);
+                    Notification::make()->title('Als versendet markiert')->success()->send();
                     $this->refreshRecord();
                 }),
 
