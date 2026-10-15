@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Enums\ModerationStatus;
+use App\Enums\OrderStatus;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -29,6 +31,24 @@ class OrderItem extends Model
     public function book(): BelongsTo
     {
         return $this->belongsTo(Book::class);
+    }
+
+    /**
+     * Copies the customer wrote something for (needs moderation).
+     */
+    public function scopeWithDedication(Builder $query): void
+    {
+        $query->where(fn ($q) => $q->whereNotNull('recipient_name')->orWhereNotNull('wish'));
+    }
+
+    /**
+     * Copies of submitted, active orders of a tenant.
+     */
+    public function scopeActiveForTenant(Builder $query, Tenant $tenant): void
+    {
+        $query->whereHas('order', fn ($q) => $q
+            ->whereBelongsTo($tenant)
+            ->whereNotIn('status', [OrderStatus::Draft, OrderStatus::Cancelled]));
     }
 
     public function signer(): BelongsTo

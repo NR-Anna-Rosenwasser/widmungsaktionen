@@ -16,4 +16,9 @@ return [
     'checkout_started' => 'Online-Zahlung gestartet',
     'payment_reverted' => 'Zahlung zurückgesetzt',
     'reopened' => 'Stornierung aufgehoben',
+    'moderation_approved' => 'Widmung freigegeben',
+    'moderation_flagged' => 'Widmung: Rückfrage',
+    'stacked' => 'Stapelnummer vergeben',
+    'item_signed' => 'Buch gewidmet',
+    'item_unsigned' => 'Widmung rückgängig gemacht',
 ];
