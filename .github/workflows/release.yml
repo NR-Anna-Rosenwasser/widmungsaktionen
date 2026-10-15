@@ -88,6 +88,9 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/nr-anna-rosenwasser/widmungsaktionen-${{ matrix.image }}
+          # "latest" only via the rule below (not for pre-releases).
+          flavor: |
+            latest=false
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
