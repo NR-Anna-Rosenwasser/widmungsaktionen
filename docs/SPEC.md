@@ -229,7 +229,7 @@ Every email links to the tracking page.
   frontend/   Nuxt
   docker/     production Dockerfiles + compose
   .ddev/      local development
-  docs/       spec, brand assets
+  docs/       spec, deployment guide
   ```
 
 ### Production (VPS, behind existing reverse proxy)
