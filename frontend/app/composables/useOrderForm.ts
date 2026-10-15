@@ -267,13 +267,21 @@ export function useOrderForm(storefront: Ref<StorefrontResponse>) {
   }
 
   async function submit() {
-    const res = await $fetch<{ order: Order }>(`/api/tenants/${slug.value}/orders/${token.value}/submit`, { method: 'POST' })
+    const res = await $fetch<{ order: Order, next: { type: 'confirmation' } | { type: 'redirect', url: string } }>(
+      `/api/tenants/${slug.value}/orders/${token.value}/submit`,
+      { method: 'POST' },
+    )
     track('order_submitted', {
       payment_method: res.order.payment_method ?? '',
       copies: res.order.copies.length,
       total: res.order.total / 100,
     })
     forgetDraft()
+    if (res.next.type === 'redirect') {
+      // Stripe Checkout; it returns to the tracking page afterwards.
+      await navigateTo(res.next.url, { external: true })
+      return
+    }
     await navigateTo({ path: path(`/bestellung/${res.order.token}`), query: { neu: '1' } })
   }
 

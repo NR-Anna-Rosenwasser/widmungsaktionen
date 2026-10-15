@@ -55,6 +55,7 @@ class OrderResource extends JsonResource
             'total' => $this->total,
             'submitted_at' => $this->submitted_at?->toIso8601String(),
             'can_pay_online' => app(PaymentService::class)->canPayOnline($this->resource),
+            'has_invoice' => $this->number !== null && in_array($this->payment_method?->value, ['invoice_advance', 'invoice_in_parcel'], true),
             'aktion' => [
                 'name' => $this->aktion->name,
                 'order_deadline' => $this->aktion->order_deadline->toIso8601String(),

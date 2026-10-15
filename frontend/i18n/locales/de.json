@@ -188,7 +188,13 @@
     "delivery": "Lieferung an",
     "trackingNumber": "Sendungsnummer {number}",
     "aktion": "Aktion",
-    "notFound": "Diese Bestellung haben wir nicht gefunden."
+    "notFound": "Diese Bestellung haben wir nicht gefunden.",
+    "payNow": "Jetzt online bezahlen",
+    "payNowHint": "Mit Karte oder TWINT, statt per Rechnung.",
+    "paymentProcessing": "Danke! Deine Zahlung wird gerade bestätigt. Das dauert meist nur ein paar Sekunden.",
+    "paymentConfirmed": "Zahlung erhalten, danke! 💗",
+    "paymentFailed": "Die Online-Zahlung ist gerade nicht verfügbar. Bitte versuch es später nochmals.",
+    "invoice": "Rechnung herunterladen (PDF)"
   },
   "consent": {
     "title": "Darf’s ein Keks sein? 🍪",

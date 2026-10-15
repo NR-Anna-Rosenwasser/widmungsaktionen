@@ -109,6 +109,8 @@ export interface Order {
   shipping_cost: number
   total: number
   submitted_at: string | null
+  can_pay_online: boolean
+  has_invoice: boolean
   aktion: { name: string, order_deadline: string, signing_date: string, estimated_shipping_date: string }
   timeline: TimelineStep[]
   shipments: { shipped_at: string, carrier: string | null, tracking_number: string | null }[]
