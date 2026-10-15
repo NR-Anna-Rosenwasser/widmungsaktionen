@@ -137,8 +137,18 @@ class TenantSettingsForm
                     ->label('Max. Zeichen pro Widmungswunsch')
                     ->numeric()->minValue(20)->maxValue(1000)->required(),
                 TextInput::make('settings.invoice_payment_days')
-                    ->label('Zahlungsfrist Rechnung (Tage)')
+                    ->label('Zahlungsfrist Rechnung im Paket (Tage nach Versand)')
                     ->numeric()->minValue(1)->required(),
+                TextInput::make('settings.reminder_days_before_deadline')
+                    ->label('Zahlungserinnerung … Tage vor Bestellschluss')
+                    ->numeric()->minValue(1)->maxValue(30)->required(),
+                Select::make('settings.unpaid_after_deadline')
+                    ->label('Unbezahlte Bestellungen nach Bestellschluss')
+                    ->options([
+                        'move' => 'Einmal in die nächste Aktion verschieben, danach stornieren',
+                        'cancel' => 'Sofort stornieren',
+                    ])
+                    ->required(),
                 TextInput::make('settings.checkpoint_interval')
                     ->label('Kontrollfrage beim Widmen alle … Bücher')
                     ->numeric()->minValue(1)->maxValue(50)->required(),

@@ -10,5 +10,8 @@ class OrderRefunded
 {
     use Dispatchable, SerializesModels;
 
-    public function __construct(public Order $order) {}
+    /**
+     * @param  int  $amount  Refunded amount in Rappen
+     */
+    public function __construct(public Order $order, public int $amount) {}
 }

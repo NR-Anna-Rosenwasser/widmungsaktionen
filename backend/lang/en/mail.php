@@ -1,0 +1,55 @@
+<?php
+
+return [
+    'footer' => 'You are receiving this email because of your order.',
+    'greeting' => 'Hello :name',
+    'view_order' => 'View order',
+    'pay_online' => 'Pay online now',
+    'signature' => 'Warm regards',
+    'books' => 'Your books',
+    'book' => 'Book',
+    'dedication' => 'Dedication',
+    'signature_only' => 'Signature only',
+    'shipping' => 'Shipping',
+    'total' => 'Total',
+    'deliver_to' => 'We’ll send the parcel to :name, :town.',
+    'dates' => 'Signing day: :signing · Expected to ship from :shipping',
+    'questions' => 'Questions? Just reply to this email.',
+
+    'confirmation' => [
+        'subject' => 'Your order :number',
+        'intro' => 'Thank you for your order! We’re happy your book will soon be personally dedicated.',
+        'paid' => 'We’ve already received your payment, thank you!',
+        'invoice_advance' => 'You’ll find the QR invoice attached. Please pay it by **:date**. As soon as your payment arrives, your book is scheduled for signing day.',
+        'invoice_advance_online' => 'Prefer to pay online? You can pay by card or TWINT:',
+        'invoice_in_parcel' => 'The invoice comes with your parcel.',
+        'online_pending' => 'Your online payment hasn’t been completed yet. You can finish it here at any time:',
+    ],
+    'payment_received' => [
+        'subject' => 'Payment received: order :number',
+        'intro' => 'We’ve received your payment, thank you! Your book is now scheduled for signing day. 💗',
+    ],
+    'payment_reminder' => [
+        'subject' => 'A friendly reminder: order :number',
+        'intro' => 'We haven’t received your payment for order :number yet. Please pay by **:date** so your book is part of signing day.',
+        'invoice' => 'You’ll find the QR invoice attached again.',
+        'already_paid' => 'Already paid? Then please ignore this email, bank transfers sometimes take a few days.',
+    ],
+    'moved' => [
+        'subject' => 'New dates for your order :number',
+        'intro' => 'Your order is now part of the round “:aktion”.',
+        'unpaid' => 'We didn’t receive your payment by the order deadline. No problem: pay by **:date** and your book will be part of this round.',
+    ],
+    'cancelled' => [
+        'subject' => 'Order :number cancelled',
+        'intro' => 'Your order :number has been cancelled.',
+        'reason' => 'Reason: :reason',
+        'unpaid' => 'Unfortunately, we didn’t receive a payment. You’re welcome to place a new order at any time.',
+    ],
+    'refunded' => [
+        'subject' => 'Refund for order :number',
+        'intro' => 'We’ve refunded CHF :amount to you.',
+        'online' => 'The amount will be credited to your original payment method. This can take a few days.',
+        'manual' => 'We’ll transfer the amount to you in the next few days.',
+    ],
+];
