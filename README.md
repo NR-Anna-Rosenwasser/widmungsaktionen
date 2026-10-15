@@ -48,8 +48,22 @@ ddev artisan test
 
 Tests run against a separate Postgres database (`testing`), created automatically on `ddev start`.
 
+### Payments and emails locally
+
+- All outgoing mail lands in Mailpit (`ddev launch -m`). Mails are queued; Horizon processes them.
+- Invoices (QR bills) are rendered by the Gotenberg container.
+- To test Stripe, put your **test** keys into the shop settings (Einstellungen → Zahlung & E-Mail), then forward webhooks with the [Stripe CLI](https://docs.stripe.com/stripe-cli):
+
+  ```sh
+  stripe listen --forward-to https://admin.widmungen.ddev.site/api/webhooks/stripe/anna-rosenwasser
+  ```
+
+  Copy the `whsec_…` secret it prints into the shop's "Webhook signing secret". In production, create the webhook endpoint in the Stripe dashboard with the URL shown in the shop settings.
+- Scheduled jobs (opening/closing Aktionen, payment reminders) run via `schedule:work`. Trigger them by hand with `ddev artisan aktionen:sync-status` or `ddev artisan orders:send-payment-reminders`.
+
 ### Gotchas
 
 - On macOS, DDEV syncs files into the container with Mutagen. If a change doesn't show up, run `ddev mutagen sync`.
 - Frontend dependencies are installed inside the container (`ddev exec -d /var/www/html/frontend pnpm add …`), because some packages ship platform-specific binaries.
 - If the storefront shows a "Could not load …/node_modules/.pnpm/…" error after dependencies changed, clear Nuxt's cache and restart it: `ddev exec "rm -rf /var/www/html/frontend/.nuxt && supervisorctl restart webextradaemons:nuxt"` (or `ddev restart`).
+- Changes to the storefront translation files (`frontend/i18n/locales/*.json`) may need a Nuxt restart to show up: `ddev exec "supervisorctl restart webextradaemons:nuxt"`.

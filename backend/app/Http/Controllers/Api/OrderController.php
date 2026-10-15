@@ -10,7 +10,13 @@ use App\Http\Resources\OrderResource;
 use App\Models\Aktion;
 use App\Models\Order;
 use App\Models\Tenant;
+use App\Events\OrderSubmitted;
 use App\Services\OrderPricer;
+use App\Services\Payments\PaymentService;
+use App\Services\Pdf\InvoicePdf;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -21,7 +27,10 @@ use Illuminate\Validation\ValidationException;
 
 class OrderController extends Controller
 {
-    public function __construct(protected OrderPricer $pricer) {}
+    public function __construct(
+        protected OrderPricer $pricer,
+        protected PaymentService $payments,
+    ) {}
 
     /**
      * Create a draft as soon as the customer has entered their email address.
@@ -137,10 +146,49 @@ class OrderController extends Controller
             $order->log('submitted', ['payment_method' => $order->payment_method->value], public: true);
         });
 
-        // Phase 2: start Stripe Checkout / send the invoice here.
+        $checkoutUrl = null;
+        try {
+            $checkoutUrl = $this->payments->initiate($order);
+        } catch (Throwable $e) {
+            // The order stands; the customer can retry payment from the tracking page.
+            Log::error('Could not start payment', ['order' => $order->id, 'error' => $e->getMessage()]);
+        }
+
+        OrderSubmitted::dispatch($order);
+
         return response()->json([
             'order' => new OrderResource($this->loadForResponse($order)),
-            'next' => ['type' => 'confirmation'],
+            'next' => $checkoutUrl ? ['type' => 'redirect', 'url' => $checkoutUrl] : ['type' => 'confirmation'],
+        ]);
+    }
+
+    /**
+     * (Re)start an online payment for an unpaid order.
+     */
+    public function pay(Tenant $tenant, string $token): JsonResponse
+    {
+        $order = $this->findOrder($tenant, $token);
+        abort_unless($this->payments->canPayOnline($order), 409, 'Diese Bestellung kann nicht online bezahlt werden.');
+
+        try {
+            return response()->json(['url' => $this->payments->startCheckout($order)]);
+        } catch (Throwable $e) {
+            Log::error('Could not start checkout', ['order' => $order->id, 'error' => $e->getMessage()]);
+            abort(502, 'Die Online-Zahlung ist gerade nicht verfügbar. Bitte versuch es später nochmals.');
+        }
+    }
+
+    /**
+     * The QR invoice as PDF (invoice payment methods only).
+     */
+    public function invoice(Tenant $tenant, string $token, InvoicePdf $invoices): Response
+    {
+        $order = $this->findOrder($tenant, $token);
+        abort_unless($order->number && in_array($order->payment_method, [PaymentMethod::InvoiceAdvance, PaymentMethod::InvoiceInParcel], true), 404);
+
+        return response($invoices->render($order), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="'.$invoices->filename($order).'"',
         ]);
     }
 
@@ -195,7 +243,7 @@ class OrderController extends Controller
      */
     protected function paymentMethods(Tenant $tenant): array
     {
-        return $tenant->setting('payment_methods');
+        return $this->payments->availableMethods($tenant);
     }
 
     protected function copiesRules(Tenant $tenant, Aktion $aktion, bool $required): array

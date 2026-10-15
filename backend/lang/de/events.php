@@ -9,4 +9,11 @@ return [
     'cancelled' => 'Storniert',
     'moved' => 'In andere Aktion verschoben',
     'mail_sent' => 'E-Mail gesendet',
+    'payment_failed' => 'Zahlung fehlgeschlagen',
+    'refunded' => 'Rückerstattung',
+    'invoice_sent' => 'Rechnung gesendet',
+    'reminder_sent' => 'Zahlungserinnerung gesendet',
+    'checkout_started' => 'Online-Zahlung gestartet',
+    'payment_reverted' => 'Zahlung zurückgesetzt',
+    'reopened' => 'Stornierung aufgehoben',
 ];

@@ -9,7 +9,7 @@ const ctx = useStorefrontContext()
 const api = useApi()
 
 const token = computed(() => String(route.params.token))
-const { data: order, error } = await useAsyncData(
+const { data: order, error, refresh } = await useAsyncData(
   () => `order:${token.value}`,
   () => api<Order>(`/api/tenants/${ctx.value!.slug}/orders/${token.value}`),
 )
@@ -25,6 +25,37 @@ if (order.value?.status === 'draft') {
 }
 
 const isNew = computed(() => route.query.neu === '1')
+const returnedFromCheckout = computed(() => route.query.bezahlt === '1')
+const isCancelled = computed(() => order.value?.status === 'cancelled')
+const isPaid = computed(() => !!order.value && order.value.payment_status !== 'unpaid')
+
+// Stripe sends the customer back before its webhook may have arrived: poll briefly.
+let poll: ReturnType<typeof setInterval> | undefined
+onMounted(() => {
+  if (!returnedFromCheckout.value || isPaid.value) return
+  let tries = 0
+  poll = setInterval(async () => {
+    tries++
+    await refresh()
+    if (isPaid.value || tries >= 15) clearInterval(poll)
+  }, 2000)
+})
+onBeforeUnmount(() => clearInterval(poll))
+
+const paying = ref(false)
+const payError = ref('')
+async function payNow() {
+  paying.value = true
+  payError.value = ''
+  try {
+    const { url } = await $fetch<{ url: string }>(`/api/tenants/${ctx.value!.slug}/orders/${token.value}/pay`, { method: 'POST' })
+    window.location.href = url
+  }
+  catch {
+    payError.value = t('tracking.paymentFailed')
+    paying.value = false
+  }
+}
 const canOrderAgain = computed(() => !!storefront.value?.aktion?.accepting_orders)
 
 const steps = computed(() => order.value?.timeline ?? [])
@@ -72,12 +103,20 @@ useSeoMeta({ title: () => `${t('tracking.title')} ${order.value?.number ?? ''}`,
       </button>
     </div>
 
+    <p v-if="returnedFromCheckout" class="mb-8 rounded-sm p-4 font-semibold" :class="isPaid ? 'bg-blush' : 'bg-blush-light'" role="status" aria-live="polite">
+      {{ isPaid ? $t('tracking.paymentConfirmed') : $t('tracking.paymentProcessing') }}
+    </p>
+
     <p class="font-display text-sm font-semibold uppercase tracking-[0.18em] text-navy-soft">
       {{ $t('tracking.number', { number: order.number }) }}
     </p>
     <h2 v-if="!isNew" class="mt-2 text-5xl">
       {{ $t('tracking.title') }}
     </h2>
+
+    <p v-if="isCancelled" class="mt-8 rounded-sm border-2 border-danger p-4 font-semibold text-danger" role="status">
+      {{ $t('tracking.cancelledNotice', { email: storefront?.tenant.contact_email ?? '' }) }}
+    </p>
 
     <!-- Timeline -->
     <ol class="mt-10 space-y-0">
@@ -103,10 +142,10 @@ useSeoMeta({ title: () => `${t('tracking.title')} ${order.value?.number ?? ''}`,
           <p v-if="step.done && step.at" class="text-sm text-navy-soft">
             {{ formatDate(step.at, locale) }}
           </p>
-          <p v-else-if="!step.done && step.key === 'paid' && order.payment_method" class="text-sm text-navy-soft">
+          <p v-else-if="!step.done && step.key === 'paid' && order.payment_method && !isCancelled" class="text-sm text-navy-soft">
             {{ $t(`tracking.paymentPending.${order.payment_method}`, { date: formatDate(order.aktion.order_deadline, locale) }) }}
           </p>
-          <p v-else-if="!step.done" class="text-sm text-navy-soft">
+          <p v-else-if="!step.done && !isCancelled" class="text-sm text-navy-soft">
             {{ expectedFor(step.key) }}
           </p>
           <p v-if="step.key === 'shipped' && order.shipments[0]?.tracking_number" class="text-sm">
@@ -115,6 +154,16 @@ useSeoMeta({ title: () => `${t('tracking.title')} ${order.value?.number ?? ''}`,
         </div>
       </li>
     </ol>
+
+    <div v-if="order.can_pay_online && !returnedFromCheckout" class="card mt-10 flex flex-wrap items-center justify-between gap-4">
+      <p>{{ $t('tracking.payNowHint') }}</p>
+      <button type="button" class="btn btn-primary" :disabled="paying" @click="payNow">
+        {{ $t('tracking.payNow') }} <span aria-hidden="true">→</span>
+      </button>
+      <p v-if="payError" class="field-error w-full" role="alert">
+        {{ payError }}
+      </p>
+    </div>
 
     <!-- Details -->
     <div class="mt-14 grid gap-6 sm:grid-cols-2">
@@ -156,6 +205,15 @@ useSeoMeta({ title: () => `${t('tracking.title')} ${order.value?.number ?? ''}`,
         <p class="mt-1 text-sm text-navy-soft">
           {{ $t('tracking.aktion') }}: {{ order.aktion.name }}
         </p>
+        <a
+          v-if="order.has_invoice"
+          :href="`/api/tenants/${ctx!.slug}/orders/${order.token}/invoice`"
+          target="_blank"
+          rel="noopener"
+          class="arrow-link mt-5 text-sm"
+        >
+          {{ $t('tracking.invoice') }} <span aria-hidden="true">↓</span>
+        </a>
       </div>
     </div>
   </div>
