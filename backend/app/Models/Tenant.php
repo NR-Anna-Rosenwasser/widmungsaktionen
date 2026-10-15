@@ -99,6 +99,21 @@ class Tenant extends Model implements HasName
             ->first();
     }
 
+    /**
+     * Absolute storefront URL: the first custom domain, else the platform domain with slug.
+     */
+    public function storefrontUrl(string $path = ''): string
+    {
+        $domain = $this->domains()->orderBy('id')->value('domain');
+        $scheme = parse_url(config('widmungen.storefront_url'), PHP_URL_SCHEME) ?: 'https';
+
+        $base = $domain
+            ? "$scheme://$domain"
+            : rtrim(config('widmungen.storefront_url'), '/')."/{$this->slug}";
+
+        return $base.$path;
+    }
+
     public function nextOrderNumber(): string
     {
         return DB::transaction(function () {

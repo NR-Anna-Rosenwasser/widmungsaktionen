@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Orders\Schemas;
 use App\Enums\OrderStatus;
 use App\Filament\Resources\Orders\Tables\OrdersTable;
 use App\Models\Order;
+use App\Services\Payments\PaymentReference;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
@@ -65,6 +66,26 @@ class OrderInfolist
                         TextEntry::make('shipping_cost')->label('Versand')->money('CHF', divideBy: 100),
                         TextEntry::make('total')->label('Total')->money('CHF', divideBy: 100)->weight('bold'),
                     ]),
+                    Section::make('Zahlungen')
+                        ->visible(fn (Order $record) => $record->payments()->exists())
+                        ->schema([
+                            RepeatableEntry::make('payments')
+                                ->hiddenLabel()
+                                ->schema([
+                                    TextEntry::make('method')->hiddenLabel()->weight('bold'),
+                                    TextEntry::make('status')->hiddenLabel()->badge(),
+                                    TextEntry::make('amount')->label('Betrag')->money('CHF', divideBy: 100)->inlineLabel(),
+                                    TextEntry::make('refunded_amount')->label('Erstattet')->money('CHF', divideBy: 100)->inlineLabel()
+                                        ->visible(fn ($state) => $state > 0),
+                                    TextEntry::make('reference')->label('Referenz')->inlineLabel()->copyable()
+                                        ->formatStateUsing(fn (string $state) => PaymentReference::format($state))
+                                        ->visible(fn ($state) => filled($state)),
+                                    TextEntry::make('paid_at')->label('Bezahlt am')->date('d.m.Y')->inlineLabel()
+                                        ->visible(fn ($state) => filled($state)),
+                                    TextEntry::make('meta.note')->label('Notiz')->inlineLabel()
+                                        ->visible(fn ($state) => filled($state)),
+                                ]),
+                        ]),
                     Section::make('Verlauf')->schema([
                         RepeatableEntry::make('events')
                             ->hiddenLabel()
