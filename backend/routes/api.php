@@ -18,6 +18,7 @@ Route::middleware('throttle:storefront')->group(function () {
     Route::post('tenants/{tenant:slug}/orders/{token}/submit', [OrderController::class, 'submit']);
     Route::post('tenants/{tenant:slug}/orders/{token}/pay', [OrderController::class, 'pay']);
     Route::get('tenants/{tenant:slug}/orders/{token}/invoice', [OrderController::class, 'invoice']);
+    Route::get('tenants/{tenant:slug}/orders/{token}/no-reminders', [OrderController::class, 'optOut'])->name('orders.reminders.opt-out');
 });
 
 Route::post('webhooks/stripe/{tenant:slug}', StripeWebhookController::class)->name('webhooks.stripe');

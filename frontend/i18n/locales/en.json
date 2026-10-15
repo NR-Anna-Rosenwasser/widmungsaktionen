@@ -54,7 +54,8 @@
     "lookupNumber": "Order number",
     "lookupEmail": "Email address",
     "lookupSubmit": "Show order",
-    "lookupNotFound": "We couldn’t find a matching order."
+    "lookupNotFound": "We couldn’t find a matching order.",
+    "optedOut": "Done: your draft has been deleted and you won’t get any more reminders."
   },
   "order": {
     "stepOf": "Step {current} of {total}",

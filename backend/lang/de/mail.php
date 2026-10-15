@@ -66,4 +66,14 @@ return [
         'tracking' => 'Sendungsnummer: :number',
         'invoice_in_parcel' => 'Die Rechnung liegt dem Paket bei.',
     ],
+    'abandoned' => [
+        'subject' => 'Möchtest du deine Bestellung noch abschliessen?',
+        'greeting' => 'Hallo',
+        'intro' => 'Du hast angefangen, ein persönlich gewidmetes Buch zu bestellen, aber die Bestellung noch nicht abgeschickt. Deine Angaben sind gespeichert, du kannst einfach dort weitermachen, wo du aufgehört hast.',
+        'deadline' => 'Bestellschluss für diese Widmungsaktion ist am **:date**.',
+        'resume' => 'Bestellung fortsetzen',
+        'no_more' => 'Das ist die einzige Erinnerung, versprochen.',
+        'opt_out_text' => 'Keine Lust mehr?',
+        'opt_out' => 'Entwurf löschen und keine Erinnerungen mehr',
+    ],
 ];
