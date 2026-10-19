@@ -15,7 +15,6 @@ use App\Services\OrderPricer;
 use App\Services\Payments\PaymentService;
 use App\Services\Pdf\InvoicePdf;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Log;
 use Throwable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -152,7 +151,7 @@ class OrderController extends Controller
             $checkoutUrl = $this->payments->initiate($order);
         } catch (Throwable $e) {
             // The order stands; the customer can retry payment from the tracking page.
-            Log::error('Could not start payment', ['order' => $order->id, 'error' => $e->getMessage()]);
+            report($e);
         }
 
         OrderSubmitted::dispatch($order);
@@ -174,7 +173,7 @@ class OrderController extends Controller
         try {
             return response()->json(['url' => $this->payments->startCheckout($order)]);
         } catch (Throwable $e) {
-            Log::error('Could not start checkout', ['order' => $order->id, 'error' => $e->getMessage()]);
+            report($e);
             abort(502, 'Die Online-Zahlung ist gerade nicht verfügbar. Bitte versuch es später nochmals.');
         }
     }

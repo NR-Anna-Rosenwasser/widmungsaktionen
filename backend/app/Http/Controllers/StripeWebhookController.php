@@ -10,7 +10,6 @@ use App\Services\Payments\PaymentGateway;
 use App\Services\Payments\PaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Stripe → us. One endpoint per tenant, each with its own signing secret:
@@ -28,7 +27,8 @@ class StripeWebhookController extends Controller
         try {
             $event = $this->gateway->parseWebhook($tenant, $request->getContent(), $request->header('Stripe-Signature'));
         } catch (InvalidWebhookException $e) {
-            Log::warning('Rejected Stripe webhook', ['tenant' => $tenant->slug, 'error' => $e->getMessage()]);
+            // A wrong webhook secret would silently stop payment confirmations, so report it.
+            report($e);
 
             return response('Invalid signature', 400);
         }

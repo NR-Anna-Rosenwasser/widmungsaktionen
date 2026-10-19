@@ -245,6 +245,7 @@ export function useOrderForm(storefront: Ref<StorefrontResponse>) {
       }
     }
     catch (error) {
+      reportApiError(error, 'order-form', { step: step.value })
       applyServerErrors(error)
     }
     finally {
@@ -325,8 +326,9 @@ export function useOrderForm(storefront: Ref<StorefrontResponse>) {
           return navigateTo(path(`/bestellung/${order.token}`), { replace: true })
         }
       }
-      catch {
+      catch (error) {
         // Unknown or foreign token: start fresh.
+        if ((error as { statusCode?: number }).statusCode !== 404) reportApiError(error, 'order-restore')
       }
       forgetDraft()
     }
