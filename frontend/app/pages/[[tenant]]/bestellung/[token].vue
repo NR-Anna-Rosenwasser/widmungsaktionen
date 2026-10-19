@@ -51,7 +51,8 @@ async function payNow() {
     const { url } = await $fetch<{ url: string }>(`/api/tenants/${ctx.value!.slug}/orders/${token.value}/pay`, { method: 'POST' })
     window.location.href = url
   }
-  catch {
+  catch (error) {
+    reportApiError(error, 'pay-now')
     payError.value = t('tracking.paymentFailed')
     paying.value = false
   }

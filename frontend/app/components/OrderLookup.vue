@@ -18,7 +18,9 @@ async function submit() {
     })
     await navigateTo(path(`/bestellung/${token}`))
   }
-  catch {
+  catch (e) {
+    // Not found (404) and invalid input (422) are expected here.
+    if (![404, 422].includes((e as { statusCode?: number }).statusCode ?? 0)) reportApiError(e, 'order-lookup')
     error.value = t('home.lookupNotFound')
   }
   finally {

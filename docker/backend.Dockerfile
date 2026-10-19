@@ -5,7 +5,9 @@ USER root
 # gd: the QR bill draws the Swiss cross into the QR code (not declared by Composer).
 RUN install-php-extensions intl bcmath gd
 
+ARG APP_VERSION=dev
 ENV PHP_OPCACHE_ENABLE=1 \
+    SENTRY_RELEASE=widmungen@${APP_VERSION} \
     SSL_MODE=off \
     LOG_CHANNEL=stderr
 

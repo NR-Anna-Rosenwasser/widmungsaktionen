@@ -106,7 +106,20 @@ In the Stripe dashboard (live mode) add a webhook endpoint with the URL shown in
 
 Copy the signing secret (`whsec_…`) into the shop settings. Payment methods (cards, TWINT, …) are switched on in the Stripe dashboard.
 
-## 7. Backups
+## 7. Error tracking (Sentry)
+
+Technical errors from Laravel (requests, queue jobs, mails, PDFs, Stripe) and from the storefront (browser and server rendering) go to Sentry. Without DSNs nothing is sent.
+
+1. In Sentry (EU data region), create two projects: **Laravel** (`widmungen-backend`) and **Nuxt** (`widmungen-frontend`). When asked, choose «Alert me on every new issue».
+2. Copy each project's DSN into `.env` (`SENTRY_LARAVEL_DSN`, `SENTRY_FRONTEND_DSN`) and run `docker compose up -d`.
+3. Test: `docker compose exec app php artisan sentry:test` sends a test event from Laravel.
+4. Optional, readable frontend stack traces: in the GitHub repo add the variables `SENTRY_ORG` (org slug) and `SENTRY_FRONTEND_PROJECT` (`widmungen-frontend`) and the secret `SENTRY_AUTH_TOKEN` (Sentry → Settings → Auth Tokens, organisation token). The release workflow then uploads source maps; they are not served to visitors.
+
+**Privacy:** no request bodies, cookies or IP addresses are sent. Email addresses, order tokens, SQL values and function arguments are removed before sending (`backend/app/Support/SentryScrubber.php`, `frontend/shared/sentry.ts`). No cookies are set, so no consent is needed. Mention Sentry (Functional Software Inc., EU region) as a processor in the privacy policy.
+
+**Order form:** failed API calls are reported with the step and the HTTP status. Validation errors (422) appear as warnings with the field names only, never the values: they mean the form accepted something the server rejected.
+
+## 8. Backups
 
 The `backup` container makes a nightly backup (default 02:30 Swiss time) into `BACKUP_PATH` (default `./backups`):
 
@@ -132,7 +145,7 @@ docker compose start app horizon scheduler
 
 Test a restore every now and then. A backup that has never been restored is only a hope.
 
-## 8. Useful commands
+## 9. Useful commands
 
 ```sh
 docker compose logs -f app          # Laravel / admin

@@ -1,3 +1,5 @@
+import * as Sentry from '@sentry/nuxt'
+
 /**
  * Fetch for the Laravel API. In the browser, /api/ is same-origin (routed to
  * Laravel by the web server, so no CORS). During SSR, Nuxt calls Laravel
@@ -29,4 +31,21 @@ export function apiErrorMessage(error: unknown, fallback: string): string {
 export function apiValidationErrors(error: unknown): Record<string, string[]> {
   const data = (error as { data?: { errors?: Record<string, string[]> } })?.data
   return data?.errors ?? {}
+}
+
+/**
+ * Sends a failed API call to Sentry (no-op without DSN). Validation errors
+ * (422) are reported as warnings with the field names only: the form checks
+ * input first, so the server rejecting it points at a mismatch or a bug.
+ */
+export function reportApiError(error: unknown, area: string, context: Record<string, string> = {}) {
+  const status = (error as { statusCode?: number })?.statusCode
+  const fields = Object.keys(apiValidationErrors(error)).sort()
+
+  Sentry.captureException(error, {
+    level: status === 422 ? 'warning' : 'error',
+    tags: { area, status: String(status ?? 'network'), ...context },
+    extra: { fields },
+    fingerprint: ['api', area, String(status ?? 'network'), ...Object.values(context), ...fields],
+  })
 }
