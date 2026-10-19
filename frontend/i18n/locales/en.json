@@ -55,7 +55,8 @@
     "lookupEmail": "Email address",
     "lookupSubmit": "Show order",
     "lookupNotFound": "We couldn’t find a matching order.",
-    "optedOut": "Done: your draft has been deleted and you won’t get any more reminders."
+    "optedOut": "Done: your draft has been deleted and you won’t get any more reminders.",
+    "shippingFrom": "Prices plus shipping from {price} (letter for one book, parcel from two books)."
   },
   "order": {
     "stepOf": "Step {current} of {total}",
@@ -71,7 +72,18 @@
       "remove": "One less",
       "count": "{count} copy | {count} copies",
       "empty": "Please choose at least one book.",
-      "max": "At most {max} books per order."
+      "max": "At most {max} books per order.",
+      "shippingTitle": "Shipping",
+      "shippingTier": "{range}: {price} ({method})",
+      "shippingRangeOne": "1 book",
+      "shippingRange": "{from}–{to} books",
+      "method": {
+        "letter": "letter",
+        "parcel": "parcel"
+      },
+      "runningTotal": "{books} books {subtotal} + shipping {shipping} = total {total}",
+      "runningTotalOne": "1 book {subtotal} + shipping {shipping} = total {total}",
+      "shippingRangeExact": "{count} books"
     },
     "email": {
       "title": "What’s your email address?",

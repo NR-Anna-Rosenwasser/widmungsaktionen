@@ -63,6 +63,7 @@ class EditTenantSettings extends EditTenantProfile
                             ->schema(TenantSettingsForm::stripe()),
                         Section::make('E-Mail')->schema(TenantSettingsForm::mail()),
                     ]),
+                    Tab::make('Storefront')->schema(TenantSettingsForm::storefront()),
                     Tab::make('Drucken')->schema(TenantSettingsForm::print()),
                     Tab::make('Newsletter & Rechtliches')->schema([
                         ...TenantSettingsForm::newsletter(),

@@ -104,12 +104,25 @@ One question per screen, large type, progress indicator, back button. State is s
 
 ### Shipping
 
+The shipping tiers and a running total are shown in the book-selection step, and a short note under the books on the start page.
+
 Tiers are configurable per tenant. Defaults:
 
 | Copies | Method | Price |
 |---|---|---|
 | 1 | B-Post Grossbrief | CHF 3.00 |
 | 2–4 | PostPac Economy | CHF 8.00 |
+
+### Appearance per shop
+
+Settings → «Storefront»:
+
+- **Colours:** main colour, accent and light accent (colour pickers). Shades are derived automatically. A live preview shows the result, with a contrast check (WCAG: 4.5 : 1 for normal text, 3 : 1 for large text).
+- **Hero visual:** your own image (resized to max. 1600 px), the heart drawn from text, or nothing.
+- **Branding:** optional logo instead of the shop name, and an optional favicon.
+- **Sections:** books, «So funktioniert’s» and «Schon bestellt?» can be switched on and off.
+- **Texts:** all start-page texts per language (de, en). Empty fields fall back to the defaults in `backend/lang/*/storefront.php`. `{name}` is replaced by the shop name.
+- **Link preview:** title and description, plus an image. Without an image, the hero image or the first book cover is used.
 
 ### Copy & tone
 

@@ -22,17 +22,32 @@ export interface ShippingTier {
   price: number
 }
 
+export type StorefrontTextKey =
+  | 'eyebrow' | 'title' | 'lead' | 'cta' | 'books_title' | 'how_title'
+  | 'how_1_title' | 'how_1_text' | 'how_2_title' | 'how_2_text' | 'how_3_title' | 'how_3_text'
+  | 'closed_title' | 'lookup_title' | 'lookup_text' | 'seo_title' | 'seo_description'
+
+export interface StorefrontAppearance {
+  colors: { primary: string, accent: string, accent_light: string }
+  logo_url: string | null
+  favicon_url: string | null
+  hero: { visual: 'image' | 'heart' | 'none', image_url: string | null, image_alt: string, heart_text: string }
+  sections: { books: boolean, how: boolean, lookup: boolean }
+  seo: { image_url: string | null }
+  texts: Record<string, Record<StorefrontTextKey, string>>
+}
+
 export interface Tenant {
   name: string
   slug: string
   contact_email: string | null
-  intro: string | null
   legal: { terms_url: string | null, privacy_url: string | null, imprint_url: string | null }
   max_copies_per_order: number
   dedication_max_length: number
   payment_methods: PaymentMethod[]
   shipping_tiers: ShippingTier[]
   newsletter: boolean
+  storefront: StorefrontAppearance
 }
 
 export interface Book {
