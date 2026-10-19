@@ -13,6 +13,7 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\Width;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 
@@ -24,6 +25,15 @@ class RegisterTenant extends BaseRegisterTenant
     public static function getLabel(): string
     {
         return 'Neuer Shop';
+    }
+
+    /**
+     * Wider than Filament's default for simple pages, so address and
+     * shipping fields fit side by side.
+     */
+    public function getMaxWidth(): Width|string|null
+    {
+        return Width::SixExtraLarge;
     }
 
     public function mount(): void

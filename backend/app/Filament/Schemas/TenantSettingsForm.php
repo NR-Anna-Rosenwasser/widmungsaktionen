@@ -4,13 +4,20 @@ namespace App\Filament\Schemas;
 
 use App\Enums\PaymentMethod;
 use App\Models\Tenant;
+use App\Services\StorefrontAppearance;
 use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\ColorPicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Html;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Illuminate\Support\Str;
@@ -195,15 +202,15 @@ class TenantSettingsForm
                 ->options(collect(config('widmungen.label_presets'))->map(fn ($preset) => $preset['name'])->put('custom', 'Eigenes Format …'))
                 ->live()
                 ->required(),
-            Grid::make(4)->visible($custom)->schema([
-                TextInput::make('settings.print.label_custom.cols')->label('Spalten')->numeric()->minValue(1)->required($custom),
-                TextInput::make('settings.print.label_custom.rows')->label('Zeilen')->numeric()->minValue(1)->required($custom),
-                TextInput::make('settings.print.label_custom.width')->label('Breite (mm)')->numeric()->required($custom),
-                TextInput::make('settings.print.label_custom.height')->label('Höhe (mm)')->numeric()->required($custom),
-                TextInput::make('settings.print.label_custom.top')->label('Rand oben (mm)')->numeric()->required($custom),
-                TextInput::make('settings.print.label_custom.left')->label('Rand links (mm)')->numeric()->required($custom),
-                TextInput::make('settings.print.label_custom.gap_x')->label('Abstand horizontal (mm)')->numeric()->default(0),
-                TextInput::make('settings.print.label_custom.gap_y')->label('Abstand vertikal (mm)')->numeric()->default(0),
+            Grid::make(4)->schema([
+                TextInput::make('settings.print.label_custom.cols')->label('Spalten')->numeric()->minValue(1)->required($custom)->visible($custom)->dehydratedWhenHidden(),
+                TextInput::make('settings.print.label_custom.rows')->label('Zeilen')->numeric()->minValue(1)->required($custom)->visible($custom)->dehydratedWhenHidden(),
+                TextInput::make('settings.print.label_custom.width')->label('Breite (mm)')->numeric()->required($custom)->visible($custom)->dehydratedWhenHidden(),
+                TextInput::make('settings.print.label_custom.height')->label('Höhe (mm)')->numeric()->required($custom)->visible($custom)->dehydratedWhenHidden(),
+                TextInput::make('settings.print.label_custom.top')->label('Rand oben (mm)')->numeric()->required($custom)->visible($custom)->dehydratedWhenHidden(),
+                TextInput::make('settings.print.label_custom.left')->label('Rand links (mm)')->numeric()->required($custom)->visible($custom)->dehydratedWhenHidden(),
+                TextInput::make('settings.print.label_custom.gap_x')->label('Abstand horizontal (mm)')->numeric()->default(0)->visible($custom)->dehydratedWhenHidden(),
+                TextInput::make('settings.print.label_custom.gap_y')->label('Abstand vertikal (mm)')->numeric()->default(0)->visible($custom)->dehydratedWhenHidden(),
             ]),
             Toggle::make('settings.print.letter_qr')
                 ->label('QR-Code zur Bestellseite auf Begleitbriefen'),
@@ -218,9 +225,134 @@ class TenantSettingsForm
                 TextInput::make('settings.legal.privacy_url')->label('Datenschutz (URL)')->url(),
                 TextInput::make('settings.legal.imprint_url')->label('Impressum (URL)')->url(),
             ]),
-            Textarea::make('settings.branding.intro')
-                ->label('Einleitungstext im Shop')
-                ->rows(3),
+        ];
+    }
+
+    public static function storefront(): array
+    {
+        $appearance = app(StorefrontAppearance::class);
+        $directory = fn (?Tenant $record) => 'tenants/'.($record?->id ?? 'neu');
+        $image = fn (string $name, string $label) => FileUpload::make($name)
+            ->label($label)
+            ->image()
+            ->disk('public')
+            ->directory($directory)
+            ->maxSize(20 * 1024);
+
+        $textTabs = collect(StorefrontAppearance::LOCALES)->map(fn (string $locale) => Tab::make($locale === 'de' ? 'Deutsch' : 'English')
+            ->schema(collect(StorefrontAppearance::TEXTS)->map(function (string $label, string $key) use ($appearance, $locale) {
+                $field = in_array($key, StorefrontAppearance::LONG_TEXTS, true)
+                    ? Textarea::make("settings.storefront.texts.$locale.$key")->rows(2)->autosize()
+                    : TextInput::make("settings.storefront.texts.$locale.$key");
+
+                return $field
+                    ->label($label)
+                    ->placeholder($appearance->defaultText($key, $locale))
+                    ->maxLength(in_array($key, StorefrontAppearance::LONG_TEXTS, true) ? 600 : 120)
+                    ->live(onBlur: true);
+            })->values()->all()))->all();
+
+        return [
+            Section::make('Farben')
+                ->description('Die Vorschau zeigt, wie die Startseite mit diesen Farben aussieht.')
+                ->schema([
+                    Grid::make(3)->schema([
+                        ColorPicker::make('settings.storefront.colors.primary')
+                            ->label('Hauptfarbe')
+                            ->helperText('Schrift, Buttons, Fusszeile')
+                            ->hex()->regex('/^#[0-9a-fA-F]{6}$/')->required()->live(),
+                        ColorPicker::make('settings.storefront.colors.accent')
+                            ->label('Akzentfarbe')
+                            ->helperText('Hintergrund oben, Hervorhebungen')
+                            ->hex()->regex('/^#[0-9a-fA-F]{6}$/')->required()->live(),
+                        ColorPicker::make('settings.storefront.colors.accent_light')
+                            ->label('Helle Akzentfarbe')
+                            ->helperText('Karten und Flächen')
+                            ->hex()->regex('/^#[0-9a-fA-F]{6}$/')->required()->live(),
+                    ]),
+                    Html::make(fn (Get $get, ?Tenant $record) => view('filament.storefront-preview', [
+                        'colors' => [
+                            'primary' => StorefrontAppearance::normaliseHex($get('settings.storefront.colors.primary')) ?? '#2B3C69',
+                            'accent' => StorefrontAppearance::normaliseHex($get('settings.storefront.colors.accent')) ?? '#D989B2',
+                            'accent_light' => StorefrontAppearance::normaliseHex($get('settings.storefront.colors.accent_light')) ?? '#EEC6D8',
+                        ],
+                        'title' => $get('settings.storefront.texts.de.title') ?: $appearance->defaultText('title', 'de'),
+                        'cta' => $get('settings.storefront.texts.de.cta') ?: $appearance->defaultText('cta', 'de'),
+                        'name' => $get('name') ?: $record?->name,
+                    ])->render()),
+                ]),
+
+            Section::make('Bild & Logo')->schema([
+                Grid::make(2)->schema([
+                    Select::make('settings.storefront.hero.visual')
+                        ->label('Bild oben rechts')
+                        ->options([
+                            'image' => 'Eigenes Bild',
+                            'heart' => 'Herz aus Text',
+                            'none' => 'Nichts (Text über die ganze Breite)',
+                        ])
+                        ->required()
+                        ->live(),
+                    TextInput::make('settings.storefront.hero.heart_text')
+                        ->label('Text im Herz')
+                        ->placeholder('Name des Shops')
+                        ->maxLength(60)
+                        ->visible(fn (Get $get) => $get('settings.storefront.hero.visual') === 'heart')
+                        ->dehydratedWhenHidden(),
+                ]),
+                Grid::make(2)
+                    ->schema([
+                        $image('settings.storefront.hero.image_path', 'Bild')
+                            ->helperText('Wird auf max. 1600 px verkleinert. Hochformat oder quadratisch wirkt am besten.')
+                            ->imageResizeMode('contain')
+                            ->imageResizeTargetWidth('1600')
+                            ->imageResizeTargetHeight('1600')
+                            ->required(fn (Get $get) => $get('settings.storefront.hero.visual') === 'image')
+                            // Keep the image when switching to another visual for a while.
+                            ->visible(fn (Get $get) => $get('settings.storefront.hero.visual') === 'image')
+                            ->dehydratedWhenHidden(),
+                        TextInput::make('settings.storefront.hero.image_alt')
+                            ->label('Bildbeschreibung (für Screenreader)')
+                            ->maxLength(200)
+                            ->visible(fn (Get $get) => $get('settings.storefront.hero.visual') === 'image')
+                            ->dehydratedWhenHidden(),
+                    ]),
+                Grid::make(2)->schema([
+                    $image('settings.storefront.logo_path', 'Logo (optional)')
+                        ->helperText('Ersetzt den Shopnamen oben links. SVG oder PNG mit transparentem Hintergrund.')
+                        ->acceptedFileTypes(['image/svg+xml', 'image/png', 'image/webp'])
+                        ->imageResizeMode('contain')
+                        ->imageResizeTargetHeight('160'),
+                    $image('settings.storefront.favicon_path', 'Favicon (optional)')
+                        ->helperText('Quadratisch, z. B. 512 × 512 px, PNG oder SVG.')
+                        ->acceptedFileTypes(['image/svg+xml', 'image/png'])
+                        ->imageResizeMode('cover')
+                        ->imageResizeTargetWidth('512')
+                        ->imageResizeTargetHeight('512'),
+                ]),
+            ]),
+
+            Section::make('Bereiche der Startseite')->schema([
+                Grid::make(3)->schema([
+                    Toggle::make('settings.storefront.sections.books')->label('Bücher'),
+                    Toggle::make('settings.storefront.sections.how')->label('«So funktioniert’s»'),
+                    Toggle::make('settings.storefront.sections.lookup')->label('«Schon bestellt?»'),
+                ]),
+            ]),
+
+            Section::make('Texte')
+                ->description('Leer lassen, um den Standardtext (grau) zu verwenden. {name} wird durch den Shopnamen ersetzt.')
+                ->schema([Tabs::make()->tabs($textTabs)]),
+
+            Section::make('Link-Vorschau')
+                ->description('Bild, das erscheint, wenn der Shop in Chats oder sozialen Medien geteilt wird. Ohne eigenes Bild wird das Bild oben rechts oder das erste Buchcover verwendet. Titel und Beschreibung stehen unter «Texte».')
+                ->schema([
+                    $image('settings.storefront.seo.image_path', 'Vorschaubild (optional)')
+                        ->helperText('Ideal: 1200 × 630 px.')
+                        ->imageResizeMode('cover')
+                        ->imageResizeTargetWidth('1200')
+                        ->imageResizeTargetHeight('630'),
+                ]),
         ];
     }
 

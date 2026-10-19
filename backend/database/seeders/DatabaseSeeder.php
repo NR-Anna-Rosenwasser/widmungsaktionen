@@ -36,7 +36,13 @@ class DatabaseSeeder extends Seeder
             'creditor_country' => 'CH',
             'iban' => 'CH9300762011623852957',
             'mail_from_name' => 'Anna Rosenwasser',
-            'settings' => [],
+            'settings' => [
+                'storefront' => [
+                    'colors' => ['primary' => '#2B3C69', 'accent' => '#D989B2', 'accent_light' => '#EEC6D8'],
+                    // Switch to "image" once a hero photo is uploaded in the shop settings.
+                    'hero' => ['visual' => 'heart', 'heart_text' => 'Anna Rosenwasser'],
+                ],
+            ],
         ]);
         $anna->domains()->create(['domain' => 'anna-test.ddev.site']);
 

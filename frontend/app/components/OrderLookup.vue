@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const props = defineProps<{ slug: string }>()
+const props = defineProps<{ slug: string, title?: string, text?: string }>()
 const { t } = useI18n()
 const path = useStorefrontPath()
 
@@ -30,10 +30,10 @@ async function submit() {
 <template>
   <div class="max-w-2xl">
     <h2 class="text-3xl">
-      {{ $t('home.lookupTitle') }}
+      {{ title || $t('home.lookupTitle') }}
     </h2>
     <p class="mt-2 text-navy-soft">
-      {{ $t('home.lookupText') }}
+      {{ text || $t('home.lookupText') }}
     </p>
     <form class="mt-6 grid gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end" @submit.prevent="submit">
       <div>

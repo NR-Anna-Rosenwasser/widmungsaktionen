@@ -46,7 +46,41 @@ return [
             'imprint_url' => null,
         ],
         'branding' => [
+            // Legacy, superseded by storefront.texts.de.lead.
             'intro' => null,
+        ],
+        'storefront' => [
+            // Brand colours: primary = text, buttons; accent = hero background;
+            // accent_light = cards and highlights. Shades are derived from these.
+            'colors' => [
+                'primary' => '#2B3C69',
+                'accent' => '#D989B2',
+                'accent_light' => '#EEC6D8',
+            ],
+            'logo_path' => null,
+            'favicon_path' => null,
+            'hero' => [
+                // image | heart | none
+                'visual' => 'none',
+                'image_path' => null,
+                'image_alt' => null,
+                'heart_text' => null,
+            ],
+            'sections' => [
+                'books' => true,
+                'how' => true,
+                'lookup' => true,
+            ],
+            'seo' => [
+                'title' => null,
+                'description' => null,
+                'image_path' => null,
+            ],
+            // Overrides per locale; empty values fall back to lang/*/storefront.php.
+            'texts' => [
+                'de' => [],
+                'en' => [],
+            ],
         ],
     ],
 ];

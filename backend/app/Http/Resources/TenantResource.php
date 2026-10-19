@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use App\Models\Tenant;
 use App\Services\Payments\PaymentService;
+use App\Services\StorefrontAppearance;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -18,7 +19,6 @@ class TenantResource extends JsonResource
             'name' => $this->name,
             'slug' => $this->slug,
             'contact_email' => $this->contact_email,
-            'intro' => $this->setting('branding.intro'),
             'legal' => $this->setting('legal'),
             'max_copies_per_order' => (int) $this->setting('max_copies_per_order'),
             'dedication_max_length' => (int) $this->setting('dedication_max_length'),
@@ -28,6 +28,7 @@ class TenantResource extends JsonResource
                 ->sortBy('max_copies')
                 ->values(),
             'newsletter' => filled($this->newsletter_webhook_url),
+            'storefront' => app(StorefrontAppearance::class)->forStorefront($this->resource),
         ];
     }
 }

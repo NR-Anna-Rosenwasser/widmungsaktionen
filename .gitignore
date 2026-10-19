@@ -1,3 +1,6 @@
 .DS_Store
 .idea
 .vscode
+
+# Local design references (rights belong to others), never commit
+docs/brand/

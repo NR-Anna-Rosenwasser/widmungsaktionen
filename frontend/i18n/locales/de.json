@@ -55,7 +55,8 @@
     "lookupEmail": "E-Mail-Adresse",
     "lookupSubmit": "Bestellung anzeigen",
     "lookupNotFound": "Wir konnten keine passende Bestellung finden.",
-    "optedOut": "Erledigt: Dein Entwurf ist gelöscht und du bekommst keine Erinnerungen mehr."
+    "optedOut": "Erledigt: Dein Entwurf ist gelöscht und du bekommst keine Erinnerungen mehr.",
+    "shippingFrom": "Zzgl. Versand ab {price} (Brief bei einem Buch, Paket ab zwei Büchern)."
   },
   "order": {
     "stepOf": "Schritt {current} von {total}",
@@ -71,7 +72,18 @@
       "remove": "Eins weniger",
       "count": "{count} Exemplar | {count} Exemplare",
       "empty": "Wähl mindestens ein Buch aus.",
-      "max": "Maximal {max} Bücher pro Bestellung."
+      "max": "Maximal {max} Bücher pro Bestellung.",
+      "shippingTitle": "Versandkosten",
+      "shippingTier": "{range}: {price} ({method})",
+      "shippingRangeOne": "1 Buch",
+      "shippingRange": "{from}–{to} Bücher",
+      "method": {
+        "letter": "Brief",
+        "parcel": "Paket"
+      },
+      "runningTotal": "{books} Bücher {subtotal} + Versand {shipping} = Total {total}",
+      "runningTotalOne": "1 Buch {subtotal} + Versand {shipping} = Total {total}",
+      "shippingRangeExact": "{count} Bücher"
     },
     "email": {
       "title": "Wie lautet deine E-Mail-Adresse?",
