@@ -27,6 +27,11 @@ return [
             ['max_copies' => 4, 'method' => 'parcel', 'price' => 800],
         ],
         'dedication_max_length' => 200,
+        // Which dedication options customers get per copy. A name is always possible.
+        'dedication_signature_only' => true,
+        'dedication_wish' => true,
+        // Copies with only a name (no wish) skip «Widmungswünsche prüfen».
+        'dedication_auto_approve_names' => false,
         'dedication_retention_months' => 12,
         'invoice_payment_days' => 10,
         'reminder_days_before_deadline' => 3,

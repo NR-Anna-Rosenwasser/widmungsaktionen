@@ -187,6 +187,8 @@ useSeoMeta({ title: () => `${$text('tracking.title')} ${order.value?.number ?? '
                 <template v-else>
                   {{ copy.recipient_name }}<template v-if="copy.wish">
                     – «{{ copy.wish }}»
+                  </template><template v-else-if="copy.recipient_name">
+                    – {{ $text('order.summary.surprise') }}
                   </template>
                 </template>
               </p>

@@ -10,6 +10,7 @@ return [
     'book' => 'Buch',
     'dedication' => 'Widmung',
     'signature_only' => 'Nur Unterschrift',
+    'surprise' => 'lass dich überraschen',
     'shipping' => 'Versand',
     'total' => 'Total',
     'deliver_to' => 'Wir schicken das Paket an {name}, {town}.',

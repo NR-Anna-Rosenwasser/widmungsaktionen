@@ -104,7 +104,7 @@ class Moderation extends Page implements HasTable
                     ->description(fn (OrderItem $record) => $record->order->billingName()),
                 TextColumn::make('book.title')->label('Buch'),
                 TextColumn::make('recipient_name')->label('Für')->placeholder('–')->weight('bold'),
-                TextColumn::make('wish')->label('Wunsch')->placeholder('–')->wrap()->grow(),
+                TextColumn::make('wish')->label('Wunsch')->placeholder('Kein Wunsch: frei widmen')->wrap()->grow(),
                 TextColumn::make('moderation_status')
                     ->label('Status')
                     ->badge()

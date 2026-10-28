@@ -10,6 +10,7 @@ return [
     'book' => 'Book',
     'dedication' => 'Dedication',
     'signature_only' => 'Signature only',
+    'surprise' => 'a surprise',
     'shipping' => 'Shipping',
     'total' => 'Total',
     'deliver_to' => 'We’ll send the parcel to {name}, {town}.',

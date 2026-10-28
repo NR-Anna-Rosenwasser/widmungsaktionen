@@ -276,7 +276,7 @@ class OrderController extends Controller
         return $this->payments->availableMethods($order->tenant, $order->isTest());
     }
 
-    protected function copiesRules(Tenant $tenant, Aktion $aktion, bool $required): array
+    protected function copiesRules(Tenant $tenant, Aktion $aktion, bool $required, bool $submit = false): array
     {
         $bookIds = $aktion->books()->where('is_active', true)->pluck('books.id')->all();
 
@@ -284,7 +284,8 @@ class OrderController extends Controller
             'copies' => [$required ? 'required' : 'sometimes', 'array', 'min:1', 'max:'.$tenant->setting('max_copies_per_order')],
             'copies.*.book_id' => ['required', 'integer', Rule::in($bookIds)],
             'copies.*.signature_only' => ['boolean'],
-            'copies.*.recipient_name' => ['nullable', 'string', 'max:100'],
+            // Without «Nur Unterschrift», every copy needs a name when the order is submitted.
+            'copies.*.recipient_name' => [$submit && ! $tenant->setting('dedication_signature_only') ? 'required' : 'nullable', 'string', 'max:100'],
             'copies.*.wish' => ['nullable', 'string', 'max:'.$tenant->setting('dedication_max_length')],
         ];
     }
@@ -312,10 +313,14 @@ class OrderController extends Controller
     {
         $order->items()->delete();
 
+        $tenant = $order->tenant;
+
         foreach (array_values($copies) as $index => $copy) {
-            $signatureOnly = (bool) ($copy['signature_only'] ?? false);
-            $wish = $signatureOnly ? null : (trim((string) ($copy['wish'] ?? '')) ?: null);
+            // Options the shop doesn't offer are dropped (e.g. a draft started before the setting changed).
+            $signatureOnly = (bool) ($copy['signature_only'] ?? false) && $tenant->setting('dedication_signature_only');
+            $wish = $signatureOnly || ! $tenant->setting('dedication_wish') ? null : (trim((string) ($copy['wish'] ?? '')) ?: null);
             $recipient = $signatureOnly ? null : (trim((string) ($copy['recipient_name'] ?? '')) ?: null);
+            $autoApproved = $wish === null && ($recipient === null || $tenant->setting('dedication_auto_approve_names'));
 
             $order->items()->create([
                 'book_id' => $copy['book_id'],
@@ -324,8 +329,9 @@ class OrderController extends Controller
                 'signature_only' => $signatureOnly,
                 'recipient_name' => $recipient,
                 'wish' => $wish,
-                // Anything customers wrote gets reviewed; plain signatures don't need it.
-                'moderation_status' => $wish === null && $recipient === null ? ModerationStatus::Approved : ModerationStatus::Pending,
+                // Anything customers wrote gets reviewed; plain signatures don't need it,
+                // names without a wish only if the shop says so.
+                'moderation_status' => $autoApproved ? ModerationStatus::Approved : ModerationStatus::Pending,
             ]);
         }
 
@@ -340,7 +346,7 @@ class OrderController extends Controller
 
         $rules = [
             'email' => ['required', 'email:rfc'],
-            ...$this->copiesRules($tenant, $order->aktion, required: true),
+            ...$this->copiesRules($tenant, $order->aktion, required: true, submit: true),
             ...$this->addressRules('billing', strict: true),
             'payment_method' => ['required', Rule::in($this->paymentMethods($order))],
         ];

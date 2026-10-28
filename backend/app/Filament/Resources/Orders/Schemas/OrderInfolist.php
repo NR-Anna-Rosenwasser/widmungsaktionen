@@ -30,7 +30,11 @@ class OrderInfolist
                                 TextEntry::make('recipient_name')->label('Für')->placeholder('–'),
                                 TextEntry::make('wish')
                                     ->label('Wunsch')
-                                    ->placeholder(fn ($record) => $record->signature_only ? 'Nur Unterschrift' : '–')
+                                    ->placeholder(fn ($record) => match (true) {
+                                        (bool) $record->signature_only => 'Nur Unterschrift',
+                                        (bool) $record->recipient_name => 'Kein Wunsch: frei widmen',
+                                        default => '–',
+                                    })
                                     ->columnSpan(2),
                                 TextEntry::make('moderation_status')->label('Moderation')->badge(),
                                 TextEntry::make('signed_at')->label('Gewidmet')->dateTime('d.m.Y H:i')->placeholder('–'),

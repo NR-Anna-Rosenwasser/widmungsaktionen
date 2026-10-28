@@ -122,6 +122,7 @@ return [
             'books' => 'Books',
             'dedication' => 'Dedication',
             'signatureOnly' => 'Signature only',
+            'surprise' => 'a surprise',
             'billing' => 'Billing address',
             'shipping' => 'Delivery address',
             'sameAsBilling' => 'Same as billing address',

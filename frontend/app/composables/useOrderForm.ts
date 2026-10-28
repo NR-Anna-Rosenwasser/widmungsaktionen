@@ -119,7 +119,8 @@ export function useOrderForm(storefront: Ref<StorefrontResponse>) {
     }
     if (current === 'dedication') {
       state.copies.forEach((copy, i) => {
-        if (!copy.signature_only && !String(copy.recipient_name ?? '').trim()) {
+        const signatureOnly = copy.signature_only && tenant.value.dedication_options.signature_only
+        if (!signatureOnly && !String(copy.recipient_name ?? '').trim()) {
           e[`copies.${i}.recipient_name`] = t('order.dedication.recipientRequired')
         }
       })
@@ -145,12 +146,16 @@ export function useOrderForm(storefront: Ref<StorefrontResponse>) {
   // --- Persistence ---
 
   function payloadFor(current: OrderStep): Record<string, unknown> {
-    const copies = () => state.copies.map(copy => ({
-      book_id: copy.book_id,
-      signature_only: copy.signature_only,
-      recipient_name: copy.signature_only ? null : copy.recipient_name,
-      wish: copy.signature_only ? null : copy.wish,
-    }))
+    const copies = () => state.copies.map((copy) => {
+      // Options the shop doesn't offer (anymore) aren't sent.
+      const signatureOnly = copy.signature_only && tenant.value.dedication_options.signature_only
+      return {
+        book_id: copy.book_id,
+        signature_only: signatureOnly,
+        recipient_name: signatureOnly ? null : copy.recipient_name,
+        wish: signatureOnly || !tenant.value.dedication_options.wish ? null : copy.wish,
+      }
+    })
 
     switch (current) {
       case 'books':
@@ -293,7 +298,7 @@ export function useOrderForm(storefront: Ref<StorefrontResponse>) {
     state.email = order.email
     state.copies = order.copies.map(copy => ({
       book_id: copy.book_id,
-      signature_only: copy.signature_only,
+      signature_only: copy.signature_only && tenant.value.dedication_options.signature_only,
       recipient_name: copy.recipient_name ?? '',
       wish: copy.wish ?? '',
     }))

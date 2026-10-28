@@ -23,6 +23,10 @@ class TenantResource extends JsonResource
             'legal' => $this->setting('legal'),
             'max_copies_per_order' => (int) $this->setting('max_copies_per_order'),
             'dedication_max_length' => (int) $this->setting('dedication_max_length'),
+            'dedication_options' => [
+                'signature_only' => (bool) $this->setting('dedication_signature_only'),
+                'wish' => (bool) $this->setting('dedication_wish'),
+            ],
             'payment_methods' => app(PaymentService::class)->availableMethods($this->resource, test: (bool) $request->attributes->get('preview_aktion')),
             'shipping_tiers' => collect($this->setting('shipping_tiers'))
                 ->map(fn ($tier) => ['max_copies' => (int) $tier['max_copies'], 'method' => $tier['method'], 'price' => (int) $tier['price']])

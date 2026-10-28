@@ -44,6 +44,8 @@ export interface Tenant {
   legal: { terms_url: string | null, privacy_url: string | null, imprint_url: string | null }
   max_copies_per_order: number
   dedication_max_length: number
+  /** Which options customers get per copy; a name is always possible. */
+  dedication_options: { signature_only: boolean, wish: boolean }
   payment_methods: PaymentMethod[]
   shipping_tiers: ShippingTier[]
   newsletter: boolean
