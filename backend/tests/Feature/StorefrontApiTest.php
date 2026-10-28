@@ -150,6 +150,19 @@ class StorefrontApiTest extends TestCase
             ->assertJsonPath('order.status', 'confirmed');
     }
 
+    public function test_payment_is_the_last_step_with_the_invoice_in_the_parcel(): void
+    {
+        $steps = function (string $method) {
+            $order = $this->startOrder();
+            $this->patchJson($this->base()."/orders/{$order->token}", ['billing' => $this->billing(), 'payment_method' => $method]);
+
+            return collect($this->postJson($this->base()."/orders/{$order->token}/submit")->json('order.timeline'))->pluck('key')->all();
+        };
+
+        $this->assertSame(['submitted', 'signed', 'shipped', 'paid'], $steps('invoice_in_parcel'));
+        $this->assertSame(['submitted', 'paid', 'signed', 'shipped'], $steps('invoice_advance'));
+    }
+
     public function test_no_orders_without_open_aktion(): void
     {
         $this->tenant->aktionen()->update(['status' => AktionStatus::Closed]);

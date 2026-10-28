@@ -64,7 +64,7 @@ class AktionsTable
                 TextColumn::make('submitted_orders_count')->label('Bestellungen'),
             ])
             ->recordActions([
-                EditAktion::prepareAction()->iconButton()->tooltip('Widmen vorbereiten'),
+                EditAktion::versandAction()->iconButton()->tooltip('Vorbereiten & Versand'),
                 self::duplicateAsTestAction(),
                 EditAction::make(),
             ]);

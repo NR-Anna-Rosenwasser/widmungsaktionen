@@ -1,52 +1,5 @@
 <x-filament-panels::page>
-<style>
-    .wm { --navy: #2B3C69; --navy-soft: #4a5a85; --rose: #D989B2; --blush: #EEC6D8; --blush-light: #f8e8ef; --danger: #a8324a;
-          color: var(--navy); font-family: inherit; }
-    .wm-focus { position: fixed; inset: 0; z-index: 60; background: #fff; overflow-y: auto; padding: 2rem 1.5rem 3rem; }
-    .wm-inner { max-width: 54rem; margin: 0 auto; }
-    .wm-bar { display: flex; align-items: center; gap: 1rem; justify-content: space-between; flex-wrap: wrap; margin-bottom: 1.5rem; }
-    .wm-progress { flex: 1; min-width: 12rem; }
-    .wm-progress-track { height: 8px; background: var(--blush-light); border-radius: 999px; overflow: hidden; }
-    .wm-progress-fill { height: 100%; background: var(--rose); transition: width .3s ease; }
-    .wm-progress-label { font-size: .9rem; font-weight: 600; margin-bottom: .35rem; color: var(--navy-soft); }
-    .wm-card { background: var(--blush-light); border-radius: 6px; padding: 2rem; }
-    .wm-center { text-align: center; }
-    .wm-stack { font-size: clamp(4rem, 12vw, 7.5rem); font-weight: 800; line-height: 1; letter-spacing: -.03em; }
-    .wm-stack small { font-size: .3em; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--navy-soft); display: block; margin-bottom: .4rem; }
-    .wm-meta { font-size: 1.1rem; color: var(--navy-soft); margin-top: .75rem; }
-    .wm-book { font-size: 1.5rem; font-weight: 700; margin-top: .25rem; }
-    .wm-dedication { background: #fff; border-radius: 6px; padding: 1.75rem 2rem; margin-top: 1.5rem; }
-    .wm-label { font-size: .85rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--navy-soft); }
-    .wm-recipient { font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; line-height: 1.1; margin-top: .25rem; }
-    .wm-wish { font-size: clamp(1.35rem, 3vw, 1.85rem); line-height: 1.45; margin-top: 1rem; font-style: italic; }
-    .wm-sigonly { font-size: clamp(1.75rem, 4vw, 2.5rem); font-weight: 800; }
-    .wm-next { margin-top: 1.25rem; font-size: 1.05rem; color: var(--navy-soft); text-align: center; }
-    .wm-next strong { color: var(--navy); }
-    .wm-next-new { display: inline-block; background: var(--blush); color: var(--navy); border-radius: 4px; padding: .35rem .75rem; font-weight: 700; }
-    .wm-actions { display: flex; flex-wrap: wrap; gap: .75rem; justify-content: center; margin-top: 2rem; }
-    .wm-btn { display: inline-flex; align-items: center; gap: .6rem; border-radius: 4px; padding: .9rem 1.4rem; font-weight: 700; font-size: 1.05rem; border: 2px solid var(--navy); background: #fff; color: var(--navy); cursor: pointer; }
-    .wm-btn:hover { background: var(--blush-light); }
-    .wm-btn:disabled { opacity: .45; cursor: not-allowed; }
-    .wm-btn-primary { background: var(--navy); color: #fff; font-size: 1.35rem; padding: 1.1rem 2.2rem; }
-    .wm-btn-primary:hover { background: var(--navy-soft); }
-    .wm-btn-danger { border-color: var(--danger); color: var(--danger); }
-    .wm-kbd { font-size: .75rem; font-weight: 700; border: 1.5px solid currentColor; border-radius: 3px; padding: .05rem .35rem; opacity: .75; }
-    .wm-input { font-size: 3rem; font-weight: 800; text-align: center; width: 12rem; border: 3px solid var(--navy); border-radius: 6px; padding: .5rem; color: var(--navy); background: #fff; }
-    .wm-input:focus { outline: 3px solid var(--rose); outline-offset: 3px; }
-    .wm-h { font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 800; line-height: 1.2; }
-    .wm-p { font-size: 1.15rem; margin-top: .75rem; color: var(--navy-soft); }
-    .wm-alert { border: 3px solid var(--danger); background: #fff; }
-    .wm-alert .wm-h { color: var(--danger); }
-    .wm-list { margin-top: 1.5rem; text-align: left; display: grid; gap: .5rem; }
-    .wm-list-row { display: grid; grid-template-columns: 4.5rem 1fr; gap: 1rem; align-items: baseline; background: #fff; border-radius: 4px; padding: .6rem 1rem; }
-    .wm-list-row.is-current { outline: 3px solid var(--rose); }
-    .wm-list-row b { font-size: 1.4rem; }
-    .wm-choice { display: grid; gap: .75rem; margin-top: 1.5rem; }
-    .wm-choice button { text-align: left; }
-    .wm-flag { margin-top: 1rem; display: flex; gap: .5rem; justify-content: center; flex-wrap: wrap; }
-    .wm-flag input { min-width: 18rem; border: 2px solid var(--navy-soft); border-radius: 4px; padding: .6rem .8rem; color: var(--navy); }
-    @media (prefers-reduced-motion: reduce) { .wm-progress-fill { transition: none; } }
-</style>
+@include('filament.pages.partials.focus-styles')
 
 <div
     class="wm"
@@ -90,7 +43,7 @@
         <div class="wm-card">
             <p class="wm-h">Welche Aktion möchtest du widmen?</p>
             @if ($this->aktionen->isEmpty())
-                <p class="wm-p">Noch keine Aktion ist bereit. Bereite zuerst unter «Aktionen» den Stapel vor («Widmen vorbereiten»).</p>
+                <p class="wm-p">Noch keine Aktion ist bereit. Bereite sie zuerst unter «Vorbereiten & Versand» vor.</p>
             @else
                 <div class="wm-choice">
                     @foreach ($this->aktionen as $a)
@@ -136,8 +89,27 @@
 
             @case('checkpoint')
                 <form class="wm-card wm-center" wire:submit="submitCheckpoint">
-                    <p class="wm-h">Welche Nummer steht auf dem Post-it vor dir?</p>
-                    <p class="wm-p">Schau auf den Stapel und tipp die Nummer ein.</p>
+                    @if ($this->heldBefore->isNotEmpty())
+                        <div class="wm-card wm-alert" style="margin-bottom: 1.5rem; padding: 1.25rem">
+                            <p class="wm-h" style="font-size: 1.4rem">
+                                Rückfrage: Leg {{ $this->heldBefore->count() === 1 ? 'diesen Post-it' : 'diese Post-its' }} mit allen Büchern beiseite
+                            </p>
+                            <p class="wm-p" style="color: var(--navy)">
+                                @foreach ($this->heldBefore as $o)
+                                    <strong>#{{ $o->stack_number }}</strong> ({{ $o->items()->count() }} {{ $o->items()->count() === 1 ? 'Buch' : 'Bücher' }})@if (! $loop->last), @endif
+                                @endforeach
+                            </p>
+                            <p class="wm-p">Die Bestellung kommt am Schluss dran, sobald die Rückfrage geklärt ist.</p>
+                        </div>
+                    @endif
+                    @if ($this->currentIsPassed)
+                        <div class="wm-passed">Nachgeholt</div>
+                        <p class="wm-h">Hol Post-it #{{ $this->current?->order->stack_number }} von den beiseitegelegten Büchern.</p>
+                        <p class="wm-p">Die Rückfrage ist geklärt. Tipp zur Kontrolle die Nummer auf dem Post-it ein.</p>
+                    @else
+                        <p class="wm-h">Welche Nummer steht auf dem Post-it vor dir?</p>
+                        <p class="wm-p">Schau auf den Stapel und tipp die Nummer ein.</p>
+                    @endif
                     <div style="margin-top: 1.5rem">
                         <input
                             class="wm-input"
@@ -169,7 +141,8 @@
                                 <b>#{{ $n->order->stack_number }}</b>
                                 <span>
                                     {{ $n->book->title }} · Buch {{ $n->position }} von {{ $this->copiesInOrder($n) }}
-                                    @if ($n->signed_at) · <em>schon gewidmet</em> @endif
+                                    @if ($n->signed_at) · <em>schon gewidmet</em>
+                                    @elseif ($this->isHeld($n)) · <em>Rückfrage, beiseitelegen</em> @endif
                                     @if ($n->recipient_name) · für {{ $n->recipient_name }} @endif
                                 </span>
                             </div>
@@ -186,6 +159,9 @@
                 @if ($item)
                     <div class="wm-card">
                         <div class="wm-center">
+                            @if ($this->currentIsPassed)
+                                <div class="wm-passed">Nachgeholt</div>
+                            @endif
                             <div class="wm-stack"><small>Post-it</small>#{{ $item->order->stack_number }}</div>
                             <div class="wm-meta">Buch {{ $item->position }} von {{ $this->copiesInOrder($item) }} dieser Bestellung</div>
                             <div class="wm-book">{{ $item->book->title }}</div>
@@ -243,14 +219,32 @@
 
             @case('done')
                 <div class="wm-card wm-center">
-                    <p class="wm-h">Alles gewidmet! 🎉</p>
-                    <p class="wm-p">
-                        {{ $this->progress['signed'] }} von {{ $this->progress['total'] }} Büchern sind gewidmet.
-                        @php($flagged = $this->selectedAktion->orders()->whereHas('items', fn ($q) => $q->where('moderation_status', 'flagged'))->count())
-                        @if ($flagged)
-                            {{ $flagged }} {{ $flagged === 1 ? 'Bestellung hat' : 'Bestellungen haben' }} eine Rückfrage, siehe «Widmungswünsche».
-                        @endif
-                    </p>
+                    @if ($this->heldOrders->isEmpty())
+                        <p class="wm-h">Alles gewidmet! 🎉</p>
+                        <p class="wm-p">{{ $this->progress['signed'] }} von {{ $this->progress['total'] }} Büchern sind gewidmet.</p>
+                    @else
+                        <p class="wm-h">Fertig bis auf {{ $this->heldOrders->count() }} {{ $this->heldOrders->count() === 1 ? 'Bestellung' : 'Bestellungen' }} mit Rückfrage</p>
+                        <p class="wm-p">
+                            {{ $this->progress['signed'] }} von {{ $this->progress['total'] }} Büchern sind gewidmet.
+                            Sobald die Rückfrage unter «Widmungswünsche» geklärt ist, kannst du die ganze Bestellung hier widmen.
+                        </p>
+                        <div class="wm-list">
+                            @foreach ($this->heldOrders as $o)
+                                <div class="wm-list-row">
+                                    <b>#{{ $o->stack_number }}</b>
+                                    <span>
+                                        {{ $o->items->count() }} {{ $o->items->count() === 1 ? 'Buch' : 'Bücher' }} · <em>{{ $this->isPutAside($o) ? 'beiseitegelegt' : 'am Ende des Stapels' }}</em>
+                                        @foreach ($o->items->where('moderation_status', '!==', \App\Enums\ModerationStatus::Approved) as $flagged)
+                                            <br>Rückfrage zu {{ $flagged->book->title }} (Buch {{ $flagged->position }})@if ($flagged->moderation_note): {{ $flagged->moderation_note }}@endif
+                                        @endforeach
+                                    </span>
+                                </div>
+                            @endforeach
+                        </div>
+                        <div class="wm-actions">
+                            <button type="button" class="wm-btn wm-btn-primary" wire:click="continueSigning">Rückfragen geklärt? Weiter widmen</button>
+                        </div>
+                    @endif
                     @if (! empty($signedStack))
                         <div class="wm-actions">
                             <button type="button" class="wm-btn" wire:click="undo">Letztes rückgängig machen</button>

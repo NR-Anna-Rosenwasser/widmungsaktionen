@@ -6,6 +6,8 @@ use App\Enums\AktionStatus;
 use App\Enums\ModerationStatus;
 use App\Enums\OrderStatus;
 use App\Filament\Pages\Versand;
+use App\Livewire\Versand\ShippingTable;
+use App\Mail\OrderShippedMail;
 use App\Models\Aktion;
 use App\Models\Order;
 use App\Models\Tenant;
@@ -56,7 +58,7 @@ class PrintTest extends TestCase
         ]);
         $this->gift->update(['status' => OrderStatus::Confirmed, 'payment_status' => 'paid']);
         Order::query()->each(fn ($o) => $o->items()->update(['moderation_status' => ModerationStatus::Approved]));
-        app(SigningService::class)->prepare($this->aktion);
+        $this->prepareStack($this->aktion);
 
         $this->actingAs(User::firstWhere('email', 'admin@widmungen.test'));
         Filament::setTenant($this->tenant);
@@ -103,6 +105,40 @@ class PrintTest extends TestCase
         $this->assertSame(3, substr_count($html, 'class="label"'));
     }
 
+    public function test_stack_list_is_for_preparing_and_packing(): void
+    {
+        $title = $this->tenant->books()->first()->title;
+        $this->gift->items()->update(['moderation_status' => ModerationStatus::Flagged]);
+
+        $html = app(PrintService::class)->stackListHtml($this->aktion);
+
+        $this->assertStringContainsString('Bücher bereitlegen', $html);
+        $this->assertStringContainsString("<b>4×</b> {$title}", $html);
+        $this->assertStringContainsString("<b>2×</b> {$title}", $html, 'the parcel order lists its copies per title');
+        $this->assertSame(2, substr_count($html, 'RECHNUNG BEILEGEN'), 'the two unpaid in-parcel orders');
+        $this->assertSame(2, substr_count($html, '<tr class="invoice">'));
+        $this->assertSame(1, substr_count($html, 'Rückfrage offen'));
+        $this->assertStringContainsString('Vorbereitet', $html);
+        $this->assertStringContainsString('Verpackt', $html);
+        // Signing doesn't work with this list: no dedications, no «Gewidmet» column, no addresses.
+        $this->assertStringNotContainsString('für Kim', $html);
+        $this->assertStringNotContainsString('Gewidmet', $html);
+        $this->assertStringNotContainsString('Bahnhofstrasse', $html);
+    }
+
+    public function test_book_counts_in_the_overview_and_the_prepare_dialog(): void
+    {
+        $title = $this->tenant->books()->first()->title;
+
+        Livewire::test(Versand::class, ['aktion' => $this->aktion->id])
+            ->assertSee("Bücher auf dem Stapel: 4× {$title}");
+
+        // Before preparing, the page counts the books of the orders it will number.
+        app(SigningService::class)->unprepare($this->aktion);
+        Livewire::test(Versand::class, ['aktion' => $this->aktion->id])
+            ->assertSee("Bücher bereitlegen: 4× {$title}");
+    }
+
     public function test_switching_the_aktion_updates_the_overview(): void
     {
         $other = $this->tenant->aktionen()->where('name', 'Winter-Widmungsaktion 2027')->first();
@@ -112,35 +148,65 @@ class PrintTest extends TestCase
             ->assertSee('Widmungstag '.$this->aktion->signing_date->format('d.m.Y'))
             ->assertSee('3 auf dem Stapel')
             ->callAction(TestAction::make('chooseAktion'), ['aktion' => $other->id])
-            ->assertSee('Widmungstag '.$other->signing_date->format('d.m.Y'))
-            ->assertSee('0 auf dem Stapel');
+            // Not prepared yet: the page offers to prepare it instead.
+            ->assertSee('Widmungsaktion vorbereiten')
+            ->assertDontSee('3 auf dem Stapel');
     }
 
-    public function test_versand_page_downloads_and_ships(): void
+    public function test_versand_page_downloads(): void
     {
         $renderer = Mockery::mock(PdfRenderer::class);
         $renderer->shouldReceive('render')->andReturn('%PDF');
         $this->app->instance(PdfRenderer::class, $renderer);
 
-        $this->get('https://'.config('widmungen.admin_domain')."/{$this->tenant->slug}/drucken-versand")->assertOk();
+        $this->get('https://'.config('widmungen.admin_domain')."/{$this->tenant->slug}/vorbereiten-versand")->assertOk();
 
         Livewire::test(Versand::class)
+            ->assertSeeLivewire(ShippingTable::class)
             ->callAction(TestAction::make('stackList')->schemaComponent('prepareActions', schema: 'content'))
             ->assertFileDownloaded('stapelliste-herbst-widmungsaktion-2026.pdf')
-            ->callAction(TestAction::make('export')->schemaComponent('shipActions', schema: 'content'))
+            ->callAction(TestAction::make('export')->schemaComponent('prepareActions', schema: 'content'))
             ->assertFileDownloaded('bestellungen-herbst-widmungsaktion-2026.csv');
+    }
 
-        // Sign everything, then ship all.
+    public function test_orders_ship_one_by_one_or_in_bulk(): void
+    {
         $signing = app(SigningService::class);
-        while ($item = $signing->current($this->aktion)) {
-            $signing->sign($item, auth()->user());
+        $user = auth()->user();
+        foreach ([$this->letter, $this->parcel] as $order) {
+            $order->items->each(fn ($item) => $signing->sign($item, $user));
         }
+        $table = fn () => Livewire::test(ShippingTable::class, ['aktionId' => $this->aktion->id]);
 
-        Livewire::test(Versand::class)
-            ->callAction(TestAction::make('shipAll')->schemaComponent('shipActions', schema: 'content'), ['date' => now()->toDateString(), 'notify' => false])
-            ->assertHasNoActionErrors();
+        // Default: signed, not shipped. The gift order isn't signed yet and can't be shipped.
+        $table()
+            ->assertCanSeeTableRecords([$this->letter, $this->parcel])
+            ->assertCanNotSeeTableRecords([$this->gift])
+            ->callTableAction('ship', $this->letter, ['date' => now()->toDateString(), 'tracking_number' => '99.00.1', 'notify' => true])
+            ->assertHasNoTableActionErrors();
 
-        $this->assertSame(3, $this->aktion->orders()->where('status', OrderStatus::Shipped)->count());
+        $this->assertSame(OrderStatus::Shipped, $this->letter->fresh()->status);
+        $this->assertSame('99.00.1', $this->letter->shipments()->first()->tracking_number);
+        Mail::assertQueued(OrderShippedMail::class, 1);
+        $this->assertSame(AktionStatus::Shipping, $this->aktion->fresh()->status);
+
+        $table()
+            ->callTableBulkAction('shipSelected', [$this->parcel, $this->gift], ['date' => now()->toDateString(), 'notify' => false])
+            ->assertHasNoTableBulkActionErrors();
+
+        $this->assertSame(OrderStatus::Shipped, $this->parcel->fresh()->status);
+        $this->assertSame(OrderStatus::Confirmed, $this->gift->fresh()->status, 'unsigned orders are skipped');
+        Mail::assertQueued(OrderShippedMail::class, 1);
+        $this->assertSame(AktionStatus::Shipping, $this->aktion->fresh()->status);
+
+        // Only for roles that may ship.
+        $this->actingAs(User::firstWhere('email', 'anna@widmungen.test'));
+        Livewire::test(ShippingTable::class, ['aktionId' => $this->aktion->id])->assertForbidden();
+        $this->actingAs($user);
+
+        // Last one shipped: the Aktion is done.
+        $this->gift->items->each(fn ($item) => $signing->sign($item, $user));
+        $table()->callTableBulkAction('shipSelected', [$this->gift], ['date' => now()->toDateString(), 'notify' => false]);
         $this->assertSame(AktionStatus::Done, $this->aktion->fresh()->status);
     }
 }

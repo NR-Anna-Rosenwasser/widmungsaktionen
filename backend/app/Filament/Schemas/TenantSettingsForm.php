@@ -152,10 +152,15 @@ class TenantSettingsForm
                 Select::make('settings.unpaid_after_deadline')
                     ->label('Unbezahlte Bestellungen nach Bestellschluss')
                     ->options([
-                        'move' => 'Einmal in die nächste Aktion verschieben, danach stornieren',
-                        'cancel' => 'Sofort stornieren',
+                        'manual' => 'Selbst entscheiden (unter «Vorbereiten & Versand → Offene Bestellungen»)',
+                        'move' => 'Automatisch einmal in die nächste Aktion verschieben, danach stornieren',
+                        'cancel' => 'Automatisch sofort stornieren',
                     ])
                     ->required(),
+                Toggle::make('settings.notify_signed')
+                    ->label('E-Mail «Dein Buch ist gewidmet» senden')
+                    ->helperText('Die Bestellseite zeigt den Schritt «Gewidmet» auch ohne E-Mail.')
+                    ->columnSpanFull(),
                 TextInput::make('settings.checkpoint_interval')
                     ->label('Kontrollfrage beim Widmen alle … Bücher')
                     ->numeric()->minValue(1)->maxValue(50)->required(),

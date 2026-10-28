@@ -9,8 +9,8 @@ use App\Events\OrderPaid;
 use App\Events\OrderRefunded;
 use App\Events\OrderShipped;
 use App\Events\OrderSigned;
-use App\Jobs\SendSignedMail;
 use App\Events\OrderSubmitted;
+use App\Jobs\SendSignedMail;
 use App\Mail\OrderCancelledMail;
 use App\Mail\OrderConfirmationMail;
 use App\Mail\OrderMail;
@@ -60,6 +60,10 @@ class SendOrderMails
 
     public function signed(OrderSigned $event): void
     {
+        if (! $event->order->tenant->setting('notify_signed')) {
+            return;
+        }
+
         SendSignedMail::dispatch($event->order)->delay(now()->addMinutes(30));
     }
 

@@ -43,6 +43,12 @@ class TodoOverview extends StatsOverviewWidget
             ->count();
         $notStacked = $aktion->orders()->where('status', OrderStatus::Confirmed)->whereNull('stack_number')->count();
         $toShip = $aktion->orders()->where('status', OrderStatus::Signed)->count();
+        // After the deadline: orders waiting for a decision in «Offene Bestellungen».
+        $undecided = 0;
+        if ($aktion->order_deadline->isPast()) {
+            $undecided = $aktion->orders()->where('status', OrderStatus::PendingPayment)->count()
+                + ($aktion->prepared_at ? $notStacked : 0);
+        }
 
         return [
             Stat::make('Widmungswünsche prüfen', $toReview)
@@ -57,6 +63,12 @@ class TodoOverview extends StatsOverviewWidget
                 ->description('gewidmet, noch nicht versendet')
                 ->color($toShip ? 'primary' : 'gray')
                 ->url(Versand::getUrl(['aktion' => $aktion->id])),
+            ...($undecided ? [
+                Stat::make('Offene Bestellungen', $undecided)
+                    ->description('unbezahlt oder noch ohne Post-it: entscheiden')
+                    ->color('warning')
+                    ->url(Versand::getUrl(['aktion' => $aktion->id])),
+            ] : []),
         ];
     }
 }

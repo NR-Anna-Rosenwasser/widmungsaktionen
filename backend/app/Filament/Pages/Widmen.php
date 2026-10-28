@@ -3,8 +3,10 @@
 namespace App\Filament\Pages;
 
 use App\Enums\AktionStatus;
+use App\Enums\ModerationStatus;
 use App\Enums\TenantRole;
 use App\Models\Aktion;
+use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\SigningSession;
 use App\Services\SigningService;
@@ -31,7 +33,7 @@ class Widmen extends Page
 
     protected static string|UnitEnum|null $navigationGroup = 'Widmen';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 3;
 
     protected string $view = 'filament.pages.widmen';
 
@@ -126,11 +128,39 @@ class Widmen extends Page
             return null;
         }
 
-        return $this->signing()->queue($this->selectedAktion)
-            ->whereNull('order_items.signed_at')
-            ->where('order_items.moderation_status', 'approved')
-            ->where('order_items.id', '!=', $this->current->id)
-            ->first();
+        return $this->signing()->toSign($this->selectedAktion)->get(1);
+    }
+
+    /**
+     * The current copy was skipped earlier (query resolved meanwhile) and
+     * lies with the books put aside.
+     */
+    #[Computed]
+    public function currentIsPassed(): bool
+    {
+        return $this->current && $this->signing()->isPassed($this->selectedAktion, $this->current);
+    }
+
+    /**
+     * Orders with a query lying on the stack before the current copy (to put aside).
+     *
+     * @return Collection<int, Order>
+     */
+    #[Computed]
+    public function heldBefore(): Collection
+    {
+        return $this->current ? $this->signing()->heldBefore($this->selectedAktion, $this->current) : collect();
+    }
+
+    /**
+     * Orders with an open query, for the end screen.
+     *
+     * @return Collection<int, Order>
+     */
+    #[Computed]
+    public function heldOrders(): Collection
+    {
+        return $this->selectedAktion ? $this->signing()->heldOrders($this->selectedAktion) : collect();
     }
 
     #[Computed]
@@ -143,6 +173,23 @@ class Widmen extends Page
     public function neighbours(): Collection
     {
         return $this->current ? $this->signing()->around($this->selectedAktion, $this->current) : collect();
+    }
+
+    /**
+     * For the end screen: whether an order with a query was put aside or
+     * still lies at the end of the stack.
+     */
+    public function isPutAside(Order $order): bool
+    {
+        return $this->signing()->isPassed($this->selectedAktion, $order->items->whereNull('signed_at')->first());
+    }
+
+    /**
+     * Copies of an order held back by a query (for the stack overview).
+     */
+    public function isHeld(OrderItem $item): bool
+    {
+        return $item->order->items()->where('moderation_status', '!=', ModerationStatus::Approved)->exists();
     }
 
     public function copiesInOrder(OrderItem $item): int
@@ -238,9 +285,12 @@ class Widmen extends Page
             return;
         }
 
-        // Check the stack every few books, at the start of a new post-it.
+        // Check the stack every few books at the start of a new post-it, for
+        // every copy fetched from the books put aside, and whenever a flagged
+        // book lies in between and has to be put aside first.
         $interval = (int) filament()->getTenant()->setting('checkpoint_interval');
-        if ($this->sinceCheckpoint >= $interval && $this->current->position === 1) {
+        $newPostIt = $this->current->order_id !== $item->order_id;
+        if ($newPostIt && ($this->sinceCheckpoint >= $interval || $this->currentIsPassed || $this->heldBefore->isNotEmpty())) {
             $this->askCheckpoint();
         }
     }
@@ -284,6 +334,22 @@ class Widmen extends Page
         $this->askCheckpoint();
     }
 
+    /**
+     * From the end screen, once queries were resolved meanwhile.
+     */
+    public function continueSigning(): void
+    {
+        if (! $this->sessionId) {
+            $this->start();
+
+            return;
+        }
+
+        $this->session()?->update(['ended_at' => null]);
+        $this->session()?->record('resumed');
+        $this->askCheckpoint();
+    }
+
     protected function finish(): void
     {
         $session = $this->session();
@@ -296,6 +362,6 @@ class Widmen extends Page
 
     protected function refreshState(): void
     {
-        unset($this->current, $this->upcoming, $this->progress, $this->neighbours);
+        unset($this->current, $this->upcoming, $this->progress, $this->neighbours, $this->currentIsPassed, $this->heldBefore, $this->heldOrders);
     }
 }

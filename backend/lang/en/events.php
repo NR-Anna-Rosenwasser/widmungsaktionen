@@ -19,6 +19,7 @@ return [
     'moderation_approved' => 'Dedication approved',
     'moderation_flagged' => 'Dedication: query',
     'stacked' => 'Stack number assigned',
+    'unstacked' => 'Stack number removed (preparation undone)',
     'item_signed' => 'Book signed',
     'item_unsigned' => 'Signing undone',
     'newsletter_skipped_test' => 'Newsletter: not forwarded (test order)',

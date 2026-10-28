@@ -20,38 +20,65 @@
     .muted { color: #4a5a85; font-size: 8.5pt; }
     .box { display: inline-block; width: 4mm; height: 4mm; border: 0.8pt solid #2B3C69; border-radius: 0.6mm; }
     .tag { display: inline-block; background: #f8e8ef; border-radius: 0.8mm; padding: 0.3mm 1.2mm; font-size: 8pt; font-weight: 600; }
+    .books { margin: 0 0 5mm; border: 0.8pt solid #2B3C69; border-radius: 1mm; padding: 2.5mm 3mm; }
+    .books h2 { font-family: 'Barlow', Arial, sans-serif; font-size: 11pt; margin: 0 0 1.5mm; }
+    .books span { display: inline-block; margin-right: 6mm; font-size: 10.5pt; }
+    .books b { font-family: 'Barlow', Arial, sans-serif; font-size: 13pt; }
+    .legend { color: #4a5a85; font-size: 8.5pt; margin-bottom: 3mm; }
+    .copies { font-size: 10.5pt; }
+    .copies b { font-weight: 600; }
+    td.check { text-align: center; }
+    tr.invoice td { background: #fff4c2; }
+    .invoice-tag { display: inline-block; background: #2B3C69; color: #fff; border-radius: 0.8mm; padding: 0.5mm 1.5mm; font-size: 8.5pt; font-weight: 700; letter-spacing: 0.02em; }
+    .query-tag { display: inline-block; border: 0.8pt solid #a8324a; color: #a8324a; border-radius: 0.8mm; padding: 0.2mm 1.2mm; font-size: 8pt; font-weight: 700; }
 </style>
 </head>
 <body>
     <h1>Stapelliste · {{ $aktion->name }}</h1>
-    <div class="sub">Widmungstag {{ $aktion->signing_date->format('d.m.Y') }} · {{ $orders->count() }} Bestellungen · {{ $orders->sum(fn ($o) => $o->items->count()) }} Bücher</div>
+    <div class="sub">Widmungstag {{ $aktion->signing_date->format('d.m.Y') }} · {{ $orders->count() }} Bestellungen · {{ $books->sum() }} Bücher</div>
+
+    <div class="books">
+        <h2>Bücher bereitlegen</h2>
+        @foreach ($books as $title => $count)
+            <span><b>{{ $count }}×</b> {{ $title }}</span>
+        @endforeach
+    </div>
+
+    <div class="legend">
+        «Vorbereitet» abhaken, wenn jedes Buch der Bestellung seinen Post-it hat. «Verpackt» abhaken, wenn die Sendung zu ist.
+        Gelbe Zeilen: Rechnung beilegen.
+    </div>
+
     <table>
         <thead>
             <tr>
-                <th>Post-it</th><th>Bestellung</th><th>Bücher &amp; Widmungen</th><th>Versand an</th><th>Gewidmet</th><th>Verpackt</th>
+                <th>Post-it</th><th>Bestellung</th><th>Bücher</th><th>Versand</th><th>Vorbereitet</th><th>Verpackt</th>
             </tr>
         </thead>
         <tbody>
         @foreach ($orders as $order)
-            <tr>
+            @php($invoice = $needsInvoice($order))
+            <tr @class(['invoice' => $invoice])>
                 <td class="no">#{{ $order->stack_number }}</td>
                 <td style="white-space: nowrap">
                     {{ $order->number }}<br>
                     <span class="muted">{{ $order->billingName() }}</span>
                 </td>
-                <td>
-                    @foreach ($order->items as $item)
-                        <div>{{ $item->book->title }} <span class="muted">· {{ $item->signature_only || ! $item->recipient_name ? 'nur Unterschrift' : 'für '.$item->recipient_name }}</span></div>
+                <td class="copies">
+                    @foreach ($order->items->sortBy(fn ($item) => [$item->book->sort, $item->book->title])->countBy(fn ($item) => $item->book->title) as $title => $count)
+                        <div><b>{{ $count }}×</b> {{ $title }}</div>
                     @endforeach
+                    @if ($order->items->contains(fn ($item) => $item->moderation_status !== \App\Enums\ModerationStatus::Approved))
+                        <span class="query-tag">Rückfrage offen</span>
+                    @endif
                 </td>
                 <td>
-                    {{ implode(', ', $order->shippingAddressLines()) }}<br>
                     <span class="tag">{{ $shipping->methodFor($order) === 'letter' ? 'Brief' : 'Paket' }}</span>
                     @if ($order->is_gift) <span class="tag">Geschenk</span> @endif
-                    @if ($needsInvoice($order)) <span class="tag">Rechnung beilegen</span> @endif
+                    @if ($invoice) <br><span class="invoice-tag">RECHNUNG BEILEGEN</span> @endif
                 </td>
-                <td><span class="box"></span></td>
-                <td><span class="box"></span></td>
+                <td class="check"><span class="box"></span></td>
+                <td class="check"><span class="box"></span></td>
             </tr>
         @endforeach
         </tbody>
