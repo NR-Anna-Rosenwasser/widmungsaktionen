@@ -3,7 +3,7 @@
 | {{ $text('mail.book') }} | {{ $text('mail.dedication') }} | CHF |
 |:--|:--|--:|
 @foreach ($order->items as $item)
-| {{ $item->book->title }} | {{ $item->signature_only || ! $item->recipient_name ? $text('mail.signature_only') : $item->recipient_name }} | {{ $chf($item->unit_price) }} |
+| {{ $item->book->title }} | {{ $item->signature_only || ! $item->recipient_name ? $text('mail.signature_only') : $item->recipient_name.($item->wish ? '' : ' · '.$text('mail.surprise')) }} | {{ $chf($item->unit_price) }} |
 @endforeach
 | {{ $text('mail.shipping') }} | | {{ $chf($order->shipping_cost) }} |
 | **{{ $text('mail.total') }}** | | **{{ $chf($order->total) }}** |

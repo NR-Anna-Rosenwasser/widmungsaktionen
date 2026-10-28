@@ -157,6 +157,15 @@ class TenantSettingsForm
                         'cancel' => 'Automatisch sofort stornieren',
                     ])
                     ->required(),
+                Toggle::make('settings.dedication_signature_only')
+                    ->label('«Nur Unterschrift» anbieten')
+                    ->helperText('Aus: Jedes Buch bekommt eine Widmung mit Namen.'),
+                Toggle::make('settings.dedication_wish')
+                    ->label('Widmungswunsch anbieten')
+                    ->helperText('Freitext zusätzlich zum Namen, immer optional. Leer gelassen heisst «lass dich überraschen».'),
+                Toggle::make('settings.dedication_auto_approve_names')
+                    ->label('Namen ohne Wunsch automatisch freigeben')
+                    ->helperText('Sonst kommt jede Widmung mit Namen unter «Widmungswünsche» zur Prüfung.'),
                 Toggle::make('settings.notify_signed')
                     ->label('E-Mail «Dein Buch ist gewidmet» senden')
                     ->helperText('Die Bestellseite zeigt den Schritt «Gewidmet» auch ohne E-Mail.')

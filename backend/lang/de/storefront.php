@@ -122,6 +122,7 @@ return [
             'books' => 'Bücher',
             'dedication' => 'Widmung',
             'signatureOnly' => 'Nur Unterschrift',
+            'surprise' => 'lass dich überraschen',
             'billing' => 'Rechnungsadresse',
             'shipping' => 'Lieferadresse',
             'sameAsBilling' => 'Wie Rechnungsadresse',

@@ -91,6 +91,8 @@
                         <div class="wm-recipient">{{ $item->recipient_name ?? '–' }}</div>
                         @if ($item->wish)
                             <div class="wm-wish">«{{ $item->wish }}»</div>
+                        @else
+                            <div class="wm-wish">Kein Wunsch: frei widmen</div>
                         @endif
                     @endif
                 </div>

@@ -4,6 +4,7 @@ import type { OrderForm } from '~/composables/useOrderForm'
 const props = defineProps<{ form: OrderForm }>()
 const { state, errors, tenant } = props.form
 const max = computed(() => tenant.value.dedication_max_length)
+const options = computed(() => tenant.value.dedication_options)
 </script>
 
 <template>
@@ -22,7 +23,7 @@ const max = computed(() => tenant.value.dedication_max_length)
           <span v-if="state.copies.length > 1">{{ $text('order.dedication.copy', { n: i + 1 }) }} · </span>{{ form.bookTitle(copy.book_id) }}
         </p>
 
-        <div class="mt-4 inline-flex rounded-sm bg-white p-1 shadow-sm" role="radiogroup">
+        <div v-if="options.signature_only" class="mt-4 inline-flex rounded-sm bg-white p-1 shadow-sm" role="radiogroup">
           <label
             v-for="option in [false, true]"
             :key="String(option)"
@@ -47,7 +48,7 @@ const max = computed(() => tenant.value.dedication_max_length)
             >
             <OrderFieldError :message="errors[`copies.${i}.recipient_name`]" />
           </div>
-          <div>
+          <div v-if="options.wish">
             <label :for="`wish-${i}`" class="field-label">{{ $text('order.dedication.wish') }}</label>
             <textarea
               :id="`wish-${i}`"

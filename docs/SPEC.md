@@ -102,7 +102,10 @@ One question per screen, large type, progress indicator, back button. State is s
 
 1. **Bücher** – choose books and quantities, max **4 copies** in total. Hint: "Mehr als 4 Bücher? Schreib uns an {contact_email}." Shows the Aktion timing: order deadline, signing date, estimated delivery.
 2. **E-Mail** – a draft order is created here. Short explanation: we store this so we can reach you about your order, including one reminder if you don't finish.
-3. **Widmung** (per copy) – for whom (name), optional wish (character limit, default 200), or "nur Unterschrift".
+3. **Widmung** (per copy) – for whom (name), optional wish (character limit, default 200), or "nur Unterschrift". Each shop chooses in its settings:
+   - «Nur Unterschrift» anbieten (default on). Off: every copy needs a name; drafts that still ask for a plain signature need a name before submitting.
+   - Widmungswunsch anbieten (default on). Off: name only. A name without a wish means «lass dich überraschen» (shown that way in the summary, the confirmation email and on the order page, editable under «Texte»).
+   - Namen ohne Wunsch automatisch freigeben (default off). Otherwise every copy with a name goes through «Widmungswünsche prüfen»; plain signatures never do. In the admin, a name without a wish shows «Kein Wunsch: frei widmen».
 4. **Adresse** – billing address. Checkbox "Als Geschenk / an jemand anderes senden" opens:
    - delivery address
    - a message printed on the cover letter (required)

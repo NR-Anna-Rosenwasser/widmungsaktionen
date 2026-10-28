@@ -5,6 +5,8 @@ import type { OrderForm } from '~/composables/useOrderForm'
 const props = defineProps<{ form: OrderForm }>()
 const { state, errors, tenant, subtotal, shippingCost, total } = props.form
 const legal = computed(() => tenant.value.legal)
+// Shown as it will be saved: options the shop doesn't offer are dropped.
+const options = computed(() => tenant.value.dedication_options)
 const { $text } = useNuxtApp()
 // "Ich habe die {terms} und die {privacy} gelesen." with the two links in place.
 const termsParts = computed(() => $text('order.summary.terms').split(/(\{terms\}|\{privacy\})/).filter(Boolean))
@@ -32,12 +34,14 @@ const lines = (a: Address) => [a.company, `${a.first_name} ${a.last_name}`, a.st
                 {{ form.bookTitle(copy.book_id) }}
               </p>
               <p class="text-navy-soft">
-                <template v-if="copy.signature_only">
+                <template v-if="copy.signature_only && options.signature_only">
                   {{ $text('order.summary.signatureOnly') }}
                 </template>
                 <template v-else>
-                  {{ $text('order.summary.dedication') }}: {{ copy.recipient_name }}<template v-if="copy.wish">
+                  {{ $text('order.summary.dedication') }}: {{ copy.recipient_name }}<template v-if="copy.wish && options.wish">
                     – «{{ copy.wish }}»
+                  </template><template v-else>
+                    – {{ $text('order.summary.surprise') }}
                   </template>
                 </template>
               </p>
