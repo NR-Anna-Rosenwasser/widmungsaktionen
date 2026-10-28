@@ -1,16 +1,16 @@
-<x-mail::message :shop-name="$shopName" :shop-url="$shopUrl">
-# {{ __('mail.greeting', ['name' => $order->billing_first_name]) }}
+<x-mail::message :shop-name="$shopName" :shop-url="$shopUrl" :footer-text="$text('mail.footer')">
+# {{ $text('mail.greeting', ['name' => $order->billing_first_name]) }}
 
-{{ __('mail.cancelled.intro', ['number' => $order->number]) }}
+{!! $text->markdown('mail.cancelled.intro', ['number' => $order->number]) !!}
 
 @if ($order->cancel_reason)
-{{ __('mail.cancelled.reason', ['reason' => $order->cancel_reason]) }}
+{!! $text->markdown('mail.cancelled.reason', ['reason' => $order->cancel_reason]) !!}
 @elseif ($order->payment_status->value === 'unpaid')
-{{ __('mail.cancelled.unpaid') }}
+{!! $text->markdown('mail.cancelled.unpaid') !!}
 @endif
 
-{{ __('mail.questions') }}
+{{ $text('mail.questions') }}
 
-{{ __('mail.signature') }}<br>
+{{ $text('mail.signature') }}<br>
 {{ $tenant->mail_from_name ?: $tenant->name }}
 </x-mail::message>

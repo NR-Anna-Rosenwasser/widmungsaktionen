@@ -5,6 +5,7 @@ namespace App\Http\Resources;
 use App\Models\Tenant;
 use App\Services\Payments\PaymentService;
 use App\Services\StorefrontAppearance;
+use App\Support\Texts\Texts;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -29,6 +30,7 @@ class TenantResource extends JsonResource
                 ->values(),
             'newsletter' => filled($this->newsletter_webhook_url),
             'storefront' => app(StorefrontAppearance::class)->forStorefront($this->resource),
+            'texts' => app(Texts::class)->storefront($this->resource),
         ];
     }
 }

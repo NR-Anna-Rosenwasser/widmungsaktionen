@@ -22,10 +22,11 @@ export interface ShippingTier {
   price: number
 }
 
-export type StorefrontTextKey =
-  | 'eyebrow' | 'title' | 'lead' | 'cta' | 'books_title' | 'how_title'
-  | 'how_1_title' | 'how_1_text' | 'how_2_title' | 'how_2_text' | 'how_3_title' | 'how_3_text'
-  | 'closed_title' | 'lookup_title' | 'lookup_text' | 'seo_title' | 'seo_description'
+/** locale => key => text. Markdown texts arrive as HTML. */
+export type Texts<K extends string = string> = Record<string, Record<K, string>>
+
+/** An Aktion's optional extra texts as HTML: locale => name => html|null. */
+export type ExtraTexts<K extends string> = Record<string, Record<K, string | null>>
 
 export interface StorefrontAppearance {
   colors: { primary: string, accent: string, accent_light: string }
@@ -34,7 +35,6 @@ export interface StorefrontAppearance {
   hero: { visual: 'image' | 'heart' | 'none', image_url: string | null, image_alt: string, heart_text: string }
   sections: { books: boolean, how: boolean, lookup: boolean }
   seo: { image_url: string | null }
-  texts: Record<string, Record<StorefrontTextKey, string>>
 }
 
 export interface Tenant {
@@ -48,6 +48,8 @@ export interface Tenant {
   shipping_tiers: ShippingTier[]
   newsletter: boolean
   storefront: StorefrontAppearance
+  /** Edited in the admin (Einstellungen → Texte); read via $text / $textHtml. */
+  texts: Texts
 }
 
 export interface Book {
@@ -63,7 +65,7 @@ export interface Book {
 export interface Aktion {
   id: number
   name: string
-  description: string | null
+  texts: ExtraTexts<'home' | 'order'>
   orders_open_at: string
   order_deadline: string
   signing_date: string
@@ -126,7 +128,7 @@ export interface Order {
   submitted_at: string | null
   can_pay_online: boolean
   has_invoice: boolean
-  aktion: { name: string, order_deadline: string, signing_date: string, estimated_shipping_date: string }
+  aktion: { name: string, texts: ExtraTexts<'tracking'>, order_deadline: string, signing_date: string, estimated_shipping_date: string }
   timeline: TimelineStep[]
   shipments: { shipped_at: string, carrier: string | null, tracking_number: string | null }[]
 }

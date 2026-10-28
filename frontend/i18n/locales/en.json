@@ -1,10 +1,11 @@
 {
-  "meta": {
-    "title": "Order signed books",
-    "description": "Order your personally dedicated book."
+  "picker": {
+    "title": "Signed books",
+    "lead": "Choose whose dedicated book you’d like.",
+    "openUntil": "Order until {date}",
+    "noAktion": "Next round coming soon"
   },
   "nav": {
-    "home": "Home",
     "order": "Order",
     "language": "Language"
   },
@@ -15,200 +16,10 @@
     "cookies": "Cookie settings",
     "contact": "Contact"
   },
-  "picker": {
-    "title": "Signed books",
-    "lead": "Choose whose dedicated book you’d like.",
-    "openUntil": "Order until {date}",
-    "noAktion": "Next round coming soon"
-  },
-  "home": {
-    "eyebrow": "Signing round",
-    "title": "Your book. Personally dedicated.",
-    "lead": "Order your book and tell us who it should be dedicated to. {name} signs all books of a round on one day, then they’re on their way to you.",
-    "cta": "Order now",
-    "deadline": "Order deadline",
-    "signingDate": "Signing day",
-    "shipping": "Ships approx.",
-    "booksTitle": "Books you can order",
-    "howTitle": "How it works",
-    "how": {
-      "1": {
-        "title": "Order",
-        "text": "Pick your books and tell us your dedication wish."
-      },
-      "2": {
-        "title": "Signing",
-        "text": "On signing day, every book of the round is personally dedicated."
-      },
-      "3": {
-        "title": "Delivery",
-        "text": "Shortly after, your book arrives in your mailbox. You can check its status online at any time."
-      }
-    },
-    "closedTitle": "No signing round right now",
-    "closedText": "The next round starts on {date}. Come back then! 💌",
-    "closedNoNext": "The next round hasn’t been scheduled yet. Questions? Write to {email}.",
-    "full": "Sorry, this round is fully booked.",
-    "lookupTitle": "Already ordered?",
-    "lookupText": "Find your order with your order number and email address.",
-    "lookupNumber": "Order number",
-    "lookupEmail": "Email address",
-    "lookupSubmit": "Show order",
-    "lookupNotFound": "We couldn’t find a matching order.",
-    "optedOut": "Done: your draft has been deleted and you won’t get any more reminders.",
-    "shippingFrom": "Prices plus shipping from {price} (letter for one book, parcel from two books)."
-  },
-  "order": {
-    "stepOf": "Step {current} of {total}",
-    "back": "Back",
-    "next": "Continue",
-    "pressEnter": "or press Enter",
-    "saving": "Saving …",
-    "books": {
-      "title": "Which books would you like?",
-      "lead": "You can order up to {max} books per order.",
-      "more": "More than {max} books? Write to {email}.",
-      "add": "One more",
-      "remove": "One less",
-      "count": "{count} copy | {count} copies",
-      "empty": "Please choose at least one book.",
-      "max": "At most {max} books per order.",
-      "shippingTitle": "Shipping",
-      "shippingTier": "{range}: {price} ({method})",
-      "shippingRangeOne": "1 book",
-      "shippingRange": "{from}–{to} books",
-      "method": {
-        "letter": "letter",
-        "parcel": "parcel"
-      },
-      "runningTotal": "{books} books {subtotal} + shipping {shipping} = total {total}",
-      "runningTotalOne": "1 book {subtotal} + shipping {shipping} = total {total}",
-      "shippingRangeExact": "{count} books"
-    },
-    "email": {
-      "title": "What’s your email address?",
-      "lead": "So we can send you the confirmation and the link to your order.",
-      "label": "Email address",
-      "privacy": "From here on we save your details so you can continue later. If you don’t finish, we’ll remind you once by email at most."
-    },
-    "dedication": {
-      "title": "Who should the book be dedicated to?",
-      "titleMany": "Who should the books be dedicated to?",
-      "lead": "You can add a separate wish for every copy.",
-      "copy": "Copy {n}",
-      "withDedication": "With dedication",
-      "signatureOnly": "Signature only",
-      "recipient": "For whom?",
-      "recipientPlaceholder": "e.g. Mia",
-      "wish": "Your dedication wish (optional)",
-      "wishPlaceholder": "e.g. “For Mia, the bravest person I know”",
-      "wishHint": "Every dedication is written by hand, in the author’s own words. Your wish is a suggestion.",
-      "chars": "{count} / {max} characters",
-      "recipientRequired": "Tell us who the dedication is for, or choose “Signature only”."
-    },
-    "address": {
-      "title": "Where should we send the invoice?",
-      "titleShipping": "Where should we send the book?",
-      "lead": "We only ship within Switzerland and Liechtenstein.",
-      "firstName": "First name",
-      "lastName": "Last name",
-      "company": "Company / c/o (optional)",
-      "street": "Street and number",
-      "postalCode": "Postcode",
-      "town": "Town",
-      "gift": "Send as a gift / to someone else 🎁",
-      "giftHint": "We’ll send the parcel directly to the recipient.",
-      "multipleRecipients": "Several recipients? Please place one order per address. After submitting, that’s just one click away.",
-      "shippingTitle": "Delivery address",
-      "giftMessage": "Your message for the cover letter",
-      "giftMessagePlaceholder": "e.g. “Happy birthday! Love, Sam”",
-      "giftMessageHint": "So nobody receives a book anonymously, the cover letter always says who it’s from ({name})."
-    },
-    "payment": {
-      "title": "How would you like to pay?",
-      "lead": "Total {total}, including shipping.",
-      "methods": {
-        "online": {
-          "title": "Pay online",
-          "text": "By card or TWINT. The fastest option."
-        },
-        "invoice_advance": {
-          "title": "Invoice by email",
-          "text": "You’ll get a QR invoice by email and pay before signing day."
-        },
-        "invoice_in_parcel": {
-          "title": "Invoice in parcel",
-          "text": "The QR invoice comes with your book."
-        }
-      },
-      "giftNotPossible": "Not available for gifts, the invoice would end up with the recipient."
-    },
-    "summary": {
-      "title": "All correct?",
-      "lead": "Take one more look at your order.",
-      "books": "Books",
-      "dedication": "Dedication",
-      "signatureOnly": "Signature only",
-      "noWish": "No wish, let yourself be surprised",
-      "billing": "Billing address",
-      "shipping": "Delivery address",
-      "sameAsBilling": "Same as billing address",
-      "giftMessage": "Message",
-      "payment": "Payment",
-      "subtotal": "Books",
-      "shippingCost": "Shipping",
-      "total": "Total",
-      "newsletter": "Yes, I’d like to receive the newsletter. You’ll get a separate confirmation email.",
-      "terms": "I have read the {terms} and the {privacy}.",
-      "termsLink": "terms",
-      "privacyLink": "privacy policy",
-      "termsRequired": "Please confirm the terms and the privacy policy.",
-      "submit": "Place order",
-      "edit": "Edit"
-    },
-    "errors": {
-      "generic": "Something went wrong. Please try again.",
-      "closed": "There’s no signing round right now.",
-      "submitted": "This order has already been submitted."
-    },
-    "required": "Please fill this in.",
-    "invalidEmail": "That doesn’t look like an email address.",
-    "invalidPostalCode": "Please enter a four-digit postcode."
-  },
-  "tracking": {
-    "title": "Your order",
-    "number": "Order number {number}",
-    "thanksTitle": "Thank you for your order! 💗",
-    "thanksText": "We’ve sent a confirmation to {email}. Bookmark this page, it always shows how far along your order is.",
-    "another": "Another order for someone else",
-    "steps": {
-      "submitted": "Ordered",
-      "paid": "Paid",
-      "signed": "Dedicated",
-      "shipped": "Shipped",
-      "cancelled": "Cancelled"
-    },
-    "expected": {
-      "signed": "Signing day: {date}",
-      "shipped": "Expected from {date}"
-    },
-    "paymentPending": {
-      "online": "Your online payment hasn’t been completed yet.",
-      "invoice_advance": "Please pay the invoice by the order deadline on {date}.",
-      "invoice_in_parcel": "The invoice comes with your parcel."
-    },
-    "copies": "Your books",
-    "delivery": "Delivery to",
-    "trackingNumber": "Tracking number {number}",
-    "aktion": "Round",
-    "notFound": "We couldn’t find this order.",
-    "payNow": "Pay online now",
-    "payNowHint": "By card or TWINT, instead of by invoice.",
-    "paymentProcessing": "Thanks! We’re confirming your payment, this usually takes just a few seconds.",
-    "paymentConfirmed": "Payment received, thank you! 💗",
-    "paymentFailed": "Online payment isn’t available right now. Please try again later.",
-    "invoice": "Download invoice (PDF)",
-    "cancelledNotice": "This order has been cancelled. Questions? Write to {email}."
+  "notFound": {
+    "title": "Nothing here.",
+    "text": "Sorry, this page doesn’t exist.",
+    "back": "Back to the start"
   },
   "consent": {
     "title": "Fancy a cookie? 🍪",
@@ -225,9 +36,24 @@
     "marketingTitle": "Marketing",
     "marketingText": "Campaign measurement."
   },
-  "notFound": {
-    "title": "Nothing here.",
-    "text": "Sorry, this page doesn’t exist.",
-    "back": "Back to the start"
+  "order": {
+    "books": {
+      "empty": "Please choose at least one book.",
+      "max": "At most {max} books per order."
+    },
+    "dedication": {
+      "recipientRequired": "Tell us who the dedication is for, or choose “Signature only”."
+    },
+    "summary": {
+      "termsRequired": "Please confirm the terms and the privacy policy."
+    },
+    "errors": {
+      "generic": "Something went wrong. Please try again.",
+      "closed": "There’s no signing round right now.",
+      "submitted": "This order has already been submitted."
+    },
+    "required": "Please fill this in.",
+    "invalidEmail": "That doesn’t look like an email address.",
+    "invalidPostalCode": "Please enter a four-digit postcode."
   }
 }

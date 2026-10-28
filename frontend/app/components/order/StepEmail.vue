@@ -7,9 +7,9 @@ const { state, errors } = props.form
 
 <template>
   <div>
-    <OrderStepHeading :title="$t('order.email.title')" :lead="$t('order.email.lead')" />
+    <OrderStepHeading :title="$text('order.email.title')" :lead-html="$textHtml('order.email.lead')" />
     <div class="mt-8">
-      <label for="email" class="field-label">{{ $t('order.email.label') }}</label>
+      <label for="email" class="field-label">{{ $text('order.email.label') }}</label>
       <input
         id="email"
         v-model="state.email"
@@ -22,9 +22,7 @@ const { state, errors } = props.form
         autofocus
       >
       <OrderFieldError id="email-error" :message="errors.email" />
-      <p id="email-hint" class="field-hint">
-        {{ $t('order.email.privacy') }}
-      </p>
+      <RichText id="email-hint" :html="$textHtml('order.email.privacy')" class="field-hint" />
     </div>
   </div>
 </template>

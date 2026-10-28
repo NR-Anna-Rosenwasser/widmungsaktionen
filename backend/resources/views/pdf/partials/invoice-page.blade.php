@@ -1,5 +1,5 @@
 @php
-    $t = fn (string $key, array $replace = []) => __("invoice.$key", $replace, $locale);
+    $t = fn (string $key, array $replace = []) => $text("invoice.$key", $replace);
     $date = fn ($d) => $d->locale($locale === 'en' ? 'en_CH' : 'de_CH')->isoFormat('LL');
     $chf = fn (int $rappen) => number_format($rappen / 100, 2, '.', "'");
 @endphp
@@ -21,7 +21,7 @@
         <h1>{{ $t('title', ['number' => $order->number]) }}</h1>
         <p>{{ $t('greeting', ['name' => $order->billing_first_name]) }}</p>
         @unless ($cancelled)
-            <p>{{ $t($payment->method->value === 'invoice_advance' ? 'intro_advance' : 'intro_parcel', ['date' => $date($dueDate)]) }}</p>
+            {{ $text->html($payment->method->value === 'invoice_advance' ? 'invoice.intro_advance' : 'invoice.intro_parcel', ['date' => $date($dueDate)]) }}
         @endunless
 
         <table class="items">
@@ -44,6 +44,10 @@
                 <tr class="total"><td>{{ $t('total') }}</td><td class="amount">{{ $chf($order->total) }}</td></tr>
             </tbody>
         </table>
+
+        @if ($extra = $text->extraHtml('invoice'))
+            <div class="extra">{{ $extra }}</div>
+        @endif
 
         <div class="facts">
             {{ $t('reference') }}: {{ $reference }} ·

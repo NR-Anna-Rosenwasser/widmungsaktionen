@@ -1,5 +1,6 @@
 <script setup lang="ts">
-defineProps<{ title: string, lead?: string }>()
+// leadHtml: a Markdown text from $textHtml.
+defineProps<{ title: string, leadHtml?: string }>()
 </script>
 
 <template>
@@ -7,8 +8,6 @@ defineProps<{ title: string, lead?: string }>()
     <h1 class="text-4xl sm:text-5xl">
       {{ title }}
     </h1>
-    <p v-if="lead" class="mt-3 text-lg text-navy-soft">
-      {{ lead }}
-    </p>
+    <RichText :html="leadHtml" class="mt-3 text-lg text-navy-soft" />
   </div>
 </template>

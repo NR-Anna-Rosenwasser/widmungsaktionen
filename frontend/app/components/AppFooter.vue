@@ -18,20 +18,20 @@ async function openCookieSettings() {
       </p>
       <ul class="flex flex-wrap gap-x-6 gap-y-2">
         <li v-if="data?.tenant.contact_email">
-          <a :href="`mailto:${data.tenant.contact_email}`" class="hover:text-white">{{ $t('footer.contact') }}</a>
+          <a :href="`mailto:${data.tenant.contact_email}`" class="hover:text-white">{{ $text('footer.contact') }}</a>
         </li>
         <li v-if="legal?.terms_url">
-          <a :href="legal.terms_url" class="hover:text-white" target="_blank" rel="noopener">{{ $t('footer.terms') }}</a>
+          <a :href="legal.terms_url" class="hover:text-white" target="_blank" rel="noopener">{{ $text('footer.terms') }}</a>
         </li>
         <li v-if="legal?.privacy_url">
-          <a :href="legal.privacy_url" class="hover:text-white" target="_blank" rel="noopener">{{ $t('footer.privacy') }}</a>
+          <a :href="legal.privacy_url" class="hover:text-white" target="_blank" rel="noopener">{{ $text('footer.privacy') }}</a>
         </li>
         <li v-if="legal?.imprint_url">
-          <a :href="legal.imprint_url" class="hover:text-white" target="_blank" rel="noopener">{{ $t('footer.imprint') }}</a>
+          <a :href="legal.imprint_url" class="hover:text-white" target="_blank" rel="noopener">{{ $text('footer.imprint') }}</a>
         </li>
         <li v-if="consentEnabled">
           <button type="button" class="hover:text-white" @click="openCookieSettings">
-            {{ $t('footer.cookies') }}
+            {{ $text('footer.cookies') }}
           </button>
         </li>
       </ul>

@@ -13,6 +13,7 @@
     .contents { margin-top: 6mm; }
     .contents li { margin-bottom: 1mm; }
     .closing { margin-top: 8mm; }
+    .extra { margin-top: 6mm; }
     .qr { position: absolute; right: 20mm; bottom: 22mm; width: 28mm; text-align: center; font-size: 7.5pt; color: #4a5a85; }
     .qr img { width: 26mm; height: 26mm; display: block; margin: 0 auto 1.5mm; }
     .footer-ref { position: absolute; left: 22mm; bottom: 22mm; font-size: 8pt; color: #4a5a85; }
@@ -22,8 +23,9 @@
 @foreach ($pages as $page)
     @php
         $order = $page['order'];
-        $locale = $order->locale === 'en' ? 'en' : 'de';
-        $t = fn (string $key, array $replace = []) => __("letter.$key", $replace, $locale);
+        $text = $page['text'];
+        $locale = $text->locale;
+        $t = fn (string $key, array $replace = []) => $text("letter.$key", $replace);
         $many = $order->items->count() > 1;
         $recipientFirst = $order->is_gift ? $order->shipping_first_name : $order->billing_first_name;
     @endphp
@@ -40,13 +42,13 @@
             <p>{{ $t('greeting', ['name' => $recipientFirst]) }}</p>
 
             @if ($order->is_gift)
-                <p>{{ $t($many ? 'gift_intro_many' : 'gift_intro', ['sender' => $order->billingName()]) }}</p>
+                {{ $text->html($many ? 'letter.gift_intro_many' : 'letter.gift_intro', ['sender' => $order->billingName()]) }}
                 @if ($order->gift_message)
                     <p style="margin-top: 5mm">{{ $t('gift_message') }}</p>
                     <div class="gift-message">{{ $order->gift_message }}</div>
                 @endif
             @else
-                <p>{{ $t($many ? 'intro_many' : 'intro') }}</p>
+                {{ $text->html($many ? 'letter.intro_many' : 'letter.intro') }}
             @endif
 
             <div class="contents">
@@ -65,6 +67,10 @@
                     <p>{{ $t('invoice_enclosed', ['date' => $page['invoice']['dueDate']->locale($locale === 'en' ? 'en_CH' : 'de_CH')->isoFormat('LL')]) }}</p>
                 @endif
             @endunless
+
+            @if ($extra = $text->extraHtml('letter'))
+                <div class="extra">{{ $extra }}</div>
+            @endif
 
             <div class="closing">
                 {{ $t('signature') }}<br>

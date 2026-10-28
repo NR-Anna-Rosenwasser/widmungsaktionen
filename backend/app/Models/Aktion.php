@@ -23,6 +23,8 @@ class Aktion extends Model
             'order_deadline' => 'datetime',
             'signing_date' => 'date',
             'estimated_shipping_date' => 'date',
+            // Optional extra texts per locale, see App\Support\Texts\TextCatalog::extras().
+            'texts' => 'array',
         ];
     }
 

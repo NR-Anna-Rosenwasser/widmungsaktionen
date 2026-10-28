@@ -1,4 +1,4 @@
-@props(['shopName' => null, 'shopUrl' => null])
+@props(['shopName' => null, 'shopUrl' => null, 'footerText' => null])
 <x-mail::layout>
 {{-- Header --}}
 <x-slot:header>
@@ -22,7 +22,7 @@
 {{-- Footer --}}
 <x-slot:footer>
 <x-mail::footer>
-{{ $shopName ?? config('app.name') }} · {{ __('mail.footer') }}
+{{ $shopName ?? config('app.name') }} · {{ $footerText ?? __('mail.footer') }}
 </x-mail::footer>
 </x-slot:footer>
 </x-mail::layout>

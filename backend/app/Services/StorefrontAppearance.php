@@ -6,75 +6,11 @@ use App\Models\Tenant;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Look and texts of a shop's storefront: tenant settings merged over the
- * defaults (config/widmungen.php and lang/*\/storefront.php).
+ * Look of a shop's storefront: tenant settings merged over the defaults
+ * (config/widmungen.php). Texts: App\Support\Texts\Texts.
  */
 class StorefrontAppearance
 {
-    public const LOCALES = ['de', 'en'];
-
-    /**
-     * Texts editable per locale, with the label shown in the admin.
-     *
-     * @var array<string, string>
-     */
-    public const TEXTS = [
-        'eyebrow' => 'Kleiner Titel über der Überschrift (ohne laufende Aktion)',
-        'title' => 'Überschrift',
-        'lead' => 'Einleitung',
-        'cta' => 'Bestell-Button',
-        'books_title' => 'Titel «Bücher»',
-        'how_title' => 'Titel «So funktioniert’s»',
-        'how_1_title' => 'Schritt 1: Titel',
-        'how_1_text' => 'Schritt 1: Text',
-        'how_2_title' => 'Schritt 2: Titel',
-        'how_2_text' => 'Schritt 2: Text',
-        'how_3_title' => 'Schritt 3: Titel',
-        'how_3_text' => 'Schritt 3: Text',
-        'closed_title' => 'Titel, wenn keine Aktion läuft',
-        'lookup_title' => 'Titel «Schon bestellt?»',
-        'lookup_text' => 'Text «Schon bestellt?»',
-        'seo_title' => 'Seitentitel / Link-Vorschau: Titel',
-        'seo_description' => 'Link-Vorschau: Beschreibung',
-    ];
-
-    /**
-     * Longer texts get a textarea in the admin.
-     *
-     * @var array<int, string>
-     */
-    public const LONG_TEXTS = ['lead', 'how_1_text', 'how_2_text', 'how_3_text', 'lookup_text', 'seo_description'];
-
-    public function defaultText(string $key, string $locale): string
-    {
-        return __("storefront.$key", [], $locale);
-    }
-
-    /**
-     * Final texts per locale ({name} replaced).
-     *
-     * @return array<string, array<string, string>>
-     */
-    public function texts(Tenant $tenant): array
-    {
-        $result = [];
-
-        foreach (self::LOCALES as $locale) {
-            foreach (array_keys(self::TEXTS) as $key) {
-                $override = trim((string) $tenant->setting("storefront.texts.$locale.$key"));
-                // Earlier versions kept the German lead in branding.intro.
-                if ($override === '' && $key === 'lead' && $locale === 'de') {
-                    $override = trim((string) $tenant->setting('branding.intro'));
-                }
-
-                $text = $override !== '' ? $override : $this->defaultText($key, $locale);
-                $result[$locale][$key] = str_replace('{name}', $tenant->name, $text);
-            }
-        }
-
-        return $result;
-    }
-
     /**
      * @return array{primary: string, accent: string, accent_light: string}
      */
@@ -95,7 +31,6 @@ class StorefrontAppearance
         $url = fn (?string $path) => $path ? Storage::disk('public')->url($path) : null;
         $visual = $tenant->setting('storefront.hero.visual');
         $heroImage = $url($tenant->setting('storefront.hero.image_path'));
-        $texts = $this->texts($tenant);
 
         // Link preview image: explicit one, else the hero image, else the first book cover.
         $seoImage = $url($tenant->setting('storefront.seo.image_path'))
@@ -118,7 +53,6 @@ class StorefrontAppearance
             'seo' => [
                 'image_url' => $seoImage,
             ],
-            'texts' => $texts,
         ];
     }
 

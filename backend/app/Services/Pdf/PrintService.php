@@ -8,6 +8,7 @@ use App\Enums\PaymentStatus;
 use App\Models\Aktion;
 use App\Models\Order;
 use App\Services\ShippingService;
+use App\Support\Texts\Texts;
 use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Color\Color;
 use Endroid\QrCode\Writer\SvgWriter;
@@ -78,6 +79,7 @@ class PrintService
             'order' => $order,
             'qr' => $tenant->setting('print.letter_qr') && ! $order->is_gift ? $this->qr($order->storefrontUrl()) : null,
             'invoice' => $this->needsInvoicePage($order) ? $this->invoices->pageData($order) : null,
+            'text' => app(Texts::class)->for($tenant, $aktion, $order->locale),
         ]);
 
         return view('pdf.letters', [

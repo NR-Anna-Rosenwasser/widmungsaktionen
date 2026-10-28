@@ -25,6 +25,7 @@
     .items td.amount, .items th.amount { text-align: right; white-space: nowrap; }
     .items tr.total td { font-family: 'Barlow', Arial, sans-serif; font-weight: 700; font-size: 12pt; border-bottom: none; padding-top: 3mm; }
     .muted { color: #4a5a85; font-size: 9pt; }
+    .extra { margin-top: 4mm; }
     .facts { margin-top: 4mm; font-size: 9pt; color: #4a5a85; }
     .paid { margin-top: 8mm; font-family: 'Barlow', Arial, sans-serif; font-weight: 700; font-size: 14pt; color: #b8668f; }
     .cancelled { margin-top: 8mm; padding: 4mm 5mm; border: 1.5pt solid #a8324a; border-radius: 1mm; font-family: 'Barlow', Arial, sans-serif; font-weight: 700; font-size: 13pt; color: #a8324a; }

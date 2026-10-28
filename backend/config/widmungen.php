@@ -45,10 +45,6 @@ return [
             'privacy_url' => null,
             'imprint_url' => null,
         ],
-        'branding' => [
-            // Legacy, superseded by storefront.texts.de.lead.
-            'intro' => null,
-        ],
         'storefront' => [
             // Brand colours: primary = text, buttons; accent = hero background;
             // accent_light = cards and highlights. Shades are derived from these.
@@ -72,14 +68,7 @@ return [
                 'lookup' => true,
             ],
             'seo' => [
-                'title' => null,
-                'description' => null,
                 'image_path' => null,
-            ],
-            // Overrides per locale; empty values fall back to lang/*/storefront.php.
-            'texts' => [
-                'de' => [],
-                'en' => [],
             ],
         ],
     ],

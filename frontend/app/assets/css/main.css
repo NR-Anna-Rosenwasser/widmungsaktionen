@@ -141,6 +141,18 @@
     margin-top: 0.3rem;
   }
 
+  /* Formatted texts from the admin (Markdown rendered by the API). */
+  .rich-text > * + * {
+    margin-top: 0.75em;
+  }
+  .rich-text a {
+    text-decoration: underline;
+  }
+  .rich-text ul {
+    list-style: disc;
+    padding-left: 1.25em;
+  }
+
   .card {
     border-radius: var(--radius-md);
     background: var(--color-blush-light);

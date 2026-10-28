@@ -5,6 +5,7 @@ namespace App\Filament\Schemas;
 use App\Enums\PaymentMethod;
 use App\Models\Tenant;
 use App\Services\StorefrontAppearance;
+use App\Support\Texts\Texts;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\FileUpload;
@@ -16,8 +17,6 @@ use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Html;
 use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\Tabs;
-use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Illuminate\Support\Str;
@@ -230,7 +229,7 @@ class TenantSettingsForm
 
     public static function storefront(): array
     {
-        $appearance = app(StorefrontAppearance::class);
+        $texts = app(Texts::class);
         $directory = fn (?Tenant $record) => 'tenants/'.($record?->id ?? 'neu');
         $image = fn (string $name, string $label) => FileUpload::make($name)
             ->label($label)
@@ -238,19 +237,6 @@ class TenantSettingsForm
             ->disk('public')
             ->directory($directory)
             ->maxSize(20 * 1024);
-
-        $textTabs = collect(StorefrontAppearance::LOCALES)->map(fn (string $locale) => Tab::make($locale === 'de' ? 'Deutsch' : 'English')
-            ->schema(collect(StorefrontAppearance::TEXTS)->map(function (string $label, string $key) use ($appearance, $locale) {
-                $field = in_array($key, StorefrontAppearance::LONG_TEXTS, true)
-                    ? Textarea::make("settings.storefront.texts.$locale.$key")->rows(2)->autosize()
-                    : TextInput::make("settings.storefront.texts.$locale.$key");
-
-                return $field
-                    ->label($label)
-                    ->placeholder($appearance->defaultText($key, $locale))
-                    ->maxLength(in_array($key, StorefrontAppearance::LONG_TEXTS, true) ? 600 : 120)
-                    ->live(onBlur: true);
-            })->values()->all()))->all();
 
         return [
             Section::make('Farben')
@@ -276,8 +262,8 @@ class TenantSettingsForm
                             'accent' => StorefrontAppearance::normaliseHex($get('settings.storefront.colors.accent')) ?? '#D989B2',
                             'accent_light' => StorefrontAppearance::normaliseHex($get('settings.storefront.colors.accent_light')) ?? '#EEC6D8',
                         ],
-                        'title' => $get('settings.storefront.texts.de.title') ?: $appearance->defaultText('title', 'de'),
-                        'cta' => $get('settings.storefront.texts.de.cta') ?: $appearance->defaultText('cta', 'de'),
+                        'title' => $record ? $texts->raw($record, 'storefront.home.title', 'de') : $texts->default('storefront.home.title', 'de'),
+                        'cta' => $record ? $texts->raw($record, 'storefront.home.cta', 'de') : $texts->default('storefront.home.cta', 'de'),
                         'name' => $get('name') ?: $record?->name,
                     ])->render()),
                 ]),
@@ -340,12 +326,8 @@ class TenantSettingsForm
                 ]),
             ]),
 
-            Section::make('Texte')
-                ->description('Leer lassen, um den Standardtext (grau) zu verwenden. {name} wird durch den Shopnamen ersetzt.')
-                ->schema([Tabs::make()->tabs($textTabs)]),
-
             Section::make('Link-Vorschau')
-                ->description('Bild, das erscheint, wenn der Shop in Chats oder sozialen Medien geteilt wird. Ohne eigenes Bild wird das Bild oben rechts oder das erste Buchcover verwendet. Titel und Beschreibung stehen unter «Texte».')
+                ->description('Bild, das erscheint, wenn der Shop in Chats oder sozialen Medien geteilt wird. Ohne eigenes Bild wird das Bild oben rechts oder das erste Buchcover verwendet. Titel, Beschreibung und alle anderen Texte bearbeitest du unter «Einstellungen → Texte».')
                 ->schema([
                     $image('settings.storefront.seo.image_path', 'Vorschaubild (optional)')
                         ->helperText('Ideal: 1200 × 630 px.')

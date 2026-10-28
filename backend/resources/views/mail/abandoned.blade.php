@@ -1,21 +1,22 @@
-@php($date = fn ($d) => $d->locale(app()->getLocale() === 'en' ? 'en_CH' : 'de_CH')->isoFormat('LL'))
-<x-mail::message :shop-name="$shopName" :shop-url="$shopUrl">
-# {{ $order->billing_first_name ? __('mail.greeting', ['name' => $order->billing_first_name]) : __('mail.abandoned.greeting') }}
+<x-mail::message :shop-name="$shopName" :shop-url="$shopUrl" :footer-text="$text('mail.footer')">
+# {{ $order->billing_first_name ? $text('mail.greeting', ['name' => $order->billing_first_name]) : $text('mail.abandoned.greeting') }}
 
-{{ __('mail.abandoned.intro') }}
+{!! $text->markdown('mail.abandoned.intro') !!}
 
-{!! __('mail.abandoned.deadline', ['date' => $date($order->aktion->order_deadline)]) !!}
+{!! $text->markdown('mail.abandoned.deadline', ['date' => $date($order->aktion->order_deadline)]) !!}
+
+@include('mail.partials.extra', ['name' => 'mail_abandoned'])
 
 <x-mail::button :url="$resumeUrl" color="primary">
-{{ __('mail.abandoned.resume') }}
+{{ $text('mail.abandoned.resume') }}
 </x-mail::button>
 
-{{ __('mail.abandoned.no_more') }}
+{!! $text->markdown('mail.abandoned.no_more') !!}
 
-{{ __('mail.signature') }}<br>
+{{ $text('mail.signature') }}<br>
 {{ $tenant->mail_from_name ?: $tenant->name }}
 
 <x-slot:subcopy>
-{{ __('mail.abandoned.opt_out_text') }} [{{ __('mail.abandoned.opt_out') }}]({{ $optOutUrl }})
+{{ $text('mail.abandoned.opt_out_text') }} [{{ $text('mail.abandoned.opt_out') }}]({{ $optOutUrl }})
 </x-slot:subcopy>
 </x-mail::message>

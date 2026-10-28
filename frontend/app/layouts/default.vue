@@ -2,7 +2,7 @@
 const ctx = useStorefrontContext()
 const { data } = ctx.value?.slug ? await useStorefront() : { data: ref(null) }
 const tenant = computed(() => data.value?.tenant)
-const text = useStorefrontText(tenant)
+const { $text: text } = useNuxtApp()
 const requestUrl = useRequestURL()
 
 // Shop colours, favicon and link preview for every page of the storefront.
@@ -14,9 +14,9 @@ useHead({
 })
 
 useSeoMeta({
-  description: () => (tenant.value ? text('seo_description') : undefined),
-  ogTitle: () => (tenant.value ? text('seo_title') : undefined),
-  ogDescription: () => (tenant.value ? text('seo_description') : undefined),
+  description: () => (tenant.value ? text('home.seoDescription') : undefined),
+  ogTitle: () => (tenant.value ? text('home.seoTitle') : undefined),
+  ogDescription: () => (tenant.value ? text('home.seoDescription') : undefined),
   ogImage: () => tenant.value?.storefront.seo.image_url ?? undefined,
   ogUrl: () => requestUrl.href,
   ogType: 'website',
