@@ -30,6 +30,14 @@ class EditTenantSettings extends EditTenantProfile
         return TenantSettingsForm::fillDefaults($data);
     }
 
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        // Texts are edited on their own page (Texte) and must survive this save.
+        $data['settings']['texts'] = $this->tenant->fresh()->settings['texts'] ?? [];
+
+        return $data;
+    }
+
     public function form(Schema $schema): Schema
     {
         return $schema->components([

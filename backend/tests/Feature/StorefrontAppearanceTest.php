@@ -34,42 +34,28 @@ class StorefrontAppearanceTest extends TestCase
         return $this->getJson("/api/tenants/{$this->tenant->slug}")->assertOk()->json('tenant.storefront');
     }
 
-    public function test_defaults_with_shop_name(): void
+    public function test_defaults(): void
     {
         $storefront = $this->storefront();
 
         $this->assertSame('#2B3C69', $storefront['colors']['primary']);
-        $this->assertSame('Dein Buch. Persönlich gewidmet.', $storefront['texts']['de']['title']);
-        $this->assertStringContainsString('Anna Rosenwasser widmet alle Bücher', $storefront['texts']['de']['lead']);
-        $this->assertSame('Anna Rosenwasser · Order signed books', $storefront['texts']['en']['seo_title']);
         $this->assertSame('heart', $storefront['hero']['visual']);
         $this->assertTrue($storefront['sections']['lookup']);
     }
 
-    public function test_overrides_per_locale_and_section_toggles(): void
+    public function test_section_toggles_and_colours(): void
     {
         $this->tenant->update(['settings' => ['storefront' => [
-            'texts' => ['de' => ['title' => 'Herz, signiert.', 'cta' => ' '], 'en' => ['title' => 'Signed by {name}']],
             'sections' => ['how' => false],
             'colors' => ['primary' => '112233', 'accent' => 'not-a-colour'],
         ]]]);
 
         $storefront = $this->storefront();
 
-        $this->assertSame('Herz, signiert.', $storefront['texts']['de']['title']);
-        $this->assertSame('Jetzt bestellen', $storefront['texts']['de']['cta'], 'blank override falls back');
-        $this->assertSame('Signed by Anna Rosenwasser', $storefront['texts']['en']['title']);
         $this->assertFalse($storefront['sections']['how']);
         $this->assertTrue($storefront['sections']['books']);
         $this->assertSame('#112233', $storefront['colors']['primary']);
         $this->assertSame('#D989B2', $storefront['colors']['accent'], 'invalid colour falls back');
-    }
-
-    public function test_legacy_intro_is_used_as_german_lead(): void
-    {
-        $this->tenant->update(['settings' => ['branding' => ['intro' => 'Alter Einleitungstext']]]);
-
-        $this->assertSame('Alter Einleitungstext', $this->storefront()['texts']['de']['lead']);
     }
 
     public function test_image_visual_without_image_falls_back_and_preview_image_chain(): void
@@ -95,7 +81,7 @@ class StorefrontAppearanceTest extends TestCase
         $this->assertLessThan(4.5, StorefrontAppearance::contrast('#FFFF00', '#FFFFFF'));
     }
 
-    public function test_settings_page_shows_preview_and_saves_colours_and_texts(): void
+    public function test_settings_page_shows_preview_and_saves_colours(): void
     {
         $this->actingAs(User::firstWhere('email', 'admin@widmungen.test'));
         Filament::setTenant($this->tenant);
@@ -105,7 +91,6 @@ class StorefrontAppearanceTest extends TestCase
             ->assertDontSee('Schwacher Kontrast')
             ->fillForm([
                 'settings.storefront.colors.primary' => '#FFFF00',
-                'settings.storefront.texts.de.title' => 'Neuer Titel',
                 'settings.storefront.sections.lookup' => false,
             ])
             ->assertSee('Schwacher Kontrast')
@@ -114,7 +99,6 @@ class StorefrontAppearanceTest extends TestCase
 
         $this->tenant->refresh();
         $this->assertSame('#FFFF00', $this->tenant->setting('storefront.colors.primary'));
-        $this->assertSame('Neuer Titel', $this->tenant->setting('storefront.texts.de.title'));
         $this->assertFalse($this->tenant->setting('storefront.sections.lookup'));
     }
 

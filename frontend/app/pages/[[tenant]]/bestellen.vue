@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ORDER_STEPS } from '~/composables/useOrderForm'
 
-const { t } = useI18n()
+const { $text } = useNuxtApp()
 const path = useStorefrontPath()
 const { data } = await useStorefront()
 
@@ -22,15 +22,15 @@ watch(step, async () => {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 })
 
-useSeoMeta({ title: () => `${t('nav.order')} · ${storefront.value.tenant.name}` })
+useSeoMeta({ title: () => `${$text('nav.order')} · ${storefront.value.tenant.name}` })
 </script>
 
 <template>
   <div class="mx-auto max-w-2xl px-5 pb-10 pt-4 sm:px-8 sm:pt-10">
     <!-- Progress -->
     <div class="flex items-center justify-between text-sm font-semibold text-navy-soft">
-      <span>{{ $t('order.stepOf', { current: stepIndex + 1, total: ORDER_STEPS.length }) }}</span>
-      <span v-if="saving" aria-live="polite">{{ $t('order.saving') }}</span>
+      <span>{{ $text('order.stepOf', { current: stepIndex + 1, total: ORDER_STEPS.length }) }}</span>
+      <span v-if="saving" aria-live="polite">{{ $text('order.saving') }}</span>
     </div>
     <div class="mt-2 h-1 overflow-hidden rounded-full bg-blush-light" aria-hidden="true">
       <div class="h-full bg-rose transition-[width] duration-300" :style="{ width: `${((stepIndex + 1) / ORDER_STEPS.length) * 100}%` }" />
@@ -56,12 +56,12 @@ useSeoMeta({ title: () => `${t('nav.order')} · ${storefront.value.tenant.name}`
 
       <div class="mt-10 flex flex-wrap items-center gap-4">
         <button type="submit" class="btn btn-primary" :disabled="saving">
-          {{ step === 'summary' ? $t('order.summary.submit') : $t('order.next') }}
+          {{ step === 'summary' ? $text('order.summary.submit') : $text('order.next') }}
           <span aria-hidden="true">→</span>
         </button>
-        <span v-if="step !== 'summary'" class="hidden text-sm text-navy-soft sm:inline">{{ $t('order.pressEnter') }}</span>
+        <span v-if="step !== 'summary'" class="hidden text-sm text-navy-soft sm:inline">{{ $text('order.pressEnter') }}</span>
         <button v-if="stepIndex > 0" type="button" class="ml-auto font-semibold text-navy-soft hover:text-navy" @click="form.back()">
-          ← {{ $t('order.back') }}
+          ← {{ $text('order.back') }}
         </button>
       </div>
     </form>

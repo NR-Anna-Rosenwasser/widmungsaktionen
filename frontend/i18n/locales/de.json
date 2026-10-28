@@ -1,10 +1,11 @@
 {
-  "meta": {
-    "title": "Signierte Bücher bestellen",
-    "description": "Bestell dein persönlich gewidmetes Buch."
+  "picker": {
+    "title": "Signierte Bücher",
+    "lead": "Wähl aus, von wem du ein gewidmetes Buch möchtest.",
+    "openUntil": "Bestellen bis {date}",
+    "noAktion": "Nächste Aktion folgt"
   },
   "nav": {
-    "home": "Start",
     "order": "Bestellen",
     "language": "Sprache"
   },
@@ -15,200 +16,10 @@
     "cookies": "Cookie-Einstellungen",
     "contact": "Kontakt"
   },
-  "picker": {
-    "title": "Signierte Bücher",
-    "lead": "Wähl aus, von wem du ein gewidmetes Buch möchtest.",
-    "openUntil": "Bestellen bis {date}",
-    "noAktion": "Nächste Aktion folgt"
-  },
-  "home": {
-    "eyebrow": "Widmungsaktion",
-    "title": "Dein Buch. Persönlich gewidmet.",
-    "lead": "Bestell dein Buch und sag uns, wem es gewidmet sein soll. {name} widmet alle Bücher einer Aktion an einem Tag, danach kommen sie zu dir nach Hause.",
-    "cta": "Jetzt bestellen",
-    "deadline": "Bestellschluss",
-    "signingDate": "Widmungstag",
-    "shipping": "Versand ca.",
-    "booksTitle": "Diese Bücher kannst du bestellen",
-    "howTitle": "So funktioniert’s",
-    "how": {
-      "1": {
-        "title": "Bestellen",
-        "text": "Wähl deine Bücher aus und schreib uns deinen Widmungswunsch."
-      },
-      "2": {
-        "title": "Widmen",
-        "text": "Am Widmungstag werden alle Bücher der Aktion persönlich gewidmet."
-      },
-      "3": {
-        "title": "Ankommen",
-        "text": "Kurz danach landet dein Buch in deinem Briefkasten. Den Stand siehst du jederzeit online."
-      }
-    },
-    "closedTitle": "Gerade läuft keine Aktion",
-    "closedText": "Die nächste Widmungsaktion startet am {date}. Schau dann wieder vorbei! 💌",
-    "closedNoNext": "Die nächste Widmungsaktion ist noch nicht geplant. Bei Fragen erreichst du uns unter {email}.",
-    "full": "Diese Aktion ist leider schon ausgebucht.",
-    "lookupTitle": "Schon bestellt?",
-    "lookupText": "Mit deiner Bestellnummer und E-Mail-Adresse findest du deine Bestellung wieder.",
-    "lookupNumber": "Bestellnummer",
-    "lookupEmail": "E-Mail-Adresse",
-    "lookupSubmit": "Bestellung anzeigen",
-    "lookupNotFound": "Wir konnten keine passende Bestellung finden.",
-    "optedOut": "Erledigt: Dein Entwurf ist gelöscht und du bekommst keine Erinnerungen mehr.",
-    "shippingFrom": "Zzgl. Versand ab {price} (Brief bei einem Buch, Paket ab zwei Büchern)."
-  },
-  "order": {
-    "stepOf": "Schritt {current} von {total}",
-    "back": "Zurück",
-    "next": "Weiter",
-    "pressEnter": "oder Enter drücken",
-    "saving": "Wird gespeichert …",
-    "books": {
-      "title": "Welche Bücher möchtest du?",
-      "lead": "Du kannst bis zu {max} Bücher pro Bestellung bestellen.",
-      "more": "Mehr als {max} Bücher? Schreib uns an {email}.",
-      "add": "Eins mehr",
-      "remove": "Eins weniger",
-      "count": "{count} Exemplar | {count} Exemplare",
-      "empty": "Wähl mindestens ein Buch aus.",
-      "max": "Maximal {max} Bücher pro Bestellung.",
-      "shippingTitle": "Versandkosten",
-      "shippingTier": "{range}: {price} ({method})",
-      "shippingRangeOne": "1 Buch",
-      "shippingRange": "{from}–{to} Bücher",
-      "method": {
-        "letter": "Brief",
-        "parcel": "Paket"
-      },
-      "runningTotal": "{books} Bücher {subtotal} + Versand {shipping} = Total {total}",
-      "runningTotalOne": "1 Buch {subtotal} + Versand {shipping} = Total {total}",
-      "shippingRangeExact": "{count} Bücher"
-    },
-    "email": {
-      "title": "Wie lautet deine E-Mail-Adresse?",
-      "lead": "Damit wir dir die Bestätigung und den Link zu deiner Bestellung schicken können.",
-      "label": "E-Mail-Adresse",
-      "privacy": "Wir speichern deine Angaben ab hier, damit du später weitermachen kannst. Falls du nicht fertig wirst, erinnern wir dich höchstens einmal per E-Mail."
-    },
-    "dedication": {
-      "title": "Wem soll das Buch gewidmet sein?",
-      "titleMany": "Wem sollen die Bücher gewidmet sein?",
-      "lead": "Für jedes Exemplar kannst du einen eigenen Wunsch angeben.",
-      "copy": "Exemplar {n}",
-      "withDedication": "Mit Widmung",
-      "signatureOnly": "Nur Unterschrift",
-      "recipient": "Für wen?",
-      "recipientPlaceholder": "z. B. Mia",
-      "wish": "Dein Widmungswunsch (optional)",
-      "wishPlaceholder": "z. B. «Für Mia, die mutigste Person, die ich kenne»",
-      "wishHint": "Jede Widmung wird von Hand und in eigenen Worten geschrieben. Dein Wunsch ist eine Anregung.",
-      "chars": "{count} / {max} Zeichen",
-      "recipientRequired": "Sag uns, für wen die Widmung ist, oder wähl «Nur Unterschrift»."
-    },
-    "address": {
-      "title": "Wohin dürfen wir die Rechnung schicken?",
-      "titleShipping": "Wohin dürfen wir das Buch schicken?",
-      "lead": "Wir versenden nur innerhalb der Schweiz und nach Liechtenstein.",
-      "firstName": "Vorname",
-      "lastName": "Nachname",
-      "company": "Firma / c/o (optional)",
-      "street": "Strasse und Nr.",
-      "postalCode": "PLZ",
-      "town": "Ort",
-      "gift": "Als Geschenk / an jemand anderen senden 🎁",
-      "giftHint": "Wir senden das Paket direkt an die beschenkte Person.",
-      "multipleRecipients": "Mehrere Empfänger*innen? Bitte gib pro Adresse eine eigene Bestellung auf. Nach dem Abschicken geht das mit einem Klick.",
-      "shippingTitle": "Lieferadresse",
-      "giftMessage": "Deine Nachricht für den Begleitbrief",
-      "giftMessagePlaceholder": "z. B. «Alles Liebe zum Geburtstag! Deine Sam»",
-      "giftMessageHint": "Damit niemand anonym ein Buch erhält, steht auf dem Begleitbrief immer, von wem es kommt ({name})."
-    },
-    "payment": {
-      "title": "Wie möchtest du bezahlen?",
-      "lead": "Total {total}, inkl. Versand.",
-      "methods": {
-        "online": {
-          "title": "Online bezahlen",
-          "text": "Mit Karte oder TWINT. Am schnellsten."
-        },
-        "invoice_advance": {
-          "title": "Rechnung per E-Mail",
-          "text": "Du bekommst eine QR-Rechnung per E-Mail und bezahlst vor dem Widmungstag."
-        },
-        "invoice_in_parcel": {
-          "title": "Rechnung im Paket",
-          "text": "Die QR-Rechnung liegt deinem Buch bei."
-        }
-      },
-      "giftNotPossible": "Bei Geschenken nicht möglich, die Rechnung käme sonst bei der beschenkten Person an."
-    },
-    "summary": {
-      "title": "Alles korrekt?",
-      "lead": "Schau dir deine Bestellung nochmals an.",
-      "books": "Bücher",
-      "dedication": "Widmung",
-      "signatureOnly": "Nur Unterschrift",
-      "noWish": "Kein Wunsch, lass dich überraschen",
-      "billing": "Rechnungsadresse",
-      "shipping": "Lieferadresse",
-      "sameAsBilling": "Wie Rechnungsadresse",
-      "giftMessage": "Nachricht",
-      "payment": "Zahlung",
-      "subtotal": "Bücher",
-      "shippingCost": "Versand",
-      "total": "Total",
-      "newsletter": "Ja, ich möchte den Newsletter erhalten. Du bekommst dafür eine separate Bestätigungsmail.",
-      "terms": "Ich habe die {terms} und die {privacy} gelesen.",
-      "termsLink": "AGB",
-      "privacyLink": "Datenschutzerklärung",
-      "termsRequired": "Bitte bestätige die AGB und die Datenschutzerklärung.",
-      "submit": "Verbindlich bestellen",
-      "edit": "Ändern"
-    },
-    "errors": {
-      "generic": "Da ist etwas schiefgelaufen. Versuch es bitte nochmals.",
-      "closed": "Im Moment läuft keine Widmungsaktion.",
-      "submitted": "Diese Bestellung wurde bereits abgeschickt."
-    },
-    "required": "Bitte ausfüllen.",
-    "invalidEmail": "Das sieht nicht nach einer E-Mail-Adresse aus.",
-    "invalidPostalCode": "Bitte eine vierstellige PLZ angeben."
-  },
-  "tracking": {
-    "title": "Deine Bestellung",
-    "number": "Bestellnummer {number}",
-    "thanksTitle": "Danke für deine Bestellung! 💗",
-    "thanksText": "Wir haben dir eine Bestätigung an {email} geschickt. Speichere dir diese Seite, hier siehst du jederzeit, wie weit deine Bestellung ist.",
-    "another": "Noch eine Bestellung für jemand anderen",
-    "steps": {
-      "submitted": "Bestellt",
-      "paid": "Bezahlt",
-      "signed": "Gewidmet",
-      "shipped": "Versendet",
-      "cancelled": "Storniert"
-    },
-    "expected": {
-      "signed": "Widmungstag: {date}",
-      "shipped": "Voraussichtlich ab {date}"
-    },
-    "paymentPending": {
-      "online": "Deine Online-Zahlung ist noch nicht abgeschlossen.",
-      "invoice_advance": "Bitte bezahle die Rechnung bis zum Bestellschluss am {date}.",
-      "invoice_in_parcel": "Die Rechnung liegt deinem Paket bei."
-    },
-    "copies": "Deine Bücher",
-    "delivery": "Lieferung an",
-    "trackingNumber": "Sendungsnummer {number}",
-    "aktion": "Aktion",
-    "notFound": "Diese Bestellung haben wir nicht gefunden.",
-    "payNow": "Jetzt online bezahlen",
-    "payNowHint": "Mit Karte oder TWINT, statt per Rechnung.",
-    "paymentProcessing": "Danke! Deine Zahlung wird gerade bestätigt. Das dauert meist nur ein paar Sekunden.",
-    "paymentConfirmed": "Zahlung erhalten, danke! 💗",
-    "paymentFailed": "Die Online-Zahlung ist gerade nicht verfügbar. Bitte versuch es später nochmals.",
-    "invoice": "Rechnung herunterladen (PDF)",
-    "cancelledNotice": "Diese Bestellung wurde storniert. Bei Fragen erreichst du uns unter {email}."
+  "notFound": {
+    "title": "Hier ist nichts.",
+    "text": "Diese Seite gibt es leider nicht.",
+    "back": "Zur Startseite"
   },
   "consent": {
     "title": "Darf’s ein Keks sein? 🍪",
@@ -225,9 +36,24 @@
     "marketingTitle": "Marketing",
     "marketingText": "Messung von Kampagnen."
   },
-  "notFound": {
-    "title": "Hier ist nichts.",
-    "text": "Diese Seite gibt es leider nicht.",
-    "back": "Zur Startseite"
+  "order": {
+    "books": {
+      "empty": "Wähl mindestens ein Buch aus.",
+      "max": "Maximal {max} Bücher pro Bestellung."
+    },
+    "dedication": {
+      "recipientRequired": "Sag uns, für wen die Widmung ist, oder wähl «Nur Unterschrift»."
+    },
+    "summary": {
+      "termsRequired": "Bitte bestätige die AGB und die Datenschutzerklärung."
+    },
+    "errors": {
+      "generic": "Da ist etwas schiefgelaufen. Versuch es bitte nochmals.",
+      "closed": "Im Moment läuft keine Widmungsaktion.",
+      "submitted": "Diese Bestellung wurde bereits abgeschickt."
+    },
+    "required": "Bitte ausfüllen.",
+    "invalidEmail": "Das sieht nicht nach einer E-Mail-Adresse aus.",
+    "invalidPostalCode": "Bitte eine vierstellige PLZ angeben."
   }
 }

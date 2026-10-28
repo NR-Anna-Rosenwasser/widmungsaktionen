@@ -8,6 +8,7 @@ use App\Enums\PaymentState;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Services\Payments\PaymentReference;
+use App\Support\Texts\Texts;
 use Illuminate\Support\Carbon;
 use RuntimeException;
 use Sprain\SwissQrBill\DataGroup\Element\AdditionalInformation;
@@ -40,6 +41,7 @@ class InvoicePdf
             'tenant' => $order->tenant,
             'payment' => $payment,
             'locale' => $locale,
+            'text' => app(Texts::class)->for($order->tenant, $order->aktion, $locale),
             'dueDate' => $this->dueDate($order, $payment),
             'reference' => PaymentReference::format($payment->reference),
             'paymentPart' => $this->paymentPart($order, $payment, $locale),

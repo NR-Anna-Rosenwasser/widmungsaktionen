@@ -5,6 +5,7 @@ namespace App\Http\Resources;
 use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Services\Payments\PaymentService;
+use App\Support\Texts\Texts;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -60,6 +61,7 @@ class OrderResource extends JsonResource
                 && in_array($this->payment_method?->value, ['invoice_advance', 'invoice_in_parcel'], true),
             'aktion' => [
                 'name' => $this->aktion->name,
+                'texts' => app(Texts::class)->storefrontExtras($this->aktion, ['tracking']),
                 'order_deadline' => $this->aktion->order_deadline->toIso8601String(),
                 'signing_date' => $this->aktion->signing_date->toDateString(),
                 'estimated_shipping_date' => $this->aktion->estimated_shipping_date->toDateString(),

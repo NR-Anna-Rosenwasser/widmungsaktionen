@@ -7,7 +7,7 @@ const { state, errors, availableMethods, total } = props.form
 
 <template>
   <div>
-    <OrderStepHeading :title="$t('order.payment.title')" :lead="$t('order.payment.lead', { total: formatChf(total) })" />
+    <OrderStepHeading :title="$text('order.payment.title')" :lead-html="$textHtml('order.payment.lead', { total: formatChf(total) })" />
 
     <div class="mt-8 space-y-3" role="radiogroup">
       <label
@@ -29,9 +29,9 @@ const { state, errors, availableMethods, total } = props.form
           class="mt-1.5 size-5 accent-navy"
         >
         <span>
-          <span class="font-display text-xl font-semibold">{{ $t(`order.payment.methods.${method}.title`) }}</span>
+          <span class="font-display text-xl font-semibold">{{ $text(`order.payment.methods.${method}.title`) }}</span>
           <span class="mt-1 block text-navy-soft">
-            {{ form.methodDisabled(method) ? $t('order.payment.giftNotPossible') : $t(`order.payment.methods.${method}.text`) }}
+            {{ form.methodDisabled(method) ? $text('order.payment.giftNotPossible') : $text(`order.payment.methods.${method}.text`) }}
           </span>
         </span>
       </label>

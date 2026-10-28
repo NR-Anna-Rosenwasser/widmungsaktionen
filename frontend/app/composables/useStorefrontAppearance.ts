@@ -1,16 +1,4 @@
-import type { StorefrontTextKey, Tenant } from '#shared/types/api'
-
-/**
- * Texts and look of the current shop, as configured in its settings.
- */
-export function useStorefrontText(tenant: Ref<Tenant | undefined | null>) {
-  const { locale } = useI18n()
-
-  return (key: StorefrontTextKey): string => {
-    const texts = tenant.value?.storefront.texts
-    return texts?.[locale.value]?.[key] ?? texts?.de?.[key] ?? ''
-  }
-}
+import type { Tenant } from '#shared/types/api'
 
 /**
  * Shop colours as CSS variables on <html>. The derived shades mirror the

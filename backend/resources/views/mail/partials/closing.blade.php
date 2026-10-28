@@ -1,8 +1,8 @@
 <x-mail::button :url="$trackingUrl">
-{{ __('mail.view_order') }}
+{{ $text('mail.view_order') }}
 </x-mail::button>
 
-{{ __('mail.questions') }}
+{{ $text('mail.questions') }}
 
-{{ __('mail.signature') }}<br>
+{{ $text('mail.signature') }}<br>
 {{ $tenant->mail_from_name ?: $tenant->name }}

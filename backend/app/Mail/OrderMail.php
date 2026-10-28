@@ -5,6 +5,8 @@ namespace App\Mail;
 use App\Models\Order;
 use App\Services\Payments\PaymentService;
 use App\Services\Pdf\InvoicePdf;
+use App\Support\Texts\Texts;
+use App\Support\Texts\TextSet;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Attachment;
@@ -46,7 +48,7 @@ abstract class OrderMail extends Mailable implements ShouldQueue
         return new Envelope(
             from: new Address($from, $tenant->mail_from_name ?: $tenant->name),
             replyTo: $replyTo ? [new Address($replyTo)] : [],
-            subject: __("mail.{$this->key()}.subject", ['number' => $this->order->number], $this->locale),
+            subject: $this->subjectLine(),
         );
     }
 
@@ -61,8 +63,23 @@ abstract class OrderMail extends Mailable implements ShouldQueue
             'shopUrl' => $this->order->tenant->storefrontUrl(),
             'trackingUrl' => $this->order->storefrontUrl(),
             'canPayOnline' => app(PaymentService::class)->canPayOnline($this->order),
+            'text' => $this->texts(),
+            'date' => fn ($date) => $date->locale($this->locale === 'en' ? 'en_CH' : 'de_CH')->isoFormat('LL'),
             ...$this->data(),
         ]);
+    }
+
+    protected function subjectLine(): string
+    {
+        return $this->texts()("mail.{$this->key()}.subject", ['number' => $this->order->number]);
+    }
+
+    /**
+     * The shop's texts (and the Aktion's extra texts) in the customer's language.
+     */
+    protected function texts(): TextSet
+    {
+        return app(Texts::class)->for($this->order->tenant, $this->order->aktion, $this->locale);
     }
 
     /**

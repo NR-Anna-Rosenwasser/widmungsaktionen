@@ -3,16 +3,19 @@
 namespace App\Filament\Resources\Aktions\Schemas;
 
 use App\Enums\AktionStatus;
+use App\Filament\Pages\Texte;
 use App\Models\Aktion;
+use App\Support\Texts\TextCatalog;
 use Closure;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -31,9 +34,6 @@ class AktionForm
                             ->helperText('z. B. «Herbst-Widmungsaktion 2026»')
                             ->required()
                             ->maxLength(255),
-                        Textarea::make('description')
-                            ->label('Text im Shop (optional)')
-                            ->rows(3),
                         Grid::make(2)->schema([
                             DateTimePicker::make('orders_open_at')
                                 ->label('Bestellungen ab')
@@ -91,6 +91,29 @@ class AktionForm
                             ->numeric()
                             ->minValue(1),
                     ]),
+                self::extras(),
+            ]);
+    }
+
+    /**
+     * Optional texts this Aktion adds to the shop's texts, e.g. a Christmas
+     * greeting in the letter. Empty for every new Aktion.
+     */
+    protected static function extras(): Section
+    {
+        return Section::make('Zusatztexte')
+            ->description('Optional. Erscheinen zusätzlich zu den Texten des Shops (Einstellungen → Texte), nur bei dieser Aktion. Platzhalter: {shop}.')
+            ->columnSpanFull()
+            ->collapsible()
+            ->collapsed(fn (?Aktion $record) => ! collect($record?->texts)->flatten()->filter()->count())
+            ->schema([
+                Tabs::make()->tabs(array_map(
+                    fn (string $locale) => Tab::make($locale === 'de' ? 'Deutsch' : 'English')->schema(
+                        collect(TextCatalog::extras())->map(fn (string $label, string $name) => Texte::field($name, $locale, TextCatalog::extraKind($name), ['shop'], default: '', statePrefix: 'texts.')
+                            ->label($label))->values()->all(),
+                    ),
+                    TextCatalog::LOCALES,
+                )),
             ]);
     }
 }

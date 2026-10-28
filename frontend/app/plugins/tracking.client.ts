@@ -52,8 +52,9 @@ export default defineNuxtPlugin((nuxtApp) => {
 
   useState('consent-enabled').value = true
 
-  const i18n = nuxtApp.$i18n as { t: (key: string) => string, locale: { value: string } }
-  const t = i18n.t
+  const i18n = nuxtApp.$i18n as { locale: { value: string } }
+  // The shop's banner texts (plugins/texts.ts), i18n messages on the picker.
+  const t = (key: string) => nuxtApp.$text(key)
   const accepted = () => (['analytics', 'marketing'] as ConsentCategory[]).filter(c => CookieConsent.acceptedCategory(c))
 
   const translation = () => ({

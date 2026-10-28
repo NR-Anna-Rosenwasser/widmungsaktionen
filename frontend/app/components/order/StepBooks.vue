@@ -3,7 +3,8 @@ import type { OrderForm } from '~/composables/useOrderForm'
 
 const props = defineProps<{ form: OrderForm }>()
 const { aktion, tenant, quantities, totalCopies, maxCopies, errors, subtotal, shippingCost, total } = props.form
-const { t } = useI18n()
+const { $text } = useNuxtApp()
+const { locale } = useI18n()
 
 // "1 Buch: CHF 3.00 (Brief)", "2–4 Bücher: CHF 8.00 (Paket)" from the shop's tiers,
 // limited to what can be ordered online.
@@ -15,11 +16,11 @@ const shippingTiers = computed(() => {
     const to = Math.min(tier.max_copies, maxCopies.value)
     if (to < from) continue
     const range = from === to
-      ? t(to === 1 ? 'order.books.shippingRangeOne' : 'order.books.shippingRangeExact', { count: to })
-      : t('order.books.shippingRange', { from, to })
+      ? $text(to === 1 ? 'order.books.shippingRangeOne' : 'order.books.shippingRangeExact', { count: to })
+      : $text('order.books.shippingRange', { from, to })
     tiers.push({
       key: `${from}-${to}`,
-      label: t('order.books.shippingTier', { range, price: formatChf(tier.price), method: t(`order.books.method.${tier.method}`) }),
+      label: $text('order.books.shippingTier', { range, price: formatChf(tier.price), method: $text(`order.books.method.${tier.method}`) }),
       to,
     })
     from = to + 1
@@ -31,7 +32,8 @@ const activeTierTo = computed(() => shippingTiers.value.find(tier => totalCopies
 
 <template>
   <div>
-    <OrderStepHeading :title="$t('order.books.title')" :lead="$t('order.books.lead', { max: maxCopies })" />
+    <OrderStepHeading :title="$text('order.books.title')" :lead-html="$textHtml('order.books.lead', { max: maxCopies })" />
+    <RichText :html="aktion.texts[locale]?.order" class="mt-6 rounded-md bg-blush-light p-4" />
 
     <ul class="mt-8 space-y-4">
       <li v-for="book in aktion.books" :key="book.id" class="card flex items-center gap-5">
@@ -51,7 +53,7 @@ const activeTierTo = computed(() => shippingTiers.value.find(tier => totalCopies
           <button
             type="button"
             class="size-10 rounded-sm bg-white text-xl font-semibold shadow-sm disabled:opacity-40"
-            :aria-label="$t('order.books.remove')"
+            :aria-label="$text('order.books.remove')"
             :disabled="!quantities[book.id]"
             @click="form.setQuantity(book.id, (quantities[book.id] ?? 0) - 1)"
           >
@@ -63,7 +65,7 @@ const activeTierTo = computed(() => shippingTiers.value.find(tier => totalCopies
           <button
             type="button"
             class="size-10 rounded-sm bg-navy text-xl font-semibold text-white shadow-sm disabled:opacity-40"
-            :aria-label="$t('order.books.add')"
+            :aria-label="$text('order.books.add')"
             :disabled="totalCopies >= maxCopies"
             @click="form.setQuantity(book.id, (quantities[book.id] ?? 0) + 1)"
           >
@@ -77,7 +79,7 @@ const activeTierTo = computed(() => shippingTiers.value.find(tier => totalCopies
 
     <div class="mt-6 rounded-md border-2 border-blush p-4 text-sm">
       <p class="font-semibold">
-        {{ $t('order.books.shippingTitle') }}
+        {{ $text('order.books.shippingTitle') }}
       </p>
       <ul class="mt-1 space-y-0.5">
         <li
@@ -90,13 +92,11 @@ const activeTierTo = computed(() => shippingTiers.value.find(tier => totalCopies
       </ul>
       <p v-if="totalCopies > 0" class="mt-3 border-t border-blush pt-3 font-display text-base font-semibold tabular-nums" aria-live="polite">
         {{ totalCopies === 1
-          ? $t('order.books.runningTotalOne', { subtotal: formatChf(subtotal), shipping: formatChf(shippingCost), total: formatChf(total) })
-          : $t('order.books.runningTotal', { books: totalCopies, subtotal: formatChf(subtotal), shipping: formatChf(shippingCost), total: formatChf(total) }) }}
+          ? $text('order.books.runningTotalOne', { subtotal: formatChf(subtotal), shipping: formatChf(shippingCost), total: formatChf(total) })
+          : $text('order.books.runningTotal', { books: totalCopies, subtotal: formatChf(subtotal), shipping: formatChf(shippingCost), total: formatChf(total) }) }}
       </p>
     </div>
 
-    <p class="mt-6 text-sm text-navy-soft">
-      {{ $t('order.books.more', { max: maxCopies, email: tenant.contact_email }) }}
-    </p>
+    <RichText :html="$textHtml('order.books.more', { max: maxCopies, email: tenant.contact_email })" class="mt-6 text-sm text-navy-soft" />
   </div>
 </template>

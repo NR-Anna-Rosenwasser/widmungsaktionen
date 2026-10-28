@@ -23,3 +23,7 @@ export function formatDateTime(iso: string | null | undefined, locale = 'de'): s
     day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
   }).format(new Date(iso))
 }
+
+export function escapeHtml(text: string): string {
+  return text.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&#39;' })[c]!)
+}

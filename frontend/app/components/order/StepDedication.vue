@@ -9,17 +9,17 @@ const max = computed(() => tenant.value.dedication_max_length)
 <template>
   <div>
     <OrderStepHeading
-      :title="state.copies.length > 1 ? $t('order.dedication.titleMany') : $t('order.dedication.title')"
-      :lead="state.copies.length > 1 ? $t('order.dedication.lead') : undefined"
+      :title="state.copies.length > 1 ? $text('order.dedication.titleMany') : $text('order.dedication.title')"
+      :lead-html="state.copies.length > 1 ? $textHtml('order.dedication.lead') : undefined"
     />
 
     <div class="mt-8 space-y-6">
       <fieldset v-for="(copy, i) in state.copies" :key="i" class="card">
         <legend class="sr-only">
-          {{ $t('order.dedication.copy', { n: i + 1 }) }}: {{ form.bookTitle(copy.book_id) }}
+          {{ $text('order.dedication.copy', { n: i + 1 }) }}: {{ form.bookTitle(copy.book_id) }}
         </legend>
         <p class="font-display text-lg font-semibold" aria-hidden="true">
-          <span v-if="state.copies.length > 1">{{ $t('order.dedication.copy', { n: i + 1 }) }} · </span>{{ form.bookTitle(copy.book_id) }}
+          <span v-if="state.copies.length > 1">{{ $text('order.dedication.copy', { n: i + 1 }) }} · </span>{{ form.bookTitle(copy.book_id) }}
         </p>
 
         <div class="mt-4 inline-flex rounded-sm bg-white p-1 shadow-sm" role="radiogroup">
@@ -30,41 +30,39 @@ const max = computed(() => tenant.value.dedication_max_length)
             :class="copy.signature_only === option ? 'bg-navy text-white' : 'hover:bg-blush-light'"
           >
             <input v-model="copy.signature_only" type="radio" :value="option" class="sr-only">
-            {{ option ? $t('order.dedication.signatureOnly') : $t('order.dedication.withDedication') }}
+            {{ option ? $text('order.dedication.signatureOnly') : $text('order.dedication.withDedication') }}
           </label>
         </div>
 
         <div v-if="!copy.signature_only" class="mt-5 space-y-4">
           <div>
-            <label :for="`recipient-${i}`" class="field-label">{{ $t('order.dedication.recipient') }}</label>
+            <label :for="`recipient-${i}`" class="field-label">{{ $text('order.dedication.recipient') }}</label>
             <input
               :id="`recipient-${i}`"
               v-model="copy.recipient_name"
               class="field-input"
               maxlength="100"
-              :placeholder="$t('order.dedication.recipientPlaceholder')"
+              :placeholder="$text('order.dedication.recipientPlaceholder')"
               :aria-invalid="!!errors[`copies.${i}.recipient_name`]"
             >
             <OrderFieldError :message="errors[`copies.${i}.recipient_name`]" />
           </div>
           <div>
-            <label :for="`wish-${i}`" class="field-label">{{ $t('order.dedication.wish') }}</label>
+            <label :for="`wish-${i}`" class="field-label">{{ $text('order.dedication.wish') }}</label>
             <textarea
               :id="`wish-${i}`"
               v-model="copy.wish"
               rows="3"
               class="field-input resize-y"
               :maxlength="max"
-              :placeholder="$t('order.dedication.wishPlaceholder')"
+              :placeholder="$text('order.dedication.wishPlaceholder')"
               :aria-invalid="!!errors[`copies.${i}.wish`]"
               @keydown.enter.ctrl.prevent="form.next()"
             />
             <div class="flex justify-between gap-4">
-              <p class="field-hint">
-                {{ $t('order.dedication.wishHint') }}
-              </p>
+              <RichText :html="$textHtml('order.dedication.wishHint')" class="field-hint" />
               <p class="field-hint shrink-0 tabular-nums">
-                {{ $t('order.dedication.chars', { count: (copy.wish ?? '').length, max }) }}
+                {{ $text('order.dedication.chars', { count: (copy.wish ?? '').length, max }) }}
               </p>
             </div>
             <OrderFieldError :message="errors[`copies.${i}.wish`]" />

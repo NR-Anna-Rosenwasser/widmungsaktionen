@@ -18,7 +18,7 @@ const { locale, locales, setLocale } = useI18n()
         {{ data?.tenant.name ?? $t('picker.title') }}
       </template>
     </NuxtLink>
-    <nav :aria-label="$t('nav.language')" class="flex gap-1 text-sm font-semibold">
+    <nav :aria-label="$text('nav.language')" class="flex gap-1 text-sm font-semibold">
       <button
         v-for="l in locales"
         :key="l.code"

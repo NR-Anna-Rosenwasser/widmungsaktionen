@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { StorefrontTextKey } from '#shared/types/api'
-
 const { locale } = useI18n()
 const path = useStorefrontPath()
 const { data, error } = await useStorefront()
@@ -16,22 +14,21 @@ const books = computed(() => aktion.value?.books ?? next.value?.books ?? [])
 const canOrder = computed(() => !!aktion.value?.accepting_orders)
 const appearance = computed(() => tenant.value.storefront)
 const hero = computed(() => appearance.value.hero)
-const text = useStorefrontText(tenant)
+const { $text: text, $textHtml: textHtml } = useNuxtApp()
 const route = useRoute()
 const optedOut = computed(() => route.query.abgemeldet === '1')
 
-const stepText = (n: number, part: 'title' | 'text') => text(`how_${n}_${part}` as StorefrontTextKey)
 const cheapestShipping = computed(() => Math.min(...tenant.value.shipping_tiers.map(tier => tier.price)))
 
 useSeoMeta({
-  title: () => text('seo_title'),
+  title: () => text('home.seoTitle'),
 })
 </script>
 
 <template>
   <div>
     <p v-if="optedOut" class="bg-blush-light px-5 py-3 text-center font-semibold" role="status">
-      {{ $t('home.optedOut') }}
+      {{ $text('home.optedOut') }}
     </p>
 
     <!-- Hero -->
@@ -42,20 +39,16 @@ useSeoMeta({
       >
         <div>
           <p class="font-display text-sm font-semibold uppercase tracking-[0.18em] text-navy/80">
-            {{ aktion?.name ?? text('eyebrow') }}
+            {{ aktion?.name ?? text('home.eyebrow') }}
           </p>
           <h1 class="mt-3 text-5xl text-navy sm:text-7xl">
-            {{ text('title') }}
+            {{ text('home.title') }}
           </h1>
-          <p class="mt-6 max-w-xl whitespace-pre-line text-lg text-navy">
-            {{ text('lead') }}
-          </p>
-          <p v-if="aktion?.description" class="mt-4 max-w-xl text-navy">
-            {{ aktion.description }}
-          </p>
+          <RichText :html="textHtml('home.lead')" class="mt-6 max-w-xl text-lg text-navy" />
+          <RichText :html="aktion?.texts[locale]?.home" class="mt-4 max-w-xl text-navy" />
           <div v-if="canOrder" class="mt-8">
             <NuxtLink :to="path('/bestellen')" class="arrow-link text-xl text-navy">
-              {{ text('cta') }} <span aria-hidden="true">→</span>
+              {{ text('home.cta') }} <span aria-hidden="true">→</span>
             </NuxtLink>
           </div>
         </div>
@@ -74,7 +67,7 @@ useSeoMeta({
       <div v-if="aktion" class="-mt-8 grid gap-px overflow-hidden rounded-md bg-blush shadow-sm sm:grid-cols-3">
         <div class="bg-white p-6">
           <p class="text-sm font-semibold text-navy-soft">
-            {{ $t('home.deadline') }}
+            {{ $text('home.deadline') }}
           </p>
           <p class="mt-1 font-display text-2xl font-semibold">
             {{ formatDate(aktion.order_deadline, locale) }}
@@ -82,7 +75,7 @@ useSeoMeta({
         </div>
         <div class="bg-white p-6">
           <p class="text-sm font-semibold text-navy-soft">
-            {{ $t('home.signingDate') }}
+            {{ $text('home.signingDate') }}
           </p>
           <p class="mt-1 font-display text-2xl font-semibold">
             {{ formatDate(aktion.signing_date, locale) }}
@@ -90,7 +83,7 @@ useSeoMeta({
         </div>
         <div class="bg-white p-6">
           <p class="text-sm font-semibold text-navy-soft">
-            {{ $t('home.shipping') }}
+            {{ $text('home.shipping') }}
           </p>
           <p class="mt-1 font-display text-2xl font-semibold">
             {{ formatDate(aktion.estimated_shipping_date, locale) }}
@@ -98,19 +91,19 @@ useSeoMeta({
         </div>
       </div>
       <p v-if="aktion && !aktion.accepting_orders" class="mt-6 font-semibold">
-        {{ $t('home.full') }}
+        {{ $text('home.full') }}
       </p>
 
       <div v-if="!aktion" class="card mt-12 max-w-2xl">
         <h2 class="text-3xl">
-          {{ text('closed_title') }}
+          {{ text('home.closedTitle') }}
         </h2>
         <p class="mt-3">
           <template v-if="next">
-            {{ $t('home.closedText', { date: formatDate(next.orders_open_at, locale) }) }}
+            {{ $text('home.closedText', { date: formatDate(next.orders_open_at, locale) }) }}
           </template>
           <template v-else>
-            {{ $t('home.closedNoNext', { email: tenant.contact_email }) }}
+            {{ $text('home.closedNoNext', { email: tenant.contact_email }) }}
           </template>
         </p>
       </div>
@@ -119,7 +112,7 @@ useSeoMeta({
     <!-- Books -->
     <section v-if="appearance.sections.books && books.length" class="mx-auto mt-24 max-w-6xl px-5 sm:px-8">
       <h2 class="text-4xl sm:text-5xl">
-        {{ text('books_title') }}
+        {{ text('home.booksTitle') }}
       </h2>
       <ul class="mt-10 grid gap-10 sm:grid-cols-2">
         <li v-for="book in books" :key="book.id" class="flex gap-6">
@@ -153,10 +146,10 @@ useSeoMeta({
         </li>
       </ul>
       <p class="mt-8 text-sm text-navy-soft">
-        {{ $t('home.shippingFrom', { price: formatChf(cheapestShipping) }) }}
+        {{ $text('home.shippingFrom', { price: formatChf(cheapestShipping) }) }}
       </p>
       <NuxtLink v-if="canOrder" :to="path('/bestellen')" class="arrow-link mt-8 text-xl text-navy">
-        {{ text('cta') }} <span aria-hidden="true">→</span>
+        {{ text('home.cta') }} <span aria-hidden="true">→</span>
       </NuxtLink>
     </section>
 
@@ -164,7 +157,7 @@ useSeoMeta({
     <section v-if="appearance.sections.how" class="mt-24 bg-blush-light">
       <div class="mx-auto max-w-6xl px-5 py-16 sm:px-8">
         <h2 class="text-4xl sm:text-5xl">
-          {{ text('how_title') }}
+          {{ text('home.howTitle') }}
         </h2>
         <ol class="mt-10 grid gap-10 sm:grid-cols-3">
           <li v-for="n in 3" :key="n">
@@ -172,22 +165,20 @@ useSeoMeta({
               {{ n }}
             </p>
             <h3 class="mt-2 text-2xl">
-              {{ stepText(n, 'title') }}
+              {{ text(`home.how${n}Title`) }}
             </h3>
-            <p class="mt-2">
-              {{ stepText(n, 'text') }}
-            </p>
+            <RichText :html="textHtml(`home.how${n}Text`)" class="mt-2" />
           </li>
         </ol>
         <NuxtLink v-if="canOrder" :to="path('/bestellen')" class="btn btn-primary mt-12">
-          {{ text('cta') }} <span aria-hidden="true">→</span>
+          {{ text('home.cta') }} <span aria-hidden="true">→</span>
         </NuxtLink>
       </div>
     </section>
 
     <!-- Lookup -->
     <section v-if="appearance.sections.lookup" class="mx-auto mt-24 max-w-6xl px-5 sm:px-8">
-      <OrderLookup :slug="tenant.slug" :title="text('lookup_title')" :text="text('lookup_text')" />
+      <OrderLookup :slug="tenant.slug" />
     </section>
   </div>
 </template>

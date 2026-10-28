@@ -1,10 +1,11 @@
-@php($date = fn ($d) => $d->locale(app()->getLocale() === 'en' ? 'en_CH' : 'de_CH')->isoFormat('LL'))
-<x-mail::message :shop-name="$shopName" :shop-url="$shopUrl">
-# {{ __('mail.greeting', ['name' => $order->billing_first_name]) }}
+<x-mail::message :shop-name="$shopName" :shop-url="$shopUrl" :footer-text="$text('mail.footer')">
+# {{ $text('mail.greeting', ['name' => $order->billing_first_name]) }}
 
-{{ __('mail.signed.intro') }}
+{!! $text->markdown('mail.signed.intro') !!}
 
-{{ __('mail.signed.next', ['date' => $date($order->aktion->estimated_shipping_date)]) }}
+{!! $text->markdown('mail.signed.next', ['date' => $date($order->aktion->estimated_shipping_date)]) !!}
+
+@include('mail.partials.extra', ['name' => 'mail_signed'])
 
 @include('mail.partials.closing')
 </x-mail::message>

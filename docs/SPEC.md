@@ -121,12 +121,22 @@ Settings → «Storefront»:
 - **Hero visual:** your own image (resized to max. 1600 px), the heart drawn from text, or nothing.
 - **Branding:** optional logo instead of the shop name, and an optional favicon.
 - **Sections:** books, «So funktioniert’s» and «Schon bestellt?» can be switched on and off.
-- **Texts:** all start-page texts per language (de, en). Empty fields fall back to the defaults in `backend/lang/*/storefront.php`. `{name}` is replaced by the shop name.
-- **Link preview:** title and description, plus an image. Without an image, the hero image or the first book cover is used.
+- **Link preview:** an image. Without one, the hero image or the first book cover is used. Title and description are texts (below).
+
+### Editable texts
+
+Settings → «Texte» (admins only): every customer-facing text, one area at a time (start page, order form, order page, cookie banner, labels, each email, cover letter, invoice), German and English side by side.
+
+- Catalogue: `App\Support\Texts\TextCatalog` (label, kind, placeholders per text). Defaults stay in `backend/lang/{de,en}/{storefront,mail,letter,invoice}.php` under the same key; overrides are stored in `tenants.settings.texts.<locale>.<key>`. Empty or unchanged fields use the default.
+- Placeholders are written `{name}`; `{shop}` (shop name) works everywhere, the others are listed per text. Unknown placeholders are rejected on save. Values are always escaped.
+- Longer running texts are Markdown (bold, italic, link, list; print texts bold and italic only), rendered safely on the server. Short texts (titles, subjects, buttons, labels) are plain text.
+- Each Aktion can add optional extra texts («Zusatztexte») at twelve places: start page, order form, order page, seven emails (confirmation, payment received, reminder, moved, signed, shipped, abandoned) and as a P.S. in the cover letter and a note on the invoice. Stored in `aktionen.texts.<locale>.<name>`, empty for new Aktionen.
+- Not editable: the refund email, form validation messages, Stripe line items, the admin, internal print outputs (stack list, labels) and the platform start page.
+- The storefront gets all texts from `GET /api/tenants/{slug}` (`tenant.texts`) and reads them with `$text` / `$textHtml` (`frontend/app/plugins/texts.ts`). The i18n files only keep the platform picker, validation messages and fallbacks for pages without a shop.
 
 ### Copy & tone
 
-- Swiss Standard German with "du": approachable, warm, a little cute, very few emojis. English as the second language. Everything goes through i18n files.
+- Swiss Standard German with "du": approachable, warm, a little cute, very few emojis. English as the second language. Customer-facing texts are editable per shop (see «Editable texts»), with defaults in the Laravel lang files.
 - Swiss conventions: "ss" instead of "ß", `CHF 12.50`, `15.10.2026`, `14:30`.
 
 ### Consent & tracking

@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\Aktion;
+use App\Support\Texts\Texts;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -16,7 +17,7 @@ class AktionResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'description' => $this->description,
+            'texts' => app(Texts::class)->storefrontExtras($this->resource, ['home', 'order']),
             'orders_open_at' => $this->orders_open_at->toIso8601String(),
             'order_deadline' => $this->order_deadline->toIso8601String(),
             'signing_date' => $this->signing_date->toDateString(),
