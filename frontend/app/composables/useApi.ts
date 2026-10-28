@@ -7,20 +7,31 @@ import * as Sentry from '@sentry/nuxt'
  */
 export function useApi() {
   if (import.meta.client) {
+    // The browser sends the preview cookie itself (same origin).
     return $fetch
   }
 
   const { apiInternalUrl } = useRuntimeConfig()
   // Set by the reverse proxy; Laravel trusts it from private networks only.
   const forwardedFor = useRequestHeaders(['x-forwarded-for'])['x-forwarded-for']
+  const preview = usePreviewCookie().value
 
   return $fetch.create({
     baseURL: apiInternalUrl,
     headers: {
       accept: 'application/json',
       ...(forwardedFor ? { 'x-forwarded-for': forwardedFor } : {}),
+      ...(preview ? { 'x-widmungen-preview': preview } : {}),
     },
   })
+}
+
+/**
+ * Token of an Aktion in testing mode, set by its secret link (/vorschau/<token>)
+ * for the browser session. Laravel reads it as cookie or header.
+ */
+export function usePreviewCookie() {
+  return useCookie<string | null>('widmungen_preview', { sameSite: 'lax', path: '/' })
 }
 
 export function apiErrorMessage(error: unknown, fallback: string): string {

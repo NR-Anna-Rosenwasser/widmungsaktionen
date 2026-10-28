@@ -2,7 +2,6 @@
 
 namespace App\Jobs;
 
-use App\Enums\OrderStatus;
 use App\Mail\OrderSignedMail;
 use App\Models\Order;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -23,7 +22,8 @@ class SendSignedMail implements ShouldQueue
     {
         $this->order->refresh();
 
-        if ($this->order->status !== OrderStatus::Signed) {
+        // Unsigned meanwhile, or already sent (testing mode: «Wartende E-Mails jetzt senden»).
+        if (! $this->order->signedMailPending()) {
             return;
         }
 

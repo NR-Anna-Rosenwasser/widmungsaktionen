@@ -17,5 +17,7 @@ return [
     'questions' => 'Questions? Write to {email}.',
     'paid' => 'Already paid, thank you!',
     'cancelled' => 'This order has been cancelled. There is nothing to pay.',
+    // Testing mode, not editable.
+    'test_stamp' => 'TEST INVOICE – DO NOT PAY',
     'cancelled_stamp' => 'CANCELLED',
 ];

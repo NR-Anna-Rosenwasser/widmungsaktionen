@@ -136,16 +136,18 @@ class Versand extends Page
     protected function chooseAktionAction(): Action
     {
         return Action::make('chooseAktion')
-            ->label(fn () => 'Aktion: '.($this->selected?->name ?? 'wählen'))
+            ->label(fn () => 'Aktion: '.($this->selected?->adminLabel() ?? 'wählen'))
             ->icon(Heroicon::OutlinedCalendarDays)
             ->color('gray')
             ->fillForm(['aktion' => $this->aktion])
             ->schema([
-                Select::make('aktion')->label('Aktion')->options($this->aktionen()->pluck('name', 'id'))->required(),
+                Select::make('aktion')->label('Aktion')->options($this->aktionen()->mapWithKeys(fn (Aktion $aktion) => [$aktion->id => $aktion->adminLabel()]))->required(),
             ])
             ->action(function (array $data) {
                 $this->aktion = (int) $data['aktion'];
                 unset($this->selected);
+                // The page content was built for the previous Aktion during this request.
+                unset($this->cachedSchemas['content']);
             });
     }
 

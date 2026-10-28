@@ -13,8 +13,8 @@ use App\Models\User;
 use App\Services\Pdf\PdfRenderer;
 use App\Services\Pdf\PrintService;
 use App\Services\SigningService;
-use Filament\Actions\Testing\TestAction;
 use Database\Seeders\DatabaseSeeder;
+use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
@@ -101,6 +101,19 @@ class PrintTest extends TestCase
         // 24 per sheet, 23 skipped: one label on the first sheet, two on the second.
         $this->assertSame(2, substr_count($html, 'class="page"'));
         $this->assertSame(3, substr_count($html, 'class="label"'));
+    }
+
+    public function test_switching_the_aktion_updates_the_overview(): void
+    {
+        $other = $this->tenant->aktionen()->where('name', 'Winter-Widmungsaktion 2027')->first();
+        $other->update(['status' => AktionStatus::Closed]);
+
+        Livewire::test(Versand::class, ['aktion' => $this->aktion->id])
+            ->assertSee('Widmungstag '.$this->aktion->signing_date->format('d.m.Y'))
+            ->assertSee('3 auf dem Stapel')
+            ->callAction(TestAction::make('chooseAktion'), ['aktion' => $other->id])
+            ->assertSee('Widmungstag '.$other->signing_date->format('d.m.Y'))
+            ->assertSee('0 auf dem Stapel');
     }
 
     public function test_versand_page_downloads_and_ships(): void

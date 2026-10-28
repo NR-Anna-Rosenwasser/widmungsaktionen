@@ -5,11 +5,14 @@ namespace App\Filament\Resources\Orders\Tables;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
+use App\Models\Aktion;
 use App\Models\Order;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 
 class OrdersTable
@@ -33,16 +36,32 @@ class OrdersTable
                 TextColumn::make('status')->label('Status')->badge()->color(fn (OrderStatus $state) => self::statusColor($state)),
                 TextColumn::make('payment_status')->label('Zahlung')->badge()->color(fn (PaymentStatus $state) => $state === PaymentStatus::Paid ? 'success' : 'gray')
                     ->description(fn (Order $record) => $record->payment_method?->getLabel()),
-                TextColumn::make('aktion.name')->label('Aktion')->toggleable(),
+                TextColumn::make('aktion.name')->label('Aktion')->toggleable()
+                    ->badge()
+                    ->color(fn (Order $record) => $record->isTest() ? 'danger' : 'gray')
+                    ->formatStateUsing(fn (string $state, Order $record) => $record->isTest() ? "TEST · $state" : $state),
                 TextColumn::make('created_at')->label('Erstellt')->dateTime('d.m.Y H:i')->sortable(),
             ])
             ->filters([
-                SelectFilter::make('aktion')->label('Aktion')->relationship('aktion', 'name', fn ($query) => $query->whereBelongsTo(filament()->getTenant())),
+                SelectFilter::make('aktion')->label('Aktion')
+                    ->relationship('aktion', 'name', fn ($query) => $query->whereBelongsTo(filament()->getTenant()))
+                    ->getOptionLabelFromRecordUsing(fn (Aktion $record) => $record->adminLabel()),
                 SelectFilter::make('payment_method')->label('Zahlungsart')->options(PaymentMethod::class),
                 SelectFilter::make('payment_status')->label('Zahlung')->options(PaymentStatus::class),
+                TernaryFilter::make('test')
+                    ->label('Testbestellungen')
+                    ->placeholder('Alle')
+                    ->trueLabel('Nur Testbestellungen')
+                    ->falseLabel('Ohne Testbestellungen')
+                    ->queries(
+                        true: fn ($query) => $query->whereHas('aktion', fn ($q) => $q->where('is_test', true)),
+                        false: fn ($query) => $query->whereHas('aktion', fn ($q) => $q->where('is_test', false)),
+                    ),
             ])
             ->recordActions([
                 ViewAction::make(),
+                // Test orders only (OrderPolicy).
+                DeleteAction::make()->iconButton()->modalHeading('Testbestellung löschen'),
             ]);
     }
 

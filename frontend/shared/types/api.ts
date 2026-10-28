@@ -79,6 +79,8 @@ export interface StorefrontResponse {
   tenant: Tenant
   aktion: Aktion | null
   next_aktion: Aktion | null
+  /** Set while the visitor uses an Aktion's secret test link. */
+  preview: { name: string } | null
 }
 
 export interface Address {
@@ -109,6 +111,7 @@ export interface TimelineStep {
 
 export interface Order {
   token: string
+  is_test: boolean
   number: string | null
   status: OrderStatus
   payment_status: PaymentStatus

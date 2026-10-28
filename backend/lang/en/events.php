@@ -21,6 +21,7 @@ return [
     'stacked' => 'Stack number assigned',
     'item_signed' => 'Book signed',
     'item_unsigned' => 'Signing undone',
+    'newsletter_skipped_test' => 'Newsletter: not forwarded (test order)',
     'newsletter_sent' => 'Sent to newsletter',
     'abandoned_reminder_sent' => 'Abandoned order reminder',
 ];

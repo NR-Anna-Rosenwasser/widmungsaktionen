@@ -12,10 +12,13 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -71,12 +74,16 @@ class AktionForm
                             ->options(AktionStatus::class)
                             ->default(AktionStatus::Draft)
                             ->required()
-                            ->helperText('«Geplant» öffnet automatisch zum Startdatum. Pro Shop kann nur eine Aktion offen sein.')
-                            ->rule(fn (?Aktion $record) => function (string $attribute, $value, Closure $fail) use ($record) {
+                            ->helperText('«Geplant» öffnet automatisch zum Startdatum. Pro Shop kann nur eine Aktion offen sein (Aktionen im Testmodus zählen nicht).')
+                            ->rule(fn (?Aktion $record, Get $get) => function (string $attribute, $value, Closure $fail) use ($record, $get) {
                                 $value = $value instanceof AktionStatus ? $value : AktionStatus::from($value);
+                                if ($get('is_test')) {
+                                    return;
+                                }
 
                                 $otherOpen = Aktion::query()
                                     ->whereBelongsTo(filament()->getTenant())
+                                    ->where('is_test', false)
                                     ->where('status', AktionStatus::Open)
                                     ->when($record, fn ($q) => $q->whereKeyNot($record->getKey()))
                                     ->first();
@@ -91,7 +98,38 @@ class AktionForm
                             ->numeric()
                             ->minValue(1),
                     ]),
+                self::testMode(),
                 self::extras(),
+            ]);
+    }
+
+    /**
+     * Testing mode: only visible through a secret link, orders can be deleted,
+     * online payment without Stripe, mails marked [TEST].
+     */
+    protected static function testMode(): Section
+    {
+        return Section::make('Testmodus')
+            ->description('Zum Ausprobieren, bevor die Aktion live geht: Die Aktion ist nur über den geheimen Link sichtbar (auch ohne Login), Bestellnummern beginnen mit TEST-, E-Mails mit [TEST], Online-Zahlung läuft ohne Stripe und Testbestellungen lassen sich löschen. Der Status und alle Automatismen funktionieren wie bei einer echten Aktion.')
+            ->columnSpanFull()
+            ->schema([
+                Toggle::make('is_test')
+                    ->label('Testmodus')
+                    ->live()
+                    // Leaving: «Testmodus beenden» above (deletes the test orders first).
+                    // Entering: not with real orders, they would become deletable.
+                    ->disabled(fn (?Aktion $record) => $record && ($record->is_test || $record->orders()->exists()))
+                    ->helperText(fn (?Aktion $record) => match (true) {
+                        (bool) $record?->is_test => 'Beenden mit «Testmodus beenden» oben rechts.',
+                        $record && $record->orders()->exists() => 'Nicht möglich: Diese Aktion hat bereits echte Bestellungen.',
+                        default => null,
+                    }),
+                TextEntry::make('preview_link')
+                    ->label('Geheimer Link')
+                    ->state(fn (?Aktion $record) => $record?->is_test ? $record->previewUrl() : 'Wird nach dem Speichern erzeugt.')
+                    ->copyable(fn (?Aktion $record) => (bool) $record?->is_test)
+                    ->helperText('Alle mit diesem Link sehen die Aktion im Testmodus. «Neuen Link erzeugen» macht alte Links ungültig.')
+                    ->visible(fn (Get $get) => (bool) $get('is_test')),
             ]);
     }
 

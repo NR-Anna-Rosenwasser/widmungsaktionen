@@ -48,7 +48,8 @@ abstract class OrderMail extends Mailable implements ShouldQueue
         return new Envelope(
             from: new Address($from, $tenant->mail_from_name ?: $tenant->name),
             replyTo: $replyTo ? [new Address($replyTo)] : [],
-            subject: $this->subjectLine(),
+            // Testing mode: unmistakable in every inbox.
+            subject: ($this->order->isTest() ? '[TEST] ' : '').$this->subjectLine(),
         );
     }
 

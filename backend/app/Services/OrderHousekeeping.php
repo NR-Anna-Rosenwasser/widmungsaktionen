@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\OrderStatus;
 use App\Mail\AbandonedOrderMail;
+use App\Models\Aktion;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Tenant;
@@ -33,19 +34,44 @@ class OrderHousekeeping
             ->where('updated_at', '<=', now()->subHours(self::REMIND_AFTER_HOURS))
             ->where('updated_at', '>', now()->subDays(7))
             ->each(function (Order $draft) use (&$sent) {
-                // Mark first, so a failing mail can never lead to a second reminder.
-                $draft->forceFill(['abandoned_reminder_sent_at' => now()])->saveQuietly();
-
-                if (! $draft->aktion->isAcceptingOrders() || $this->orderedMeanwhile($draft)) {
-                    return;
-                }
-
-                Mail::to($draft->email)->queue(new AbandonedOrderMail($draft));
-                $draft->log('abandoned_reminder_sent');
-                $sent++;
+                $sent += (int) $this->remindAbandoned($draft);
             });
 
         return $sent;
+    }
+
+    /**
+     * Testing mode: remind every unfinished order of the Aktion now, without waiting 24 hours.
+     */
+    public function sendAbandonedRemindersNow(Aktion $aktion): int
+    {
+        $sent = 0;
+
+        $aktion->orders()
+            ->with('tenant', 'aktion')
+            ->where('status', OrderStatus::Draft)
+            ->whereNull('abandoned_reminder_sent_at')
+            ->where('reminders_opt_out', false)
+            ->each(function (Order $draft) use (&$sent) {
+                $sent += (int) $this->remindAbandoned($draft);
+            });
+
+        return $sent;
+    }
+
+    protected function remindAbandoned(Order $draft): bool
+    {
+        // Mark first, so a failing mail can never lead to a second reminder.
+        $draft->forceFill(['abandoned_reminder_sent_at' => now()])->saveQuietly();
+
+        if (! $draft->aktion->isAcceptingOrders() || $this->orderedMeanwhile($draft)) {
+            return false;
+        }
+
+        Mail::to($draft->email)->queue(new AbandonedOrderMail($draft));
+        $draft->log('abandoned_reminder_sent');
+
+        return true;
     }
 
     /**

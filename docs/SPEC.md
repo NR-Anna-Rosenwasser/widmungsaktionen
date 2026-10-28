@@ -60,6 +60,19 @@ SigningSession (aktion, user, cursor, checkpoint log)
 - **At most one Aktion per tenant is `open` at a time** (enforced on save and by a partial unique index). The storefront shows that Aktion; if none is open, it shows the next scheduled one with its opening date.
 - After an Aktion closes, unpaid pay-in-advance orders are either moved to the next Aktion or cancelled, after one email reminder. Moving an order to another Aktion can also be done by hand.
 
+### Testing mode
+
+A switch on the Aktion, separate from the status, so the automatic status changes can be tested too. Typical use: set up the real Aktion in testing mode, click through everything, delete the test orders, end testing mode.
+
+- **Access:** a secret link `…/vorschau/<token>` (no login). It stores the token in a session cookie (`widmungen_preview`); the Nuxt server forwards it as `X-Widmungen-Preview` during SSR. With it, the storefront shows only that test Aktion, with a banner and «Testmodus verlassen». «Neuen Link erzeugen» invalidates old links. Without the link, test Aktionen are invisible.
+- **Separate from real Aktionen:** test Aktionen don't count for «one open Aktion per shop» (also in the database index), don't appear on the public storefront or as the dashboard's default, and are marked «(Test)» in admin dropdowns. Orders only move between Aktionen of the same kind (test or real), automatically and by hand.
+- **Orders:** own numbers `TEST-<prefix>-<year>-0001` (`tenants.test_order_sequence`); real numbers have no gaps. Test orders can be deleted (single, «Alle Testbestellungen löschen», or with the Aktion); real orders never.
+- **Online payment:** never reaches Stripe. The checkout goes to `/testzahlung/<order token>` with «Zahlung erfolgreich / fehlgeschlagen / Abbrechen», which run the same code as the Stripe webhooks. Offered even without Stripe keys. Refunds are booked without moving money.
+- **Emails:** all sent for real to the entered address, subject prefixed «[TEST]». Links to continue a draft go through the secret link. «Wartende E-Mails jetzt senden» sends abandoned-order reminders, payment reminders and pending «Gewidmet» mails without waiting.
+- **Invoice:** a «TESTRECHNUNG – NICHT BEZAHLEN» band across the payment part, covering the QR code.
+- **Newsletter:** opt-ins are not forwarded.
+- **Ending testing mode:** only without test orders («Testmodus beenden» offers to delete them) and if no other real Aktion is open; the link stops working.
+
 ### Order statuses
 
 `status` (fulfilment) and `payment_status` are separate fields.

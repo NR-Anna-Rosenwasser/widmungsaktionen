@@ -95,7 +95,7 @@
                 <div class="wm-choice">
                     @foreach ($this->aktionen as $a)
                         <button type="button" class="wm-btn" wire:click="selectAktion({{ $a->id }})">
-                            {{ $a->name }} · Widmungstag {{ $a->signing_date->format('d.m.Y') }}
+                            {{ $a->adminLabel() }} · Widmungstag {{ $a->signing_date->format('d.m.Y') }}
                         </button>
                     @endforeach
                 </div>

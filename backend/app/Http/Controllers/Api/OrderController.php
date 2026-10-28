@@ -5,25 +5,25 @@ namespace App\Http\Controllers\Api;
 use App\Enums\ModerationStatus;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
+use App\Events\OrderSubmitted;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\OrderResource;
 use App\Models\Aktion;
 use App\Models\Order;
 use App\Models\Tenant;
-use App\Events\OrderSubmitted;
 use App\Services\OrderPricer;
 use App\Services\Payments\PaymentService;
 use App\Services\Pdf\InvoicePdf;
-use Illuminate\Http\Response;
-use Throwable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class OrderController extends Controller
 {
@@ -39,7 +39,7 @@ class OrderController extends Controller
     {
         abort_unless($tenant->is_active, 404);
 
-        $aktion = $this->acceptingAktion($tenant);
+        $aktion = $this->acceptingAktion($tenant, $tenant->previewAktion(StorefrontController::previewToken($request)));
 
         $data = $request->validate([
             'email' => ['required', 'email:rfc', 'max:255'],
@@ -87,7 +87,7 @@ class OrderController extends Controller
             'is_gift' => ['sometimes', 'boolean'],
             ...$this->addressRules('shipping', strict: false),
             'gift_message' => ['sometimes', 'nullable', 'string', 'max:500'],
-            'payment_method' => ['sometimes', 'nullable', Rule::in($this->paymentMethods($tenant))],
+            'payment_method' => ['sometimes', 'nullable', Rule::in($this->paymentMethods($order))],
             'newsletter_opt_in' => ['sometimes', 'boolean'],
         ]);
 
@@ -114,9 +114,10 @@ class OrderController extends Controller
         $order = $this->findOrder($tenant, $token);
         abort_unless($order->status === OrderStatus::Draft, 409, 'Diese Bestellung wurde bereits abgeschickt.');
 
-        // A draft started in an Aktion that has since closed moves on to the open one.
+        // A draft started in an Aktion that has since closed moves on to the open
+        // one. Test drafts stay in their test Aktion (409 if it no longer takes orders).
         if (! $order->aktion->isAcceptingOrders()) {
-            $order->aktion()->associate($this->acceptingAktion($tenant));
+            $order->aktion()->associate($this->acceptingAktion($tenant, $order->isTest() ? $order->aktion : null));
         }
 
         $this->validateForSubmit($order);
@@ -135,7 +136,7 @@ class OrderController extends Controller
             $this->pricer->price($order);
 
             $order->fill([
-                'number' => $tenant->nextOrderNumber(),
+                'number' => $tenant->nextOrderNumber(test: $order->isTest()),
                 'status' => $order->payment_method === PaymentMethod::InvoiceInParcel
                     ? OrderStatus::Confirmed
                     : OrderStatus::PendingPayment,
@@ -176,6 +177,19 @@ class OrderController extends Controller
             report($e);
             abort(502, 'Die Online-Zahlung ist gerade nicht verfügbar. Bitte versuch es später nochmals.');
         }
+    }
+
+    /**
+     * Result chosen on the test checkout page (testing mode only, no Stripe).
+     */
+    public function testPayment(Request $request, Tenant $tenant, string $token): JsonResponse
+    {
+        $order = $this->findOrder($tenant, $token);
+        abort_unless($order->isTest() && $this->payments->canPayOnline($order), 409, 'Diese Bestellung kann nicht online bezahlt werden.');
+
+        $data = $request->validate(['outcome' => ['required', Rule::in(['paid', 'failed', 'cancelled'])]]);
+
+        return response()->json(['url' => $this->payments->completeTestCheckout($order, $data['outcome'])]);
     }
 
     /**
@@ -233,9 +247,9 @@ class OrderController extends Controller
         return $tenant->orders()->where('token', $token)->firstOrFail();
     }
 
-    protected function acceptingAktion(Tenant $tenant): Aktion
+    protected function acceptingAktion(Tenant $tenant, ?Aktion $preview = null): Aktion
     {
-        $aktion = $tenant->openAktion();
+        $aktion = $tenant->openAktion($preview);
 
         if (! $aktion?->isAcceptingOrders()) {
             abort(409, 'Im Moment läuft keine Widmungsaktion.');
@@ -257,9 +271,9 @@ class OrderController extends Controller
     /**
      * @return array<int, string>
      */
-    protected function paymentMethods(Tenant $tenant): array
+    protected function paymentMethods(Order $order): array
     {
-        return $this->payments->availableMethods($tenant);
+        return $this->payments->availableMethods($order->tenant, $order->isTest());
     }
 
     protected function copiesRules(Tenant $tenant, Aktion $aktion, bool $required): array
@@ -328,7 +342,7 @@ class OrderController extends Controller
             'email' => ['required', 'email:rfc'],
             ...$this->copiesRules($tenant, $order->aktion, required: true),
             ...$this->addressRules('billing', strict: true),
-            'payment_method' => ['required', Rule::in($this->paymentMethods($tenant))],
+            'payment_method' => ['required', Rule::in($this->paymentMethods($order))],
         ];
 
         if ($order->is_gift) {

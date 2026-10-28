@@ -109,6 +109,44 @@ class Order extends Model
     }
 
     /**
+     * Placed in an Aktion in testing mode: may be deleted, never moved into a real Aktion.
+     */
+    public function isTest(): bool
+    {
+        return (bool) $this->aktion?->is_test;
+    }
+
+    /**
+     * Signed, and the "your book is signed" mail has not gone out since.
+     * The mail is sent with a delay (undo window); see SendSignedMail.
+     */
+    public function signedMailPending(): bool
+    {
+        if ($this->status !== OrderStatus::Signed) {
+            return false;
+        }
+
+        $signedAt = $this->events()->where('type', 'signed')->max('created_at');
+
+        return ! $this->events()
+            ->where('type', 'mail_sent')
+            ->where('data->mail', 'OrderSignedMail')
+            ->when($signedAt, fn ($q) => $q->where('created_at', '>=', $signedAt))
+            ->exists();
+    }
+
+    /**
+     * Link to continue a draft (abandoned-order mail). Test orders go through
+     * the preview link, so it works in any browser.
+     */
+    public function resumeUrl(): string
+    {
+        $path = '/bestellen?t='.$this->token;
+
+        return $this->isTest() ? $this->aktion->previewUrl($path) : $this->tenant->storefrontUrl($path);
+    }
+
+    /**
      * Personal tracking link, on the shop's own domain if it has one.
      */
     public function storefrontUrl(): string

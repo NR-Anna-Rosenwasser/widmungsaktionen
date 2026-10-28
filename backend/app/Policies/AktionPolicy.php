@@ -33,6 +33,7 @@ class AktionPolicy
 
     public function delete(User $user, Aktion $aktion): bool
     {
-        return $this->allows($user, [TenantRole::Admin], $aktion) && ! $aktion->orders()->exists();
+        // Test Aktionen take their test orders with them (EditAktion).
+        return $this->allows($user, [TenantRole::Admin], $aktion) && ($aktion->is_test || ! $aktion->orders()->exists());
     }
 }

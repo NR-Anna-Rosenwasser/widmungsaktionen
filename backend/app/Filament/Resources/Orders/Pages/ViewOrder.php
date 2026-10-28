@@ -10,11 +10,12 @@ use App\Filament\Resources\Orders\OrderResource;
 use App\Models\Aktion;
 use App\Models\Order;
 use App\Services\Payments\PaymentService;
-use App\Services\ShippingService;
 use App\Services\Pdf\InvoicePdf;
+use App\Services\ShippingService;
 use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -167,6 +168,8 @@ class ViewOrder extends ViewRecord
                             ->options(fn () => Aktion::query()
                                 ->whereBelongsTo($this->record->tenant)
                                 ->whereKeyNot($this->record->aktion_id)
+                                // Test orders stay among test Aktionen, real ones among real ones.
+                                ->where('is_test', $this->record->isTest())
                                 ->whereIn('status', [AktionStatus::Draft, AktionStatus::Scheduled, AktionStatus::Open])
                                 ->pluck('name', 'id'))
                             ->required(),
@@ -202,6 +205,8 @@ class ViewOrder extends ViewRecord
                         $this->refreshRecord();
                     }),
             ])->label('Weitere Aktionen')->button()->color('gray'),
+            // Test orders only (OrderPolicy).
+            DeleteAction::make()->label('Testbestellung löschen')->modalHeading('Testbestellung löschen'),
         ];
     }
 

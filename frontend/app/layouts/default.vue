@@ -27,6 +27,7 @@ useSeoMeta({
 
 <template>
   <div class="flex min-h-dvh flex-col">
+    <TestModeBanner v-if="data?.preview" :text="$t('testMode.banner', { name: data.preview.name })" leave />
     <AppHeader />
     <main class="flex-1">
       <slot />

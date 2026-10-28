@@ -23,7 +23,8 @@ class Dashboard extends BaseDashboard
                     ->whereBelongsTo(filament()->getTenant())
                     ->whereNot('status', AktionStatus::Draft)
                     ->orderByDesc('signing_date')
-                    ->pluck('name', 'id')),
+                    ->get()
+                    ->mapWithKeys(fn (Aktion $aktion) => [$aktion->id => $aktion->adminLabel()])),
         ]);
     }
 

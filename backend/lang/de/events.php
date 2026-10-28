@@ -21,6 +21,7 @@ return [
     'stacked' => 'Stapelnummer vergeben',
     'item_signed' => 'Buch gewidmet',
     'item_unsigned' => 'Widmung rückgängig gemacht',
+    'newsletter_skipped_test' => 'Newsletter: nicht übermittelt (Testbestellung)',
     'newsletter_sent' => 'An Newsletter übermittelt',
     'abandoned_reminder_sent' => 'Erinnerung an abgebrochene Bestellung',
 ];

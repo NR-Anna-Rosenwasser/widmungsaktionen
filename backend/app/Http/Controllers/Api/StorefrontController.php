@@ -51,17 +51,31 @@ class StorefrontController extends Controller
         ]));
     }
 
-    public function show(Tenant $tenant): JsonResponse
+    public function show(Request $request, Tenant $tenant): JsonResponse
     {
         abort_unless($tenant->is_active, 404);
 
-        $open = $tenant->openAktion()?->load('books');
-        $next = $tenant->nextAktion()?->load('books');
+        // With a valid preview link, the storefront shows only that test Aktion.
+        $preview = $tenant->previewAktion(self::previewToken($request));
+        $request->attributes->set('preview_aktion', $preview);
+
+        $open = $tenant->openAktion($preview)?->load('books');
+        $next = $tenant->nextAktion($preview)?->load('books');
 
         return response()->json([
             'tenant' => new TenantResource($tenant),
             'aktion' => $open ? new AktionResource($open) : null,
             'next_aktion' => $next ? new AktionResource($next) : null,
+            'preview' => $preview ? ['name' => $preview->name] : null,
         ]);
+    }
+
+    /**
+     * Preview token of the visitor: cookie in the browser, header from the
+     * Nuxt server during SSR (see frontend useApi).
+     */
+    public static function previewToken(Request $request): ?string
+    {
+        return $request->header('X-Widmungen-Preview') ?: $request->cookie('widmungen_preview');
     }
 }

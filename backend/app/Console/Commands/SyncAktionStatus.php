@@ -34,8 +34,10 @@ class SyncAktionStatus extends Command
             ->orderBy('orders_open_at')
             ->each(function (Aktion $aktion) use (&$opened) {
                 DB::transaction(function () use ($aktion, &$opened) {
-                    $hasOpen = Aktion::query()
+                    // One open Aktion per shop; test Aktionen don't count and open freely.
+                    $hasOpen = ! $aktion->is_test && Aktion::query()
                         ->where('tenant_id', $aktion->tenant_id)
+                        ->where('is_test', false)
                         ->where('status', AktionStatus::Open)
                         ->lockForUpdate()
                         ->exists();
