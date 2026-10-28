@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\ModerationStatus;
 use App\Filament\Pages\Moderation;
+use App\Filament\Pages\ModerationReview;
 use App\Models\Tenant;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
@@ -79,5 +80,46 @@ class ModerationTest extends TestCase
         Livewire::test(Moderation::class)->callTableBulkAction('approveAll', $items);
 
         $this->assertTrue($items->every(fn ($item) => $item->fresh()->moderation_status === ModerationStatus::Approved));
+    }
+
+    public function test_one_by_one_review(): void
+    {
+        $book = $this->tenant->books()->first()->id;
+        $wish = fn (string $name) => ['book_id' => $book, 'recipient_name' => $name, 'wish' => "Für {$name}"];
+        $items = $this->submitOrder($this->tenant, copies: [$wish('Ada'), $wish('Bo'), $wish('Cem'), $wish('Dan')])->items;
+
+        $this->get('https://'.config('widmungen.admin_domain')."/{$this->tenant->slug}/widmungswuensche/pruefen")
+            ->assertOk()
+            ->assertSee('Wunsch 1 von 4');
+
+        $page = Livewire::test(ModerationReview::class)
+            ->assertSee('Ada')
+            ->call('approve')
+            ->assertSee('Wunsch 2 von 4')
+            ->call('startEditing')
+            ->assertSet('recipientName', 'Bo')
+            ->set('wish', str_repeat('x', 500))
+            ->call('saveEdit')
+            ->assertHasErrors('wish')
+            ->set('wish', 'Für Bo, alles Liebe')
+            ->call('saveEdit')
+            ->set('flagNote', 'Name unklar')
+            ->call('flag')
+            // Skipped: stays open.
+            ->call('next')
+            ->assertSee('Durch!')
+            ->assertSee('1 freigegeben · 1 angepasst · 1 Rückfrage')
+            ->assertSee('1 übersprungen');
+
+        $this->assertSame(
+            [ModerationStatus::Approved, ModerationStatus::Approved, ModerationStatus::Flagged, ModerationStatus::Pending],
+            $items->map(fn ($item) => $item->fresh()->moderation_status)->all(),
+        );
+        $this->assertSame('Für Bo, alles Liebe', $items[1]->fresh()->wish);
+        $this->assertSame('Name unklar', $items[2]->fresh()->moderation_note);
+        $this->assertNotNull($items[2]->fresh()->flagged_at);
+
+        // Going back shows decided wishes with their status; the list stays fixed.
+        $page->call('previous')->assertSee('Dan')->call('previous')->assertSee('Rückfrage')->assertSee('Name unklar');
     }
 }

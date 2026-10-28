@@ -21,6 +21,7 @@ class Aktion extends Model
         return [
             'status' => AktionStatus::class,
             'is_test' => 'boolean',
+            'prepared_at' => 'datetime',
             'orders_open_at' => 'datetime',
             'order_deadline' => 'datetime',
             'signing_date' => 'date',

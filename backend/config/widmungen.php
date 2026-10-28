@@ -30,9 +30,12 @@ return [
         'dedication_retention_months' => 12,
         'invoice_payment_days' => 10,
         'reminder_days_before_deadline' => 3,
-        // What happens to unpaid orders when an Aktion closes: move (once) or cancel.
-        'unpaid_after_deadline' => 'move',
+        // What happens to unpaid orders when an Aktion closes: nothing, decided
+        // one by one in «Offene Bestellungen» (manual), move (once) or cancel.
+        'unpaid_after_deadline' => 'manual',
         'checkpoint_interval' => 5,
+        // «Dein Buch ist gewidmet» mail; the order page shows the step either way.
+        'notify_signed' => false,
         'print' => [
             'label_preset' => 'avery_3475',
             'label_custom' => ['cols' => 3, 'rows' => 8, 'width' => 70, 'height' => 36, 'top' => 4.5, 'left' => 0, 'gap_x' => 0, 'gap_y' => 0],

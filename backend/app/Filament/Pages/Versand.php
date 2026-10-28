@@ -5,45 +5,47 @@ namespace App\Filament\Pages;
 use App\Enums\AktionStatus;
 use App\Enums\OrderStatus;
 use App\Enums\TenantRole;
+use App\Livewire\Versand\OpenOrdersTable;
+use App\Livewire\Versand\ShippingTable;
 use App\Models\Aktion;
 use App\Services\Pdf\PrintService;
-use App\Services\ShippingService;
+use App\Services\SigningService;
 use BackedEnum;
-use Carbon\Carbon;
 use Filament\Actions\Action;
-use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Livewire;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Text;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use UnitEnum;
 
 /**
- * Everything after signing day: print documents and mark orders as shipped.
+ * Everything after the order deadline: prepare the stack (post-it numbers),
+ * print documents and mark orders as shipped.
  */
 class Versand extends Page
 {
-    protected static ?string $slug = 'drucken-versand';
+    protected static ?string $slug = 'vorbereiten-versand';
 
-    protected static ?string $title = 'Drucken & Versand';
+    protected static ?string $title = 'Vorbereiten & Versand';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedPrinter;
 
     protected static string|UnitEnum|null $navigationGroup = 'Widmen';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 2;
 
     #[Url]
     public ?int $aktion = null;
@@ -94,6 +96,17 @@ class Versand extends Page
             return $schema->components([Text::make('Noch keine Aktion vorhanden.')]);
         }
 
+        if (! $aktion->prepared_at) {
+            return $schema->components([
+                Actions::make([$this->chooseAktionAction()])->key('aktionActions'),
+                $this->prepareSection($aktion),
+                // After the deadline: record late payments before preparing.
+                Livewire::make(OpenOrdersTable::class, ['aktionId' => $aktion->id])
+                    ->key("open-{$aktion->id}")
+                    ->visible(app(SigningService::class)->readiness($aktion)['deadline_passed']),
+            ]);
+        }
+
         $orders = $this->print()->orders($aktion);
         $count = fn (OrderStatus $status) => $orders->where('status', $status)->count();
 
@@ -109,13 +122,17 @@ class Versand extends Page
                         Text::make($count(OrderStatus::Signed).' gewidmet, bereit zum Versand'),
                         Text::make($count(OrderStatus::Shipped).' versendet'),
                     ]),
+                    Text::make('Bücher auf dem Stapel: '.app(SigningService::class)->bookCountsLine($orders))
+                        ->visible($orders->isNotEmpty()),
+                    Text::make('Stapelliste: zum Beschriften der Post-its und zum Abhaken beim Vorbereiten und Verpacken.'),
+                    Actions::make([
+                        $this->downloadAction('stackList', 'Stapelliste (PDF)', Heroicon::OutlinedQueueList),
+                        $this->exportAction(),
+                        $this->unprepareAction(),
+                    ])->key('prepareActions'),
                 ]),
 
-            Section::make('1. Vorbereiten')
-                ->description('Liste zum Beschriften der Post-its und zum Abhaken beim Widmen und Verpacken.')
-                ->schema([Actions::make([$this->downloadAction('stackList', 'Stapelliste (PDF)', Heroicon::OutlinedQueueList)])->key('prepareActions')]),
-
-            Section::make('2. Briefe & Adressen')
+            Section::make('1. Briefe & Adressen')
                 ->description(match ($mode) {
                     'window_right', 'window_left' => 'Fenstercouverts: Die Adresse steht im Begleitbrief. Etiketten braucht es nur für Pakete.',
                     'direct_print' => 'Briefe: Couverts C5 direkt bedrucken. Pakete bekommen Etiketten.',
@@ -127,10 +144,113 @@ class Versand extends Page
                     $mode === 'direct_print' ? $this->downloadAction('envelopes', 'Couverts C5 (PDF)', Heroicon::OutlinedEnvelope) : null,
                 ])))->key('printActions')]),
 
-            Section::make('3. Versand')
-                ->description('Markiert alle gewidmeten Bestellungen dieser Aktion als versendet. Kund*innen bekommen eine E-Mail. Sendungsnummern kannst du einzeln bei der Bestellung erfassen.')
-                ->schema([Actions::make([$this->shipAllAction(), $this->exportAction()])->key('shipActions')]),
+            Livewire::make(ShippingTable::class, ['aktionId' => $aktion->id])->key("shipping-{$aktion->id}"),
+            Livewire::make(OpenOrdersTable::class, ['aktionId' => $aktion->id])->key("open-{$aktion->id}"),
         ]);
+    }
+
+    /**
+     * Before the stack exists: what's still open, the books to prepare, and the button.
+     */
+    protected function prepareSection(Aktion $aktion): Section
+    {
+        $signing = app(SigningService::class);
+        $r = $signing->readiness($aktion);
+        $unstacked = $signing->unstacked($aktion);
+
+        $lines = [
+            $r['deadline_passed']
+                ? '✓ Bestellschluss vorbei'.($aktion->is_test ? ' (Testaktion: jederzeit möglich)' : '')
+                : "✗ Bestellschluss ist erst am {$aktion->order_deadline->format('d.m.Y H:i')}",
+            $r['pending_moderation'] > 0
+                ? "✗ {$r['pending_moderation']} Widmungswünsche sind noch nicht geprüft"
+                : '✓ Alle Widmungswünsche geprüft',
+            ...($r['flagged'] > 0 ? ["• {$r['flagged']} Wünsche mit Rückfrage: Diese Bestellungen bekommen die letzten Post-it-Nummern."] : []),
+            ...($r['unpaid'] > 0 ? ["• {$r['unpaid']} Bestellungen sind unbezahlt und kommen nicht auf den Stapel. Entscheide unten unter «Offene Bestellungen»."] : []),
+            "{$unstacked->count()} bestätigte Bestellungen".($unstacked->isEmpty() ? '' : ' · Bücher bereitlegen: '.$signing->bookCountsLine($unstacked)),
+        ];
+
+        return Section::make('Widmungsaktion vorbereiten')
+            ->description('Vergibt die Post-it-Nummern. Danach findest du hier Stapelliste, Briefe, Etiketten und den Versand. Die Aktion nimmt dann keine Bestellungen mehr an.')
+            ->schema([
+                ...array_map(fn (string $line) => Text::make($line), $lines),
+                Actions::make(array_values(array_filter([
+                    $this->prepareAction(),
+                    $r['pending_moderation'] > 0
+                        ? Action::make('review')->label('Widmungswünsche prüfen')->color('gray')->icon(Heroicon::OutlinedChatBubbleBottomCenterText)->url(ModerationReview::getUrl())
+                        : null,
+                ])))->key('prepareActions'),
+            ]);
+    }
+
+    protected function prepareAction(): Action
+    {
+        return Action::make('prepare')
+            ->label('Widmungsaktion vorbereiten')
+            ->icon(Heroicon::OutlinedQueueList)
+            ->disabled(fn () => app(SigningService::class)->cannotPrepare($this->selected) !== null)
+            ->tooltip(fn () => app(SigningService::class)->cannotPrepare($this->selected))
+            ->requiresConfirmation()
+            ->modalHeading('Widmungsaktion vorbereiten?')
+            ->modalDescription(fn () => app(SigningService::class)->unstacked($this->selected)->count().' Bestellungen bekommen eine Post-it-Nummer. Das geht nur einmal; Admins können es zurücksetzen, solange noch nichts gewidmet ist.')
+            ->modalSubmitActionLabel('Post-it-Nummern vergeben')
+            ->action(function () {
+                try {
+                    $count = app(SigningService::class)->prepare($this->selected, auth()->user());
+                    Notification::make()->title("$count Bestellungen haben eine Post-it-Nummer")->success()->send();
+                } catch (RuntimeException $e) {
+                    Notification::make()->title($e->getMessage())->danger()->send();
+                }
+                $this->reloadPage();
+            });
+    }
+
+    protected function unprepareAction(): Action
+    {
+        return Action::make('unprepare')
+            ->label('Vorbereitung zurücksetzen')
+            ->icon(Heroicon::OutlinedArrowUturnLeft)
+            ->color('gray')
+            ->visible(fn () => auth()->user()->hasRoleIn(filament()->getTenant(), [TenantRole::Admin])
+                && app(SigningService::class)->canUnprepare($this->selected))
+            ->requiresConfirmation()
+            ->modalDescription('Alle Post-it-Nummern dieser Aktion werden entfernt. Geht nur, solange noch kein Buch gewidmet ist. Bereits beschriftete Post-its stimmen danach nicht mehr.')
+            ->action(function () {
+                try {
+                    app(SigningService::class)->unprepare($this->selected, auth()->user());
+                    Notification::make()->title('Vorbereitung zurückgesetzt')->success()->send();
+                } catch (RuntimeException $e) {
+                    Notification::make()->title($e->getMessage())->danger()->send();
+                }
+                $this->reloadPage();
+            });
+    }
+
+    /**
+     * Preparing and undoing swap the whole page; reload it instead of
+     * rebuilding the content in the middle of the action.
+     */
+    protected function reloadPage(): void
+    {
+        $this->redirect(static::getUrl(['aktion' => $this->aktion]));
+    }
+
+    /**
+     * Orders shipped in the table below: update the overview.
+     */
+    #[On('orders-updated')]
+    public function ordersUpdated(): void
+    {
+        $this->refreshContent();
+    }
+
+    /**
+     * The page content was built before the action ran during this request.
+     */
+    protected function refreshContent(): void
+    {
+        unset($this->selected);
+        unset($this->cachedSchemas['content']);
     }
 
     protected function chooseAktionAction(): Action
@@ -145,9 +265,7 @@ class Versand extends Page
             ])
             ->action(function (array $data) {
                 $this->aktion = (int) $data['aktion'];
-                unset($this->selected);
-                // The page content was built for the previous Aktion during this request.
-                unset($this->cachedSchemas['content']);
+                $this->refreshContent();
             });
     }
 
@@ -186,36 +304,6 @@ class Versand extends Page
                 $this->print()->labelsHtml($this->selected, (int) $data['skip']),
                 'etiketten-'.str($this->selected->name)->slug().'.pdf',
             ));
-    }
-
-    protected function shipAllAction(): Action
-    {
-        return Action::make('shipAll')
-            ->label('Gewidmete als versendet markieren')
-            ->icon(Heroicon::OutlinedTruck)
-            ->color('success')
-            ->requiresConfirmation()
-            ->modalDescription(fn () => $this->selected->orders()->where('status', OrderStatus::Signed)->count().' Bestellungen werden als versendet markiert.')
-            ->schema([
-                DatePicker::make('date')->label('Versanddatum')->default(now())->required(),
-                Toggle::make('notify')->label('Kund*innen per E-Mail informieren')->default(true),
-            ])
-            ->action(function (array $data) {
-                $shipping = app(ShippingService::class);
-                $orders = $this->selected->orders()->where('status', OrderStatus::Signed)->get();
-
-                foreach ($orders as $order) {
-                    $shipping->ship($order, Carbon::parse($data['date']), auth()->user(), notify: $data['notify']);
-                }
-
-                if ($this->selected->orders()->whereIn('status', [OrderStatus::Confirmed, OrderStatus::Signed])->doesntExist()) {
-                    $this->selected->update(['status' => AktionStatus::Done]);
-                } elseif ($orders->isNotEmpty()) {
-                    $this->selected->update(['status' => AktionStatus::Shipping]);
-                }
-
-                Notification::make()->title($orders->count().' Bestellungen versendet')->success()->send();
-            });
     }
 
     protected function exportAction(): Action

@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Enums\OrderStatus;
+use App\Enums\PaymentMethod;
 use App\Models\Order;
 use App\Services\Payments\PaymentService;
 use App\Support\Texts\Texts;
@@ -77,18 +78,22 @@ class OrderResource extends JsonResource
     }
 
     /**
-     * The four milestones shown on the tracking page.
+     * The four milestones shown on the tracking page. With the invoice in
+     * the parcel, payment comes last.
      */
     protected function timeline(): array
     {
         $at = fn (string $type) => $this->events->firstWhere('type', $type)?->created_at?->toIso8601String();
         $cancelled = $this->status === OrderStatus::Cancelled;
+        $paid = ['key' => 'paid', 'done' => $this->payment_status->value !== 'unpaid', 'at' => $at('payment_received')];
+        $paysLast = $this->payment_method === PaymentMethod::InvoiceInParcel;
 
         return [
             ['key' => 'submitted', 'done' => $this->submitted_at !== null, 'at' => $this->submitted_at?->toIso8601String()],
-            ['key' => 'paid', 'done' => $this->payment_status->value !== 'unpaid', 'at' => $at('payment_received')],
+            ...($paysLast ? [] : [$paid]),
             ['key' => 'signed', 'done' => in_array($this->status, [OrderStatus::Signed, OrderStatus::Shipped], true), 'at' => $at('signed')],
             ['key' => 'shipped', 'done' => $this->status === OrderStatus::Shipped, 'at' => $this->shipments->first()?->shipped_at?->toDateString()],
+            ...($paysLast ? [$paid] : []),
             ...($cancelled ? [['key' => 'cancelled', 'done' => true, 'at' => $this->cancelled_at?->toIso8601String()]] : []),
         ];
     }

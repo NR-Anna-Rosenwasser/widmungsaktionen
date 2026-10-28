@@ -8,6 +8,7 @@ use App\Enums\TenantRole;
 use App\Filament\Resources\Orders\OrderResource;
 use App\Models\Aktion;
 use App\Models\OrderItem;
+use App\Services\ModerationService;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
@@ -67,7 +68,18 @@ class Moderation extends Page implements HasTable
 
     public function getSubheading(): ?string
     {
-        return 'Alles, was Kund*innen für ihre Widmung geschrieben haben. Freigeben, anpassen oder für eine Rückfrage markieren. Gewidmet wird erst, wenn alles freigegeben ist.';
+        return 'Alles, was Kund*innen für ihre Widmung geschrieben haben. Freigeben, anpassen oder für eine Rückfrage markieren. «Widmungsaktion vorbereiten» geht erst, wenn alles geprüft ist. Wünsche mit Rückfrage kommen ans Ende des Stapels und werden gewidmet, sobald die Rückfrage geklärt ist.';
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('review')
+                ->label('Einzeln prüfen')
+                ->icon(Heroicon::OutlinedPlayCircle)
+                ->url(ModerationReview::getUrl())
+                ->visible(fn () => (bool) static::getNavigationBadge()),
+        ];
     }
 
     public function content(Schema $schema): Schema
@@ -138,11 +150,8 @@ class Moderation extends Page implements HasTable
                     ])
                     ->modalDescription('Die Änderung wird gespeichert und gleich freigegeben. Die Kund*in sieht die angepasste Widmung auf ihrer Bestellseite.')
                     ->action(function (OrderItem $record, array $data) {
-                        $record->fill([
-                            'recipient_name' => trim((string) $data['recipient_name']) ?: null,
-                            'wish' => trim((string) $data['wish']) ?: null,
-                        ]);
-                        $this->approve($record, 'Angepasst');
+                        app(ModerationService::class)->adjust($record, $data, auth()->user());
+                        Notification::make()->title('Angepasst und freigegeben')->success()->send();
                     }),
                 Action::make('flag')
                     ->label('Rückfrage')
@@ -153,8 +162,7 @@ class Moderation extends Page implements HasTable
                         Textarea::make('note')->label('Notiz (intern)')->rows(2)->placeholder('z. B. bei Kund*in nachfragen, was gemeint ist'),
                     ])
                     ->action(function (OrderItem $record, array $data) {
-                        $record->update(['moderation_status' => ModerationStatus::Flagged, 'moderation_note' => $data['note'] ?? null]);
-                        $record->order->log('moderation_flagged', ['item' => $record->id, 'note' => $data['note'] ?? null], user: auth()->user());
+                        app(ModerationService::class)->flag($record, auth()->user(), $data['note'] ?? null);
                         Notification::make()->title('Für Rückfrage markiert')->send();
                     }),
             ])
@@ -174,12 +182,9 @@ class Moderation extends Page implements HasTable
             ->emptyStateIcon(Heroicon::OutlinedSparkles);
     }
 
-    protected function approve(OrderItem $record, ?string $note = null, bool $notify = true): void
+    protected function approve(OrderItem $record, bool $notify = true): void
     {
-        $record->moderation_status = ModerationStatus::Approved;
-        $record->moderation_note = $note;
-        $record->save();
-        $record->order->log('moderation_approved', array_filter(['item' => $record->id, 'note' => $note]), user: auth()->user());
+        app(ModerationService::class)->approve($record, auth()->user());
 
         if ($notify) {
             Notification::make()->title('Freigegeben')->success()->send();

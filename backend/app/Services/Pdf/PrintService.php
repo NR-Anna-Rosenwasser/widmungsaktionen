@@ -8,6 +8,7 @@ use App\Enums\PaymentStatus;
 use App\Models\Aktion;
 use App\Models\Order;
 use App\Services\ShippingService;
+use App\Services\SigningService;
 use App\Support\Texts\Texts;
 use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Color\Color;
@@ -109,9 +110,12 @@ class PrintService
 
     public function stackListHtml(Aktion $aktion): string
     {
+        $orders = $this->orders($aktion);
+
         return view('pdf.stack-list', [
             'aktion' => $aktion,
-            'orders' => $this->orders($aktion),
+            'orders' => $orders,
+            'books' => app(SigningService::class)->bookCounts($orders),
             'shipping' => $this->shipping,
             'needsInvoice' => fn (Order $order) => $this->needsInvoicePage($order),
         ])->render();

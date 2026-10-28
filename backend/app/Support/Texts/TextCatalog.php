@@ -343,7 +343,7 @@ class TextCatalog
                 ],
             ],
             'mail_signed' => [
-                'label' => 'E-Mail: Buch gewidmet',
+                'label' => 'E-Mail: Buch gewidmet (nur wenn in den Einstellungen aktiviert)',
                 'area' => 'E-Mails',
                 'extra' => ['mail_signed', 'E-Mail Buch gewidmet: Zusatztext'],
                 'texts' => [

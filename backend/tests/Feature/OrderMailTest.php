@@ -125,8 +125,23 @@ class OrderMailTest extends TestCase
         Mail::assertQueued(PaymentReminderMail::class, 1);
     }
 
+    public function test_unpaid_orders_wait_for_a_decision_by_default(): void
+    {
+        $order = $this->order('invoice_advance');
+        $first = $order->aktion;
+
+        $first->update(['order_deadline' => now()->subMinute()]);
+        Artisan::call('aktionen:sync-status');
+
+        $order->refresh();
+        $this->assertTrue($order->aktion->is($first));
+        $this->assertSame(OrderStatus::PendingPayment, $order->status);
+        Mail::assertNotQueued(OrderMovedMail::class);
+    }
+
     public function test_unpaid_orders_move_once_then_get_cancelled(): void
     {
+        $this->tenant->update(['settings' => [...($this->tenant->settings ?? []), 'unpaid_after_deadline' => 'move']]);
         $order = $this->order('invoice_advance');
         $first = $order->aktion;
         $next = $this->tenant->aktionen()->where('status', AktionStatus::Scheduled)->first();

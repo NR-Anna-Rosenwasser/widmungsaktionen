@@ -2,14 +2,26 @@
 
 namespace Tests\Concerns;
 
+use App\Models\Aktion;
 use App\Models\Order;
 use App\Models\Tenant;
+use App\Services\SigningService;
 
 /**
  * Places orders through the storefront API, like a customer would.
  */
 trait CreatesOrders
 {
+    /**
+     * «Widmungsaktion vorbereiten», after letting the order deadline pass.
+     */
+    protected function prepareStack(Aktion $aktion): int
+    {
+        $aktion->update(['order_deadline' => now()->subMinute()]);
+
+        return app(SigningService::class)->prepare($aktion);
+    }
+
     /**
      * @param  array<int, array<string, mixed>>|null  $copies
      */

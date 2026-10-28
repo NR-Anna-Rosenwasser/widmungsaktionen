@@ -117,12 +117,12 @@ class Order extends Model
     }
 
     /**
-     * Signed, and the "your book is signed" mail has not gone out since.
-     * The mail is sent with a delay (undo window); see SendSignedMail.
+     * Signed, the shop sends the "your book is signed" mail, and it has not
+     * gone out since. The mail is sent with a delay (undo window); see SendSignedMail.
      */
     public function signedMailPending(): bool
     {
-        if ($this->status !== OrderStatus::Signed) {
+        if ($this->status !== OrderStatus::Signed || ! $this->tenant->setting('notify_signed')) {
             return false;
         }
 

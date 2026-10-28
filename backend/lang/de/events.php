@@ -19,6 +19,7 @@ return [
     'moderation_approved' => 'Widmung freigegeben',
     'moderation_flagged' => 'Widmung: Rückfrage',
     'stacked' => 'Stapelnummer vergeben',
+    'unstacked' => 'Stapelnummer entfernt (Vorbereitung zurückgesetzt)',
     'item_signed' => 'Buch gewidmet',
     'item_unsigned' => 'Widmung rückgängig gemacht',
     'newsletter_skipped_test' => 'Newsletter: nicht übermittelt (Testbestellung)',

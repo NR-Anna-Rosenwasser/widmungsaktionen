@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Enums\AktionStatus;
 use App\Enums\OrderStatus;
-use App\Events\OrderMoved;
 use App\Mail\PaymentReminderMail;
 use App\Models\Aktion;
 use App\Models\Order;
@@ -17,7 +16,7 @@ use Illuminate\Support\Facades\Mail;
  */
 class UnpaidOrders
 {
-    public function __construct(protected PaymentService $payments) {}
+    public function __construct(protected PaymentService $payments, protected OrderMover $mover) {}
 
     /**
      * Send one reminder per order when the deadline is near. Returns the count.
@@ -72,11 +71,17 @@ class UnpaidOrders
     }
 
     /**
-     * After an Aktion closed: move unpaid orders on once, otherwise cancel them.
-     * Orders only move between Aktionen of the same kind (test or real).
+     * After an Aktion closed: depending on the shop setting, leave unpaid
+     * orders for a decision in «Offene Bestellungen» (manual), move them on
+     * once, or cancel them. Orders only move between Aktionen of the same
+     * kind (test or real).
      */
     public function handleClosedAktion(Aktion $aktion): void
     {
+        if ($aktion->tenant->setting('unpaid_after_deadline') === 'manual') {
+            return;
+        }
+
         $next = $aktion->tenant->aktionen()
             ->whereKeyNot($aktion->id)
             ->where('is_test', $aktion->is_test)
@@ -88,15 +93,9 @@ class UnpaidOrders
 
         $aktion->orders()
             ->where('status', OrderStatus::PendingPayment)
-            ->each(function (Order $order) use ($next, $policy, $aktion) {
+            ->each(function (Order $order) use ($next, $policy) {
                 if ($policy === 'move' && $next && $order->moved_count === 0) {
-                    $order->update([
-                        'aktion_id' => $next->id,
-                        'moved_count' => $order->moved_count + 1,
-                        'payment_reminder_sent_at' => null,
-                    ]);
-                    $order->log('moved', ['from' => $aktion->name, 'to' => $next->name, 'reason' => 'unpaid'], public: true);
-                    OrderMoved::dispatch($order->refresh());
+                    $this->mover->move($order, $next, null, reason: 'unpaid');
 
                     return;
                 }

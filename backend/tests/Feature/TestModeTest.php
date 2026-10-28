@@ -177,6 +177,7 @@ class TestModeTest extends TestCase
             'email' => 'other@example.com',
             'copies' => [['book_id' => $this->tenant->books()->first()->id]],
         ])->json('token'));
+        $this->tenant->update(['settings' => [...$this->tenant->settings, 'notify_signed' => true]]);
         $signed = $this->submitOrder($this->tenant, 'invoice_in_parcel', overrides: ['email' => 'signed@example.com']);
         $signed->update(['status' => OrderStatus::Signed]);
         $signed->log('signed');

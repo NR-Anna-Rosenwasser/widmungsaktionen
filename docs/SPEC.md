@@ -58,7 +58,11 @@ SigningSession (aktion, user, cursor, checkpoint log)
 - Fields: name, `orders_open_at`, `order_deadline`, `signing_date`, `estimated_shipping_date`, optional `capacity` (max copies), status `draft | open | closed | signing | shipping | done`.
 - Selected books (subset of the tenant's books).
 - **At most one Aktion per tenant is `open` at a time** (enforced on save and by a partial unique index). The storefront shows that Aktion; if none is open, it shows the next scheduled one with its opening date.
-- After an Aktion closes, unpaid pay-in-advance orders are either moved to the next Aktion or cancelled, after one email reminder. Moving an order to another Aktion can also be done by hand.
+- After an Aktion closes, unpaid pay-in-advance orders (one email reminder before the deadline) are handled per the shop setting `unpaid_after_deadline`:
+  - `manual` (default; existing shops were switched by migration): nothing happens automatically. They appear in «Offene Bestellungen» and can still be paid until someone decides.
+  - `move`: moved once to the next Aktion, cancelled the second time.
+  - `cancel`: cancelled right away.
+- Moving an order to another Aktion can also be done by hand, as long as none of its books is signed; it loses its post-it number.
 
 ### Testing mode
 
@@ -112,7 +116,7 @@ One question per screen, large type, progress indicator, back button. State is s
 ### Tracking page
 
 - Personal link `/{slug}/bestellung/{token}` (unguessable token). Alternative lookup with order number + email.
-- Shows a timeline: received → paid → gewidmet → shipped (date, and tracking number once supported), plus the expected shipping date of the Aktion.
+- Shows a timeline: received → paid → gewidmet → shipped (date, and tracking number once supported), plus the expected shipping date of the Aktion. With «Rechnung im Paket», payment is the last step: received → gewidmet → shipped → paid.
 - For unpaid pay-in-advance orders: invoice download and a "jetzt online bezahlen" button.
 
 ### Shipping
@@ -186,12 +190,15 @@ Settings → «Texte» (admins only): every customer-facing text, one area at a 
 
 - Books, Aktionen, Orders (filters by Aktion, status, payment; bulk actions), Users.
 - **Settings page** per tenant: everything in TenantSettings.
-- **Moderation queue**: all dedication wishes of an Aktion → approve / edit / contact customer. Signing requires approved wishes.
+- **Moderation queue**: all dedication wishes of an Aktion → approve / edit / flag with a query («Rückfrage»). «Widmungsaktion vorbereiten» requires every wish to be checked (approved or flagged).
+  - **Einzeln prüfen**: one wish at a time, keyboard-driven like the Widmen page: `Enter` = approve, `A` = adjust, `F` = query, `←`/`→` = back/skip. The list is fixed when the page opens.
 - **Widmen** (see §8).
 - **Exports per Aktion**:
   - cover letters (with QR bill where needed) as one merged PDF
   - address labels / envelopes
-  - packing list
+  - **Stapelliste** (for preparing and packing, not for signing): books to prepare per title, then per order the post-it, order number, name, books per title, Brief/Paket, Geschenk and open queries, with boxes «Vorbereitet» and «Verpackt». Orders with the invoice in the parcel are highlighted («Rechnung beilegen»). The book counts also appear on «Vorbereiten & Versand», before preparing and in the overview.
+  - **Versand table** on «Vorbereiten & Versand»: the stack in post-it order (books, Brief/Paket, invoice, status), filtered to «gewidmet, nicht versendet». Ship one order (with tracking number) or select all and untick the exceptions; only signed orders can be selected. The Aktion moves to «Versand» once something has shipped and to «Abgeschlossen» once nothing is open anymore.
+  - **Offene Bestellungen** on «Vorbereiten & Versand» (after the deadline): every order that isn't shipped or cancelled, with the reason (unbezahlt · bezahlt, noch kein Post-it · Rückfrage offen · noch nicht fertig gewidmet · gewidmet, nicht versendet). Per order: «Auf den Stapel» (next post-it number), mark paid, move, refund, cancel; in bulk: move, cancel. Before preparing it only lists unpaid orders, so late transfers can be recorded first. The dashboard shows how many orders wait for a decision.
   - order and revenue report as CSV/XLSX
 - **Dashboard**: orders per Aktion, open payments, revenue per book, conversion funnel (drafts → submitted → paid).
 - Order actions: mark paid, refund, move to Aktion, cancel, mark shipped (bulk, with date and optional tracking number), resend email, timeline view.
@@ -205,14 +212,19 @@ Settings → «Texte» (admins only): every customer-facing text, one area at a 
 
 The goal is focus and safety without extra paper.
 
-1. Before signing day, Admin locks the Aktion for signing. Every confirmed order gets a **Stapelnummer** 1…n, sorted by book and then by order date.
+1. After the order deadline, Admin or Fulfillment presses **«Widmungsaktion vorbereiten»** on «Vorbereiten & Versand» (once per Aktion; test Aktionen any time). The page first shows a checklist (deadline, unchecked wishes, queries, unpaid orders) and the books to prepare per title. Every confirmed order gets a **Stapelnummer** 1…n, sorted by book and then by order date, and the Aktion stops taking orders. Only then do the overview, Stapelliste, letters, labels and shipping appear.
+   - Admins can undo it as long as no book has been signed (the numbers are removed).
+   - Orders confirmed later (e.g. a late bank transfer) are added one by one with the next number («Auf den Stapel» in «Offene Bestellungen»).
+   - Orders with an open query get the last numbers, so they can't get lost and lie at the end of the stack; nothing has to be put aside. An order is always handled as a whole: if one of its books has a query, none of its books is signed until it is resolved.
 2. The team prepares the stack as before: one post-it with the Stapelnummer per order, the order's books side by side, the next order turned 90°.
 3. The Widmen page (a full-screen toggle using the browser fullscreen API, with a stripped-down layout) shows exactly one copy at a time:
    - large Stapelnummer and "Buch 2 von 3"
    - book title
    - recipient name and dedication wish in big type
    - progress ("17 von 63")
-4. Keyboard: `Space` = gewidmet → next, `U` = undo last, `F` = flag (moves to a "Rückfragen" list and doesn't block the session), `P` = pause.
+4. Keyboard: `Space` = gewidmet → next, `U` = undo last, `F` = flag (the whole order is put aside; doesn't block the session), `P` = pause.
+   - Orders with a query are skipped as a whole. Resolved before the signing reaches the order: signed in its place. A query raised after preparing (in the moderation queue, or `F` while signing): the screen stops before that post-it and asks to put it aside with all its books; once resolved, the order comes up at the end as «Nachgeholt», with a checkpoint for its post-it.
+   - The end screen lists orders with open queries by Stapelnummer (at the end of the stack or put aside) and can continue once they are resolved.
 5. **Checkpoints**: every N copies (default 5, configurable), and always after skip/undo/pause, the screen asks "Welche Nummer steht auf dem Post-it vor dir?" Anna types the number.
    - Match → continue.
    - Mismatch → stop screen with the expected order and nearby numbers, so the gap is easy to find.
@@ -229,7 +241,7 @@ A barcode scanner mode is a possible later addition, not in scope.
 - payment reminder
 - abandoned order reminder (once, after 24 h, with opt-out)
 - moved to the next Aktion
-- gewidmet
+- gewidmet (only if the shop enables it in the settings; off by default, sent 30 minutes after signing so an undo doesn't leave a wrong mail)
 - shipped
 - cancelled
 - refunded
