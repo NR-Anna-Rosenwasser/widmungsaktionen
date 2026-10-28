@@ -114,7 +114,8 @@ class Moderation extends Page implements HasTable
                         ->whereBelongsTo($tenant)
                         ->whereNot('status', AktionStatus::Done)
                         ->orderByDesc('order_deadline')
-                        ->pluck('name', 'id'))
+                        ->get()
+                        ->mapWithKeys(fn (Aktion $aktion) => [$aktion->id => $aktion->adminLabel()]))
                     ->query(fn ($query, array $data) => $data['value']
                         ? $query->whereHas('order', fn ($q) => $q->where('aktion_id', $data['value']))
                         : $query),

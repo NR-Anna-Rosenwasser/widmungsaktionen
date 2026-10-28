@@ -31,4 +31,6 @@
     .cancelled { margin-top: 8mm; padding: 4mm 5mm; border: 1.5pt solid #a8324a; border-radius: 1mm; font-family: 'Barlow', Arial, sans-serif; font-weight: 700; font-size: 13pt; color: #a8324a; }
     .cancelled-stamp { position: absolute; bottom: 40mm; left: 0; width: 210mm; text-align: center; font-family: 'Barlow', Arial, sans-serif; font-weight: 700; font-size: 44pt; letter-spacing: 0.08em; color: rgba(168, 50, 74, 0.18); transform: rotate(-8deg); }
     .payment-part { position: absolute; bottom: 0; left: 0; width: 210mm; height: 105mm; }
+    /* Testing mode: a band across the payment part that covers the QR code, so it can't be paid. */
+    .test-stamp { position: absolute; bottom: 50mm; left: -10mm; width: 230mm; padding: 5mm 0; text-align: center; font-family: 'Barlow', Arial, sans-serif; font-weight: 700; font-size: 24pt; letter-spacing: 0.06em; color: #a8324a; background: rgba(255, 255, 255, 0.92); border-top: 2pt solid #a8324a; border-bottom: 2pt solid #a8324a; transform: rotate(-10deg); z-index: 10; }
     .accent { position: absolute; top: 0; left: 0; width: 210mm; height: 5mm; background: #D989B2; }

@@ -9,8 +9,19 @@ class ForwardNewsletterOptIn
 {
     public function handle(OrderSubmitted $event): void
     {
-        if ($event->order->newsletter_opt_in && filled($event->order->tenant->newsletter_webhook_url)) {
-            SendNewsletterOptIn::dispatch($event->order);
+        $order = $event->order;
+
+        if (! $order->newsletter_opt_in || blank($order->tenant->newsletter_webhook_url)) {
+            return;
         }
+
+        // Test orders must not add real subscribers.
+        if ($order->isTest()) {
+            $order->log('newsletter_skipped_test');
+
+            return;
+        }
+
+        SendNewsletterOptIn::dispatch($order);
     }
 }

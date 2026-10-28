@@ -55,5 +55,20 @@
     "required": "Please fill this in.",
     "invalidEmail": "That doesn’t look like an email address.",
     "invalidPostalCode": "Please enter a four-digit postcode."
+  },
+  "testMode": {
+    "title": "Testing mode",
+    "banner": "Testing mode: “{name}”. Orders aren’t real and can be deleted.",
+    "bannerOrder": "Test order: not real, can be deleted.",
+    "leave": "Leave testing mode",
+    "invalid": "This test link isn’t valid (anymore). A new link may have been created, or testing mode has ended.",
+    "toShop": "Go to the shop",
+    "paymentTitle": "Test payment",
+    "paymentLead": "Nothing is paid through Stripe in testing mode. Choose what should happen:",
+    "paymentAmount": "Order {number} · {total}",
+    "paid": "Payment successful",
+    "failed": "Payment failed",
+    "cancel": "Cancel (back to the order)",
+    "paymentUnavailable": "There is no open test payment for this order."
   }
 }

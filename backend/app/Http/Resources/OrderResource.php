@@ -30,6 +30,7 @@ class OrderResource extends JsonResource
 
         return [
             'token' => $this->token,
+            'is_test' => $this->isTest(),
             'number' => $this->number,
             'status' => $this->status,
             'payment_status' => $this->payment_status,

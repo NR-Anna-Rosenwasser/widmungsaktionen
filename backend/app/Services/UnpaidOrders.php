@@ -41,9 +41,7 @@ class UnpaidOrders
                     return;
                 }
 
-                Mail::to($order->email)->queue(new PaymentReminderMail($order));
-                $order->update(['payment_reminder_sent_at' => now()]);
-                $order->log('reminder_sent', public: false);
+                $this->remind($order);
                 $sent++;
             });
 
@@ -51,12 +49,37 @@ class UnpaidOrders
     }
 
     /**
+     * Testing mode: remind every unpaid order of the Aktion now, regardless of timing.
+     */
+    public function sendRemindersNow(Aktion $aktion): int
+    {
+        $orders = $aktion->orders()
+            ->with('tenant', 'aktion')
+            ->where('status', OrderStatus::PendingPayment)
+            ->whereNull('payment_reminder_sent_at')
+            ->get();
+
+        $orders->each(fn (Order $order) => $this->remind($order));
+
+        return $orders->count();
+    }
+
+    protected function remind(Order $order): void
+    {
+        Mail::to($order->email)->queue(new PaymentReminderMail($order));
+        $order->update(['payment_reminder_sent_at' => now()]);
+        $order->log('reminder_sent', public: false);
+    }
+
+    /**
      * After an Aktion closed: move unpaid orders on once, otherwise cancel them.
+     * Orders only move between Aktionen of the same kind (test or real).
      */
     public function handleClosedAktion(Aktion $aktion): void
     {
         $next = $aktion->tenant->aktionen()
             ->whereKeyNot($aktion->id)
+            ->where('is_test', $aktion->is_test)
             ->whereIn('status', [AktionStatus::Scheduled, AktionStatus::Open])
             ->where('order_deadline', '>', now())
             ->orderBy('order_deadline')

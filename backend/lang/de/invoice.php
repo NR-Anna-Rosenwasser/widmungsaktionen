@@ -17,5 +17,7 @@ return [
     'questions' => 'Fragen? Schreib uns an {email}.',
     'paid' => 'Bereits bezahlt, danke!',
     'cancelled' => 'Diese Bestellung wurde storniert. Du musst nichts bezahlen.',
+    // Testing mode, not editable.
+    'test_stamp' => 'TESTRECHNUNG – NICHT BEZAHLEN',
     'cancelled_stamp' => 'STORNIERT',
 ];

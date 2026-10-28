@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\PaymentState;
 use App\Models\Payment;
 use App\Models\Tenant;
 use App\Services\Payments\InvalidWebhookException;
@@ -78,16 +77,14 @@ class StripeWebhookController extends Controller
     protected function failed(Tenant $tenant, array $session): void
     {
         if ($payment = $this->payment($tenant, $session)) {
-            $payment->update(['status' => PaymentState::Failed]);
-            $payment->order->log('payment_failed', public: true);
+            $this->payments->markFailed($payment);
         }
     }
 
     protected function expired(Tenant $tenant, array $session): void
     {
-        $payment = $this->payment($tenant, $session);
-        if ($payment?->status === PaymentState::Pending) {
-            $payment->update(['status' => PaymentState::Expired]);
+        if ($payment = $this->payment($tenant, $session)) {
+            $this->payments->markExpired($payment);
         }
     }
 }

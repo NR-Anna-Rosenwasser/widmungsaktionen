@@ -14,7 +14,7 @@ class AbandonedOrderMail extends OrderMail
         $tenant = $this->order->tenant;
 
         return [
-            'resumeUrl' => $tenant->storefrontUrl('/bestellen?t='.$this->order->token),
+            'resumeUrl' => $this->order->resumeUrl(),
             'optOutUrl' => route('orders.reminders.opt-out', ['tenant' => $tenant, 'token' => $this->order->token]),
         ];
     }

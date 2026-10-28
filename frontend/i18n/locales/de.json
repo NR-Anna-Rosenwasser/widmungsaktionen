@@ -55,5 +55,20 @@
     "required": "Bitte ausfüllen.",
     "invalidEmail": "Das sieht nicht nach einer E-Mail-Adresse aus.",
     "invalidPostalCode": "Bitte eine vierstellige PLZ angeben."
+  },
+  "testMode": {
+    "title": "Testmodus",
+    "banner": "Testmodus: «{name}». Bestellungen sind nicht echt und können gelöscht werden.",
+    "bannerOrder": "Testbestellung: nicht echt, kann gelöscht werden.",
+    "leave": "Testmodus verlassen",
+    "invalid": "Dieser Testlink ist nicht (mehr) gültig. Vielleicht wurde ein neuer Link erzeugt oder der Testmodus ist beendet.",
+    "toShop": "Zum Shop",
+    "paymentTitle": "Testzahlung",
+    "paymentLead": "Im Testmodus wird nichts über Stripe bezahlt. Wähl aus, was passieren soll:",
+    "paymentAmount": "Bestellung {number} · {total}",
+    "paid": "Zahlung erfolgreich",
+    "failed": "Zahlung fehlgeschlagen",
+    "cancel": "Abbrechen (zurück zur Bestellung)",
+    "paymentUnavailable": "Für diese Bestellung ist keine Testzahlung offen."
   }
 }

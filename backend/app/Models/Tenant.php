@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 
 class Tenant extends Model implements HasName
 {
-    protected $guarded = ['id', 'order_sequence'];
+    protected $guarded = ['id', 'order_sequence', 'test_order_sequence'];
 
     protected $hidden = ['stripe_secret_key', 'stripe_webhook_secret', 'newsletter_webhook_secret'];
 
@@ -76,11 +76,32 @@ class Tenant extends Model implements HasName
     }
 
     /**
+     * Aktionen the storefront may show: the public ones, or only the test
+     * Aktion whose preview link the visitor opened.
+     */
+    protected function storefrontAktionen(?Aktion $preview): HasMany
+    {
+        return $preview
+            ? $this->aktionen()->whereKey($preview->getKey())
+            : $this->aktionen()->where('is_test', false);
+    }
+
+    /**
+     * The test Aktion for a preview token (link or cookie), or null.
+     */
+    public function previewAktion(?string $token): ?Aktion
+    {
+        return filled($token)
+            ? $this->aktionen()->where('is_test', true)->where('preview_token', $token)->first()
+            : null;
+    }
+
+    /**
      * The Aktion currently taking orders, or null.
      */
-    public function openAktion(): ?Aktion
+    public function openAktion(?Aktion $preview = null): ?Aktion
     {
-        return $this->aktionen()
+        return $this->storefrontAktionen($preview)
             ->where('status', AktionStatus::Open)
             ->where('orders_open_at', '<=', now())
             ->where('order_deadline', '>', now())
@@ -90,9 +111,9 @@ class Tenant extends Model implements HasName
     /**
      * The next Aktion that will open, shown when nothing is open.
      */
-    public function nextAktion(): ?Aktion
+    public function nextAktion(?Aktion $preview = null): ?Aktion
     {
-        return $this->aktionen()
+        return $this->storefrontAktionen($preview)
             ->whereIn('status', [AktionStatus::Scheduled, AktionStatus::Open])
             ->where('orders_open_at', '>', now())
             ->orderBy('orders_open_at')
@@ -101,13 +122,14 @@ class Tenant extends Model implements HasName
 
     /**
      * The Aktion currently being worked on: signing beats shipping beats
-     * waiting for signing day beats taking orders.
+     * waiting for signing day beats taking orders. Test Aktionen only on request.
      */
     public function currentAktion(): ?Aktion
     {
         $priority = [AktionStatus::Signing, AktionStatus::Shipping, AktionStatus::Closed, AktionStatus::Open, AktionStatus::Scheduled, AktionStatus::Done];
 
         return $this->aktionen()
+            ->where('is_test', false)
             ->whereNot('status', AktionStatus::Draft)
             ->orderByDesc('signing_date')
             ->get()
@@ -130,13 +152,17 @@ class Tenant extends Model implements HasName
         return $base.$path;
     }
 
-    public function nextOrderNumber(): string
+    /**
+     * Test orders count separately (TEST-AR-2026-0001), so real numbers have no gaps.
+     */
+    public function nextOrderNumber(bool $test = false): string
     {
-        return DB::transaction(function () {
+        return DB::transaction(function () use ($test) {
+            $column = $test ? 'test_order_sequence' : 'order_sequence';
             $tenant = static::query()->lockForUpdate()->findOrFail($this->id);
-            $tenant->increment('order_sequence');
+            $tenant->increment($column);
 
-            return sprintf('%s-%s-%04d', $tenant->order_prefix, now()->year, $tenant->order_sequence);
+            return ($test ? 'TEST-' : '').sprintf('%s-%s-%04d', $tenant->order_prefix, now()->year, $tenant->{$column});
         });
     }
 }

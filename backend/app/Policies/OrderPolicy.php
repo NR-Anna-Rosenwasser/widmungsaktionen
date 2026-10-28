@@ -32,8 +32,11 @@ class OrderPolicy
         return $this->allows($user, [TenantRole::Admin, TenantRole::Fulfillment], $order);
     }
 
+    /**
+     * Only test orders (Aktion in testing mode); real orders are cancelled instead.
+     */
     public function delete(User $user, Order $order): bool
     {
-        return false;
+        return $order->isTest() && $this->allows($user, [TenantRole::Admin, TenantRole::Fulfillment], $order);
     }
 }

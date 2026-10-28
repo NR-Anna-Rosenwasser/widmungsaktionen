@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class Aktion extends Model
 {
@@ -19,6 +20,7 @@ class Aktion extends Model
     {
         return [
             'status' => AktionStatus::class,
+            'is_test' => 'boolean',
             'orders_open_at' => 'datetime',
             'order_deadline' => 'datetime',
             'signing_date' => 'date',
@@ -26,6 +28,38 @@ class Aktion extends Model
             // Optional extra texts per locale, see App\Support\Texts\TextCatalog::extras().
             'texts' => 'array',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        // Testing mode needs a secret link; it stays valid until regenerated.
+        static::saving(function (self $aktion) {
+            if ($aktion->is_test && ! $aktion->preview_token) {
+                $aktion->preview_token = self::newPreviewToken();
+            }
+        });
+    }
+
+    public static function newPreviewToken(): string
+    {
+        return Str::random(32);
+    }
+
+    /**
+     * Secret link to the storefront in testing mode, optionally continuing to $path.
+     */
+    public function previewUrl(string $path = '/'): string
+    {
+        return $this->tenant->storefrontUrl("/vorschau/{$this->preview_token}")
+            .($path !== '/' ? '?weiter='.rawurlencode($path) : '');
+    }
+
+    /**
+     * Name for admin dropdowns, so test Aktionen are recognisable.
+     */
+    public function adminLabel(): string
+    {
+        return $this->name.($this->is_test ? ' (Test)' : '');
     }
 
     public function tenant(): BelongsTo

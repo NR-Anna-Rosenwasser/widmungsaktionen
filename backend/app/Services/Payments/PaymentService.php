@@ -23,14 +23,15 @@ class PaymentService
 
     /**
      * Payment methods a tenant offers; online only with a configured gateway.
+     * In testing mode online payment never reaches Stripe, so it is always offered.
      *
      * @return array<int, string>
      */
-    public function availableMethods(Tenant $tenant): array
+    public function availableMethods(Tenant $tenant, bool $test = false): array
     {
         return collect($tenant->setting('payment_methods'))
             ->filter(fn ($method) => PaymentMethod::tryFrom($method) !== null)
-            ->reject(fn ($method) => $method === PaymentMethod::Online->value && ! $this->gateway->isConfigured($tenant))
+            ->reject(fn ($method) => $method === PaymentMethod::Online->value && ! $test && ! $this->gateway->isConfigured($tenant))
             ->values()
             ->all();
     }
@@ -38,7 +39,7 @@ class PaymentService
     public function canPayOnline(Order $order): bool
     {
         return $order->status === OrderStatus::PendingPayment
-            && in_array(PaymentMethod::Online->value, $this->availableMethods($order->tenant), true);
+            && in_array(PaymentMethod::Online->value, $this->availableMethods($order->tenant, $order->isTest()), true);
     }
 
     /**
@@ -85,10 +86,60 @@ class PaymentService
         ]);
 
         $tracking = $order->storefrontUrl();
-        $url = $this->gateway->createCheckout($order, $payment, "$tracking?neu=1&bezahlt=1", "$tracking?neu=1");
+        // Testing mode: our own page with "paid / failed / cancel" instead of Stripe.
+        $url = $order->isTest()
+            ? $order->tenant->storefrontUrl("/testzahlung/{$order->token}")
+            : $this->gateway->createCheckout($order, $payment, "$tracking?neu=1&bezahlt=1", "$tracking?neu=1");
         $order->log('checkout_started');
 
         return $url;
+    }
+
+    /**
+     * The checkout ended without payment (Stripe: async_payment_failed).
+     */
+    public function markFailed(Payment $payment): void
+    {
+        $payment->update(['status' => PaymentState::Failed]);
+        $payment->order->log('payment_failed', public: true);
+    }
+
+    /**
+     * The checkout was abandoned (Stripe: session expired).
+     */
+    public function markExpired(Payment $payment): void
+    {
+        if ($payment->status === PaymentState::Pending) {
+            $payment->update(['status' => PaymentState::Expired]);
+        }
+    }
+
+    /**
+     * The result chosen on the test checkout page, handled exactly like the
+     * matching Stripe webhook. Returns where the customer goes next.
+     */
+    public function completeTestCheckout(Order $order, string $outcome): string
+    {
+        $payment = $order->payments()
+            ->where('method', PaymentMethod::Online)
+            ->where('status', PaymentState::Pending)
+            ->latest('id')
+            ->first();
+
+        if (! $order->isTest() || ! $payment) {
+            throw new RuntimeException('No test checkout for this order.');
+        }
+
+        match ($outcome) {
+            'paid' => $this->markPaid($payment, meta: ['test_checkout' => true]),
+            'failed' => $this->markFailed($payment),
+            // Like closing the Stripe page: the payment stays open until it expires.
+            default => null,
+        };
+
+        $tracking = $order->storefrontUrl();
+
+        return $outcome === 'paid' ? "$tracking?neu=1&bezahlt=1" : "$tracking?neu=1";
     }
 
     /**

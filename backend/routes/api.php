@@ -17,6 +17,7 @@ Route::middleware('throttle:storefront')->group(function () {
     Route::patch('tenants/{tenant:slug}/orders/{token}', [OrderController::class, 'update']);
     Route::post('tenants/{tenant:slug}/orders/{token}/submit', [OrderController::class, 'submit']);
     Route::post('tenants/{tenant:slug}/orders/{token}/pay', [OrderController::class, 'pay']);
+    Route::post('tenants/{tenant:slug}/orders/{token}/test-payment', [OrderController::class, 'testPayment']);
     Route::get('tenants/{tenant:slug}/orders/{token}/invoice', [OrderController::class, 'invoice']);
     Route::get('tenants/{tenant:slug}/orders/{token}/no-reminders', [OrderController::class, 'optOut'])->name('orders.reminders.opt-out');
 });

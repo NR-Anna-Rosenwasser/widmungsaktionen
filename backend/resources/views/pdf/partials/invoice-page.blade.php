@@ -66,5 +66,8 @@
         <div class="cancelled-stamp">{{ $t('cancelled_stamp') }}</div>
     @elseif ($payment->status->value !== 'paid')
         <div class="payment-part">{!! $paymentPart !!}</div>
+        @if ($order->isTest())
+            <div class="test-stamp">{{ __('invoice.test_stamp', [], $locale) }}</div>
+        @endif
     @endif
 </div>
