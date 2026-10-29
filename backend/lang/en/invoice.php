@@ -17,6 +17,8 @@ return [
     'questions' => 'Questions? Write to {email}.',
     'paid' => 'Already paid, thank you!',
     'cancelled' => 'This order has been cancelled. There is nothing to pay.',
+    // File name of the PDF, not editable.
+    'filename' => 'Invoice',
     // Testing mode, not editable.
     'test_stamp' => 'TEST INVOICE – DO NOT PAY',
     'cancelled_stamp' => 'CANCELLED',

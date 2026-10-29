@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'draft_created' => 'Ordine iniziato',
+    'submitted' => 'Ordine inviato',
+    'payment_received' => 'Pagamento ricevuto',
+    'signed' => 'Dedicato',
+    'shipped' => 'Spedito',
+    'cancelled' => 'Annullato',
+    'moved' => 'Spostato in un’altra campagna',
+    'mail_sent' => 'E-mail inviata',
+    'payment_failed' => 'Pagamento non riuscito',
+    'refunded' => 'Rimborso',
+    'invoice_sent' => 'Fattura inviata',
+    'reminder_sent' => 'Promemoria di pagamento inviato',
+    'checkout_started' => 'Pagamento online avviato',
+    'payment_reverted' => 'Pagamento annullato',
+    'reopened' => 'Annullamento revocato',
+    'moderation_approved' => 'Dedica approvata',
+    'moderation_flagged' => 'Dedica: domanda aperta',
+    'stacked' => 'Numero di pila assegnato',
+    'unstacked' => 'Numero di pila rimosso (preparazione annullata)',
+    'item_signed' => 'Libro dedicato',
+    'item_unsigned' => 'Dedica annullata',
+    'newsletter_skipped_test' => 'Newsletter: non trasmesso (ordine di prova)',
+    'newsletter_sent' => 'Trasmesso alla newsletter',
+    'abandoned_reminder_sent' => 'Promemoria per ordine abbandonato',
+];

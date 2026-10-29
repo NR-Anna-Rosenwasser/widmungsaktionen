@@ -11,7 +11,6 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      htmlAttrs: { lang: "de-CH" },
       meta: [
         { name: "viewport", content: "width=device-width, initial-scale=1" },
       ],
@@ -55,11 +54,16 @@ export default defineNuxtConfig({
 
   i18n: {
     strategy: "no_prefix",
+    // Each shop offers a subset and picks its own default (API: tenant.locales,
+    // tenant.default_locale); middleware/02.locale.global.ts applies it.
     defaultLocale: "de",
     locales: [
       { code: "de", language: "de-CH", name: "Deutsch", file: "de.json" },
+      { code: "fr", language: "fr-CH", name: "Français", file: "fr.json" },
+      { code: "it", language: "it-CH", name: "Italiano", file: "it.json" },
       { code: "en", language: "en", name: "English", file: "en.json" },
     ],
+    // Visitors without a choice always get the shop's default, crawlers too.
     detectBrowserLanguage: false,
   },
 

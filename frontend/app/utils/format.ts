@@ -5,7 +5,7 @@ export function formatChf(rappen: number): string {
 }
 
 function localeTag(locale: string): string {
-  return locale === 'en' ? 'en-CH' : 'de-CH'
+  return ['de', 'fr', 'it', 'en'].includes(locale) ? `${locale}-CH` : 'de-CH'
 }
 
 export function formatDate(iso: string | null | undefined, locale = 'de', style: 'long' | 'short' = 'long'): string {

@@ -46,6 +46,7 @@ class EditTenantSettings extends EditTenantProfile
                 ->tabs([
                     Tab::make('Shop')->schema([
                         ...TenantSettingsForm::general(),
+                        ...TenantSettingsForm::languages(),
                         Section::make('Eigene Domains')
                             ->description('Domains, die direkt auf diesen Shop zeigen (DNS auf den Server, Reverse Proxy konfigurieren).')
                             ->schema([

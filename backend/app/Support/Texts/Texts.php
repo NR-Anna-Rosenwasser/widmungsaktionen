@@ -18,7 +18,7 @@ class Texts
 {
     public function for(Tenant $tenant, ?Aktion $aktion, string $locale): TextSet
     {
-        return new TextSet($this, $tenant, $aktion, $locale === 'en' ? 'en' : 'de');
+        return new TextSet($this, $tenant, $aktion, $tenant->resolveLocale($locale));
     }
 
     public function default(string $key, string $locale): string
@@ -91,7 +91,8 @@ class Texts
     }
 
     /**
-     * All storefront texts for the API: locale => frontend key => text.
+     * All storefront texts for the API, in the shop's languages:
+     * locale => frontend key => text.
      * Markdown texts arrive as HTML. {shop} is filled in, other placeholders
      * are left for the storefront (values escaped there).
      *
@@ -101,7 +102,7 @@ class Texts
     {
         $result = [];
 
-        foreach (TextCatalog::LOCALES as $locale) {
+        foreach ($tenant->locales() as $locale) {
             foreach (TextCatalog::texts() as $key => $text) {
                 if (! str_starts_with($key, 'storefront.')) {
                     continue;
@@ -127,7 +128,7 @@ class Texts
     {
         $result = [];
 
-        foreach (TextCatalog::LOCALES as $locale) {
+        foreach ($aktion->tenant->locales() as $locale) {
             foreach ($names as $name) {
                 $extra = $this->extra($aktion, $name, $locale);
                 $result[$locale][$name] = $extra === null

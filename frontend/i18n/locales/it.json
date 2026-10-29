@@ -1,0 +1,74 @@
+{
+  "picker": {
+    "title": "Libri autografati",
+    "lead": "Scegli da chi vorresti un libro con dedica.",
+    "openUntil": "Ordina entro il {date}",
+    "noAktion": "Prossima campagna in arrivo"
+  },
+  "nav": {
+    "order": "Ordina",
+    "language": "Lingua"
+  },
+  "footer": {
+    "terms": "CG",
+    "privacy": "Protezione dei dati",
+    "imprint": "Note legali",
+    "cookies": "Impostazioni dei cookie",
+    "contact": "Contatto"
+  },
+  "notFound": {
+    "title": "Qui non c’è niente.",
+    "text": "Purtroppo questa pagina non esiste.",
+    "back": "Alla pagina iniziale"
+  },
+  "consent": {
+    "title": "Un biscottino? 🍪",
+    "description": "Usiamo cookie e tecnologie simili solo con il tuo consenso. Ci aiutano a capire come viene usato il sito.",
+    "acceptAll": "Accetta tutti",
+    "acceptNecessary": "Solo necessari",
+    "showPreferences": "Impostazioni",
+    "preferencesTitle": "Impostazioni dei cookie",
+    "save": "Salva",
+    "necessaryTitle": "Necessari",
+    "necessaryText": "Perché l’ordine funzioni, p. es. per la scelta della lingua.",
+    "analyticsTitle": "Statistiche",
+    "analyticsText": "Statistiche anonime su come viene usato il sito.",
+    "marketingTitle": "Marketing",
+    "marketingText": "Misurazione delle campagne."
+  },
+  "order": {
+    "books": {
+      "empty": "Scegli almeno un libro.",
+      "max": "Al massimo {max} libri per ordine."
+    },
+    "dedication": {
+      "recipientRequired": "Dicci per chi è la dedica, oppure scegli «Solo firma»."
+    },
+    "summary": {
+      "termsRequired": "Conferma le CG e l’informativa sulla protezione dei dati."
+    },
+    "errors": {
+      "generic": "Qualcosa è andato storto. Riprova, per favore.",
+      "closed": "Al momento non c’è nessuna campagna di dediche in corso.",
+      "submitted": "Questo ordine è già stato inviato."
+    },
+    "required": "Campo obbligatorio.",
+    "invalidEmail": "Non sembra un indirizzo e-mail.",
+    "invalidPostalCode": "Indica un NPA di quattro cifre."
+  },
+  "testMode": {
+    "title": "Modalità di prova",
+    "banner": "Modalità di prova: «{name}». Gli ordini non sono reali e possono essere eliminati.",
+    "bannerOrder": "Ordine di prova: non reale, può essere eliminato.",
+    "leave": "Esci dalla modalità di prova",
+    "invalid": "Questo link di prova non è (più) valido. Forse è stato creato un nuovo link o la modalità di prova è terminata.",
+    "toShop": "Al negozio",
+    "paymentTitle": "Pagamento di prova",
+    "paymentLead": "In modalità di prova non si paga nulla tramite Stripe. Scegli cosa deve succedere:",
+    "paymentAmount": "Ordine {number} · {total}",
+    "paid": "Pagamento riuscito",
+    "failed": "Pagamento non riuscito",
+    "cancel": "Annulla (torna all’ordine)",
+    "paymentUnavailable": "Per questo ordine non c’è nessun pagamento di prova in sospeso."
+  }
+}

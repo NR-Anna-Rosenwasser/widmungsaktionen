@@ -1,0 +1,74 @@
+{
+  "picker": {
+    "title": "Livres dédicacés",
+    "lead": "Choisis de qui tu aimerais un livre dédicacé.",
+    "openUntil": "Commander jusqu’au {date}",
+    "noAktion": "Prochaine campagne à venir"
+  },
+  "nav": {
+    "order": "Commander",
+    "language": "Langue"
+  },
+  "footer": {
+    "terms": "CG",
+    "privacy": "Protection des données",
+    "imprint": "Mentions légales",
+    "cookies": "Paramètres des cookies",
+    "contact": "Contact"
+  },
+  "notFound": {
+    "title": "Il n’y a rien ici.",
+    "text": "Cette page n’existe malheureusement pas.",
+    "back": "Vers la page d’accueil"
+  },
+  "consent": {
+    "title": "Un petit cookie ? 🍪",
+    "description": "Nous utilisons des cookies et des technologies similaires uniquement avec ton accord. Ils nous aident à comprendre comment le site est utilisé.",
+    "acceptAll": "Tout accepter",
+    "acceptNecessary": "Seulement les nécessaires",
+    "showPreferences": "Paramètres",
+    "preferencesTitle": "Paramètres des cookies",
+    "save": "Enregistrer",
+    "necessaryTitle": "Nécessaires",
+    "necessaryText": "Pour que la commande fonctionne, p. ex. pour le choix de la langue.",
+    "analyticsTitle": "Statistiques",
+    "analyticsText": "Statistiques anonymes sur l’utilisation du site.",
+    "marketingTitle": "Marketing",
+    "marketingText": "Mesure des campagnes."
+  },
+  "order": {
+    "books": {
+      "empty": "Choisis au moins un livre.",
+      "max": "{max} livres au maximum par commande."
+    },
+    "dedication": {
+      "recipientRequired": "Dis-nous pour qui est la dédicace, ou choisis « Signature seulement »."
+    },
+    "summary": {
+      "termsRequired": "Merci de confirmer les CG et la déclaration de protection des données."
+    },
+    "errors": {
+      "generic": "Quelque chose n’a pas fonctionné. Réessaie, s’il te plaît.",
+      "closed": "Aucune campagne de dédicaces n’est en cours pour le moment.",
+      "submitted": "Cette commande a déjà été envoyée."
+    },
+    "required": "Champ obligatoire.",
+    "invalidEmail": "Cela ne ressemble pas à une adresse e-mail.",
+    "invalidPostalCode": "Merci d’indiquer un NPA à quatre chiffres."
+  },
+  "testMode": {
+    "title": "Mode test",
+    "banner": "Mode test : « {name} ». Les commandes ne sont pas réelles et peuvent être supprimées.",
+    "bannerOrder": "Commande de test : pas réelle, peut être supprimée.",
+    "leave": "Quitter le mode test",
+    "invalid": "Ce lien de test n’est pas (ou plus) valable. Un nouveau lien a peut-être été créé ou le mode test est terminé.",
+    "toShop": "Vers la boutique",
+    "paymentTitle": "Paiement de test",
+    "paymentLead": "En mode test, rien n’est payé via Stripe. Choisis ce qui doit se passer :",
+    "paymentAmount": "Commande {number} · {total}",
+    "paid": "Paiement réussi",
+    "failed": "Paiement échoué",
+    "cancel": "Annuler (retour à la commande)",
+    "paymentUnavailable": "Aucun paiement de test n’est en attente pour cette commande."
+  }
+}

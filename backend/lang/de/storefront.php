@@ -23,8 +23,8 @@ return [
         'seoTitle' => '{shop} · Signierte Bücher bestellen',
         'seoDescription' => 'Bestell dein persönlich gewidmetes Buch von {shop}.',
         'deadline' => 'Bestellschluss',
-        'signingDate' => 'Widmungstag',
-        'shipping' => 'Versand ca.',
+        'signingDate' => 'Widmung ca. am',
+        'shipping' => 'Versand ca. ab',
         'full' => 'Diese Aktion ist leider schon ausgebucht.',
         'shippingFrom' => 'Zzgl. Versand ab {price} (Brief bei einem Buch, Paket ab zwei Büchern).',
         'closedText' => 'Die nächste Widmungsaktion startet am {date}. Schau dann wieder vorbei! 💌',
@@ -153,7 +153,7 @@ return [
             'cancelled' => 'Storniert',
         ],
         'expected' => [
-            'signed' => 'Widmungstag: {date}',
+            'signed' => 'Widmung ca. am: {date}',
             'shipped' => 'Voraussichtlich ab {date}',
         ],
         'paymentPending' => [

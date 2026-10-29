@@ -47,7 +47,7 @@ class RegisterTenant extends BaseRegisterTenant
     {
         return $schema->components([
             Wizard::make([
-                Step::make('Shop')->schema(TenantSettingsForm::general()),
+                Step::make('Shop')->schema([...TenantSettingsForm::general(), ...TenantSettingsForm::languages()]),
                 Step::make('Absender & Konto')->schema(TenantSettingsForm::seller()),
                 Step::make('Bestellungen & Versand')->schema(TenantSettingsForm::ordering()),
                 Step::make('Stripe & E-Mail')->schema([

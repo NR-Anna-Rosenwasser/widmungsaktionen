@@ -136,12 +136,20 @@ class Order extends Model
     }
 
     /**
+     * The customer's language, or the shop's default if the shop no longer offers it.
+     */
+    public function language(): string
+    {
+        return $this->tenant->resolveLocale($this->locale);
+    }
+
+    /**
      * Link to continue a draft (abandoned-order mail). Test orders go through
      * the preview link, so it works in any browser.
      */
     public function resumeUrl(): string
     {
-        $path = '/bestellen?t='.$this->token;
+        $path = '/bestellen?t='.$this->token.'&lang='.$this->language();
 
         return $this->isTest() ? $this->aktion->previewUrl($path) : $this->tenant->storefrontUrl($path);
     }

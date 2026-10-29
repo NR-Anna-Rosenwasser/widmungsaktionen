@@ -34,7 +34,7 @@ class InvoicePdf
     {
         $order->loadMissing('tenant', 'aktion', 'items.book');
         $payment = $this->invoicePayment($order);
-        $locale = $order->locale === 'en' ? 'en' : 'de';
+        $locale = $order->language();
 
         return [
             'order' => $order,
@@ -62,7 +62,7 @@ class InvoicePdf
 
     public function filename(Order $order): string
     {
-        return ($order->locale === 'en' ? 'Invoice-' : 'Rechnung-').$order->number.'.pdf';
+        return __('invoice.filename', [], $order->language()).'-'.$order->number.'.pdf';
     }
 
     /**
@@ -124,7 +124,7 @@ class InvoicePdf
         $bill->setPaymentAmountInformation(PaymentAmountInformation::create('CHF', $payment->amount / 100));
         $bill->setPaymentReference(QrPaymentReference::create(PaymentReference::typeFor($order), $payment->reference));
         $bill->setAdditionalInformation(AdditionalInformation::create(
-            ($locale === 'en' ? 'Order ' : 'Bestellung ').$order->number,
+            __('invoice.order', [], $locale).' '.$order->number,
         ));
         $bill->setUltimateDebtor(StructuredAddress::createWithStreet(
             mb_substr($order->billingName(), 0, 70),
