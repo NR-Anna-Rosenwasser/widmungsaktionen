@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Enums\Locale;
 use App\Models\Order;
 use App\Services\Payments\PaymentService;
 use App\Services\Pdf\InvoicePdf;
@@ -26,7 +27,7 @@ abstract class OrderMail extends Mailable implements ShouldQueue
 
     public function __construct(public Order $order)
     {
-        $this->locale($order->locale === 'en' ? 'en' : 'de');
+        $this->locale($order->language());
     }
 
     /**
@@ -62,10 +63,11 @@ abstract class OrderMail extends Mailable implements ShouldQueue
             'tenant' => $this->order->tenant,
             'shopName' => $this->order->tenant->name,
             'shopUrl' => $this->order->tenant->storefrontUrl(),
-            'trackingUrl' => $this->order->storefrontUrl(),
+            // Opens the order page in the language of the mail (storefront: ?lang=).
+            'trackingUrl' => $this->order->storefrontUrl().'?lang='.$this->locale,
             'canPayOnline' => app(PaymentService::class)->canPayOnline($this->order),
             'text' => $this->texts(),
-            'date' => fn ($date) => $date->locale($this->locale === 'en' ? 'en_CH' : 'de_CH')->isoFormat('LL'),
+            'date' => fn ($date) => $date->locale(Locale::from($this->locale)->carbon())->isoFormat('LL'),
             ...$this->data(),
         ]);
     }

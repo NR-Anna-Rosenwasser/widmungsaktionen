@@ -43,7 +43,7 @@ class OrderController extends Controller
 
         $data = $request->validate([
             'email' => ['required', 'email:rfc', 'max:255'],
-            'locale' => ['nullable', Rule::in(['de', 'en'])],
+            'locale' => ['nullable', Rule::in($tenant->locales())],
             ...$this->copiesRules($tenant, $aktion, required: true),
         ]);
 
@@ -51,7 +51,7 @@ class OrderController extends Controller
             $order = $tenant->orders()->create([
                 'aktion_id' => $aktion->id,
                 'email' => $data['email'],
-                'locale' => $data['locale'] ?? 'de',
+                'locale' => $data['locale'] ?? $tenant->defaultLocale(),
                 'current_step' => 'email',
             ]);
 
@@ -81,7 +81,7 @@ class OrderController extends Controller
         $data = $request->validate([
             'email' => ['sometimes', 'email:rfc', 'max:255'],
             'current_step' => ['sometimes', 'nullable', 'string', 'max:30'],
-            'locale' => ['sometimes', Rule::in(['de', 'en'])],
+            'locale' => ['sometimes', Rule::in($tenant->locales())],
             ...$this->copiesRules($tenant, $order->aktion, required: false),
             ...$this->addressRules('billing', strict: false),
             'is_gift' => ['sometimes', 'boolean'],

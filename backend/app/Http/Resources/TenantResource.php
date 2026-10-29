@@ -20,6 +20,8 @@ class TenantResource extends JsonResource
             'name' => $this->name,
             'slug' => $this->slug,
             'contact_email' => $this->contact_email,
+            'locales' => $this->locales(),
+            'default_locale' => $this->defaultLocale(),
             'legal' => $this->setting('legal'),
             'max_copies_per_order' => (int) $this->setting('max_copies_per_order'),
             'dedication_max_length' => (int) $this->setting('dedication_max_length'),

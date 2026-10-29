@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\AktionStatus;
+use App\Enums\Locale;
 use Filament\Models\Contracts\HasName;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -73,6 +74,33 @@ class Tenant extends Model implements HasName
             $key,
             Arr::get(config('widmungen.tenant_defaults'), $key, $default),
         );
+    }
+
+    /**
+     * The shop's languages, in platform order (Locale).
+     *
+     * @return array<int, string>
+     */
+    public function locales(): array
+    {
+        $chosen = (array) $this->setting('locales');
+
+        return array_values(array_filter(Locale::values(), fn (string $locale) => in_array($locale, $chosen, true))) ?: [Locale::De->value];
+    }
+
+    public function defaultLocale(): string
+    {
+        $default = (string) $this->setting('default_locale');
+
+        return in_array($default, $this->locales(), true) ? $default : $this->locales()[0];
+    }
+
+    /**
+     * The given locale if the shop offers it, else its default.
+     */
+    public function resolveLocale(?string $locale): string
+    {
+        return in_array($locale, $this->locales(), true) ? $locale : $this->defaultLocale();
     }
 
     /**

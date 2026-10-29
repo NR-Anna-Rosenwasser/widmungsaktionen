@@ -4,7 +4,7 @@ namespace App\Support\Texts;
 
 /**
  * Every customer-facing text a shop can edit, grouped as in the admin
- * («Einstellungen → Texte»). Defaults live in lang/{de,en}/{storefront,
+ * («Einstellungen → Texte»). Defaults live in lang/{de,fr,it,en}/{storefront,
  * mail,letter,invoice}.php under the same key.
  *
  * Each text: [admin label, kind, placeholders]. {shop} (shop name) works
@@ -25,7 +25,8 @@ class TextCatalog
     /** Markdown for print: bold and italic only. */
     public const PRINT = 'print';
 
-    public const LOCALES = ['de', 'en'];
+    /** Every platform language (App\Enums\Locale); a shop uses a subset, Tenant::locales(). */
+    public const LOCALES = ['de', 'fr', 'it', 'en'];
 
     /**
      * @return array<string, array{label: string, area: string, extra?: array{0: string, 1: string}, texts: array<string, array{0: string, 1: string, 2?: array<int, string>}>}>

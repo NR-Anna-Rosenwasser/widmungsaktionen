@@ -32,7 +32,7 @@ The app replaces one-off forms with a permanent storefront:
 - Bare `widmungen.rose-water.ch`: if only one tenant is active, redirect straight to its storefront; otherwise show a simple seller picker (name, author(s), current Aktion).
 - Custom domains: a tenant can point its own domain (e.g. `widmungen.example.ch`) to the app. A request on a custom domain goes straight to that tenant's storefront without a slug.
 - Tenant resolution happens in Laravel from the forwarded host (custom domain table) or the slug.
-- No self-service signup. Super admins create tenants through a **"Neuer Shop" wizard** in Filament: seller data → bank/QR → Stripe keys → shipping → first admin user.
+- No self-service signup. Super admins create tenants through a **"Neuer Shop" wizard** in Filament: shop and languages → seller data → bank/QR → Stripe keys → shipping → first admin user.
 
 ## 4. Data model (overview)
 
@@ -143,20 +143,28 @@ Settings → «Storefront»:
 - **Sections:** books, «So funktioniert’s» and «Schon bestellt?» can be switched on and off.
 - **Link preview:** an image. Without one, the hero image or the first book cover is used. Title and description are texts (below).
 
+### Languages
+
+- The platform offers German, French, Italian and English (`App\Enums\Locale`). Each shop chooses its languages and a default language (`tenants.settings.locales`, `settings.default_locale`; wizard step «Shop» and settings tab «Shop»). Existing shops were set to German + English, German first, by migration. Removing a language keeps its texts.
+- The storefront has no URL prefixes. A visitor's language is the saved choice (cookie `lang`, one year) if the shop offers it, otherwise the shop's default. There is no browser detection, so crawlers and link previews always get the default. Falling back doesn't change the cookie (on the platform domain it is shared by all shops).
+- Language links: `?lang=xx` on any storefront URL saves the choice and redirects (302) to the same URL without it. Links in emails carry the order's language.
+- Switcher in the header: hidden with one language, two buttons with two, a menu with full names with three or more.
+- Orders store the customer's language (only the shop's languages are accepted). Emails, invoice, cover letter and Stripe Checkout use it; if the shop no longer offers it, they use the default.
+
 ### Editable texts
 
-Settings → «Texte» (admins only): every customer-facing text, one area at a time (start page, order form, order page, cookie banner, labels, each email, cover letter, invoice), German and English side by side.
+Settings → «Texte» (admins only): every customer-facing text, one area at a time (start page, order form, order page, cookie banner, labels, each email, cover letter, invoice), one tab per language of the shop, default language first. In the other tabs, every field shows the current text in the default language as a reference.
 
-- Catalogue: `App\Support\Texts\TextCatalog` (label, kind, placeholders per text). Defaults stay in `backend/lang/{de,en}/{storefront,mail,letter,invoice}.php` under the same key; overrides are stored in `tenants.settings.texts.<locale>.<key>`. Empty or unchanged fields use the default.
+- Catalogue: `App\Support\Texts\TextCatalog` (label, kind, placeholders per text). Defaults stay in `backend/lang/{de,fr,it,en}/{storefront,mail,letter,invoice}.php` (German is the source of truth; French and Italian are translated from it, informal «tu», same keys and placeholders) under the same key; overrides are stored in `tenants.settings.texts.<locale>.<key>`. Empty or unchanged fields use the default.
 - Placeholders are written `{name}`; `{shop}` (shop name) works everywhere, the others are listed per text. Unknown placeholders are rejected on save. Values are always escaped.
 - Longer running texts are Markdown (bold, italic, link, list; print texts bold and italic only), rendered safely on the server. Short texts (titles, subjects, buttons, labels) are plain text.
-- Each Aktion can add optional extra texts («Zusatztexte») at twelve places: start page, order form, order page, seven emails (confirmation, payment received, reminder, moved, signed, shipped, abandoned) and as a P.S. in the cover letter and a note on the invoice. Stored in `aktionen.texts.<locale>.<name>`, empty for new Aktionen.
-- Not editable: the refund email, form validation messages, Stripe line items, the admin, internal print outputs (stack list, labels) and the platform start page.
-- The storefront gets all texts from `GET /api/tenants/{slug}` (`tenant.texts`) and reads them with `$text` / `$textHtml` (`frontend/app/plugins/texts.ts`). The i18n files only keep the platform picker, validation messages and fallbacks for pages without a shop.
+- Each Aktion can add optional extra texts («Zusatztexte») at twelve places: start page, order form, order page, seven emails (confirmation, payment received, reminder, moved, signed, shipped, abandoned) and as a P.S. in the cover letter and a note on the invoice. Stored in `aktionen.texts.<locale>.<name>`, empty for new Aktionen; one tab per language of the shop.
+- Not editable: the refund email, form validation messages, Stripe line items (except «Versand», which uses the invoice text), the admin, internal print outputs (stack list, labels) and the platform start page.
+- The storefront gets all texts in the shop's languages from `GET /api/tenants/{slug}` (`tenant.texts`, plus `tenant.locales` and `tenant.default_locale`) and reads them with `$text` / `$textHtml` (`frontend/app/plugins/texts.ts`). The i18n files only keep the platform picker, validation messages and fallbacks for pages without a shop.
 
 ### Copy & tone
 
-- Swiss Standard German with "du": approachable, warm, a little cute, very few emojis. English as the second language. Customer-facing texts are editable per shop (see «Editable texts»), with defaults in the Laravel lang files.
+- Swiss Standard German with "du": approachable, warm, a little cute, very few emojis. German is the source of the default texts; English, French and Italian follow it. Customer-facing texts are editable per shop (see «Editable texts»), with defaults in the Laravel lang files.
 - Swiss conventions: "ss" instead of "ß", `CHF 12.50`, `15.10.2026`, `14:30`.
 
 ### Consent & tracking

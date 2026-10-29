@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'draft_created' => 'Commande commencée',
+    'submitted' => 'Commande envoyée',
+    'payment_received' => 'Paiement reçu',
+    'signed' => 'Dédicacée',
+    'shipped' => 'Envoyée',
+    'cancelled' => 'Annulée',
+    'moved' => 'Déplacée vers une autre campagne',
+    'mail_sent' => 'E-mail envoyé',
+    'payment_failed' => 'Paiement échoué',
+    'refunded' => 'Remboursement',
+    'invoice_sent' => 'Facture envoyée',
+    'reminder_sent' => 'Rappel de paiement envoyé',
+    'checkout_started' => 'Paiement en ligne commencé',
+    'payment_reverted' => 'Paiement réinitialisé',
+    'reopened' => 'Annulation levée',
+    'moderation_approved' => 'Dédicace validée',
+    'moderation_flagged' => 'Dédicace : question en suspens',
+    'stacked' => 'Numéro de pile attribué',
+    'unstacked' => 'Numéro de pile retiré (préparation réinitialisée)',
+    'item_signed' => 'Livre dédicacé',
+    'item_unsigned' => 'Dédicace annulée',
+    'newsletter_skipped_test' => 'Newsletter : non transmis (commande de test)',
+    'newsletter_sent' => 'Transmis à la newsletter',
+    'abandoned_reminder_sent' => 'Rappel de commande abandonnée',
+];

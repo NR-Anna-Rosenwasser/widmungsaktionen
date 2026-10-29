@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Enums\Locale;
 use App\Enums\TenantRole;
 use App\Support\Texts\TextCatalog;
 use App\Support\Texts\Texts;
@@ -20,16 +21,20 @@ use Filament\Schemas\Components\EmbeddedSchema;
 use Filament\Schemas\Components\Form;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Url;
 use UnitEnum;
 
 /**
- * All customer-facing texts of the shop (TextCatalog), one area at a time.
- * Empty fields use the default, shown in grey.
+ * All customer-facing texts of the shop (TextCatalog), one area at a time,
+ * one tab per language of the shop. Empty fields use the default, shown in
+ * grey; the other languages show the default language's text for reference.
  */
 class Texte extends Page
 {
@@ -68,13 +73,25 @@ class Texte extends Page
         $settings = filament()->getTenant()->settings ?? [];
         $data = [];
 
-        foreach (TextCatalog::LOCALES as $locale) {
+        foreach ($this->locales() as $locale) {
             foreach ($this->keys() as $key) {
                 data_set($data, "$locale.$key", data_get($settings, "texts.$locale.$key"));
             }
         }
 
         $this->form->fill($data);
+    }
+
+    /**
+     * The shop's languages, default first.
+     *
+     * @return array<int, string>
+     */
+    protected function locales(): array
+    {
+        $tenant = filament()->getTenant();
+
+        return array_values(array_unique([$tenant->defaultLocale(), ...$tenant->locales()]));
     }
 
     /**
@@ -106,26 +123,45 @@ class Texte extends Page
     public function form(Schema $schema): Schema
     {
         $group = TextCatalog::groups()[$this->bereich];
-        $catalog = TextCatalog::texts();
         $extra = $group['extra'] ?? null;
+        $locales = $this->locales();
+        $sections = fn (string $locale) => collect($group['texts'])->keys()->map(fn (string $key) => $this->section($key, $locale))->all();
 
         return $schema
             ->statePath('data')
             ->components([
-                ...collect($group['texts'])->keys()->map(fn (string $key) => Section::make($catalog[$key]['label'])
-                    ->description('Platzhalter: '.collect($catalog[$key]['placeholders'])->map(fn ($p) => '{'.$p.'}')->join(', ')
-                        .(TextCatalog::isMarkdown($catalog[$key]['kind']) ? ' · Formatierung möglich' : ''))
-                    ->compact()
-                    ->schema([
-                        Grid::make(2)->schema(array_map(
-                            fn (string $locale) => self::field($key, $locale, $catalog[$key]['kind'], $catalog[$key]['placeholders']),
-                            TextCatalog::LOCALES,
-                        )),
-                    ]))->all(),
+                count($locales) === 1
+                    ? Grid::make(1)->schema($sections($locales[0]))
+                    : Tabs::make('Sprache')->persistTabInQueryString('sprache')->tabs(array_map(
+                        fn (string $locale) => Tab::make(Locale::from($locale)->getLabel())->schema($sections($locale)),
+                        $locales,
+                    )),
                 ...($extra ? [Section::make('Zusatztext der Aktion')
                     ->description("Pro Aktion kannst du hier einen zusätzlichen Text ergänzen: «{$extra[1]}». Du findest ihn beim Bearbeiten der Aktion unter «Zusatztexte».")
                     ->compact()] : []),
             ]);
+    }
+
+    /**
+     * One text in one language. Outside the default language, the current
+     * text of the default language is shown as a reference for translating.
+     */
+    protected function section(string $key, string $locale): Section
+    {
+        $text = TextCatalog::texts()[$key];
+        $tenant = filament()->getTenant();
+        $default = $tenant->defaultLocale();
+        $field = self::field($key, $locale, $text['kind'], $text['placeholders'])->hiddenLabel();
+
+        if ($locale !== $default) {
+            $field->helperText(Locale::from($default)->getLabel().': '.Str::limit(app(Texts::class)->raw($tenant, $key, $default), 400));
+        }
+
+        return Section::make($text['label'])
+            ->description('Platzhalter: '.collect($text['placeholders'])->map(fn ($p) => '{'.$p.'}')->join(', ')
+                .(TextCatalog::isMarkdown($text['kind']) ? ' · Formatierung möglich' : ''))
+            ->compact()
+            ->schema([$field]);
     }
 
     /**
@@ -146,7 +182,7 @@ class Texte extends Page
         };
 
         $field
-            ->label($locale === 'de' ? 'Deutsch' : 'English')
+            ->label(Locale::from($locale)->getLabel())
             ->placeholder($default)
             ->rule(fn () => function (string $attribute, mixed $value, Closure $fail) use ($placeholders) {
                 $unknown = Texts::unknownPlaceholders((string) $value, $placeholders);
@@ -187,7 +223,8 @@ class Texte extends Page
         $settings = $tenant->settings ?? [];
         $texts = app(Texts::class);
 
-        foreach (TextCatalog::LOCALES as $locale) {
+        // Languages the shop doesn't offer (any more) keep their texts.
+        foreach ($this->locales() as $locale) {
             foreach ($this->keys() as $key) {
                 $value = trim(str_replace("\r\n", "\n", (string) data_get($state, "$locale.$key")));
 

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Schemas;
 
+use App\Enums\Locale;
 use App\Enums\PaymentMethod;
 use App\Models\Tenant;
 use App\Services\StorefrontAppearance;
@@ -64,6 +65,46 @@ class TenantSettingsForm
                     ->label('Shop aktiv')
                     ->default(true),
             ]),
+        ];
+    }
+
+    /**
+     * Languages of the storefront, emails and documents.
+     */
+    public static function languages(): array
+    {
+        // Options from the enum make the live state Locale cases, stored values are strings.
+        $chosen = fn (Get $get): array => collect($get('settings.locales'))
+            ->map(fn (Locale|string $locale) => $locale instanceof Locale ? $locale->value : $locale)
+            ->all();
+
+        return [
+            Section::make('Sprachen')
+                ->description('In diesen Sprachen gibt es den Shop, die E-Mails und Rechnungen. Die Standardsprache sehen alle, die noch keine Sprache gewählt haben (auch Suchmaschinen und Link-Vorschauen). Texte von abgewählten Sprachen bleiben gespeichert.')
+                ->schema([
+                    Grid::make(2)->schema([
+                        CheckboxList::make('settings.locales')
+                            ->label('Sprachen des Shops')
+                            ->options(Locale::class)
+                            ->required()
+                            ->live()
+                            // A removed default moves to the first language left; otherwise it stays.
+                            ->afterStateUpdated(function (Set $set, Get $get) use ($chosen) {
+                                if (! in_array($get('settings.default_locale'), $chosen($get), true)) {
+                                    $set('settings.default_locale', collect(Locale::values())->first(fn ($locale) => in_array($locale, $chosen($get), true)));
+                                }
+                            }),
+                        Select::make('settings.default_locale')
+                            ->label('Standardsprache')
+                            ->options(fn (Get $get) => collect(Locale::cases())
+                                ->filter(fn (Locale $locale) => in_array($locale->value, $chosen($get), true))
+                                ->mapWithKeys(fn (Locale $locale) => [$locale->value => $locale->getLabel()]))
+                            ->in($chosen)
+                            ->selectablePlaceholder(false)
+                            ->native(false)
+                            ->required(),
+                    ]),
+                ]),
         ];
     }
 
@@ -363,7 +404,7 @@ class TenantSettingsForm
         );
 
         // Lists must not be merged index by index.
-        foreach (['payment_methods', 'shipping_tiers'] as $list) {
+        foreach (['payment_methods', 'shipping_tiers', 'locales'] as $list) {
             $data['settings'][$list] = $data['settings'][$list] ?? config("widmungen.tenant_defaults.$list");
         }
 

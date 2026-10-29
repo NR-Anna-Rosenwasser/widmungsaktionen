@@ -37,7 +37,7 @@
         </div>
 
         <div class="meta">
-            <div class="date">{{ $tenant->creditor_town }}, {{ now()->locale($locale === 'en' ? 'en_CH' : 'de_CH')->isoFormat('LL') }}</div>
+            <div class="date">{{ $tenant->creditor_town }}, {{ now()->locale(\App\Enums\Locale::from($locale)->carbon())->isoFormat('LL') }}</div>
             <h1>{{ $order->is_gift ? $t('title_gift') : $t('title') }}</h1>
             <p>{{ $t('greeting', ['name' => $recipientFirst]) }}</p>
 
@@ -64,7 +64,7 @@
                 @if ($order->payment_status->value === 'paid')
                     <p class="muted">{{ $t('paid') }}</p>
                 @elseif ($page['invoice'])
-                    <p>{{ $t('invoice_enclosed', ['date' => $page['invoice']['dueDate']->locale($locale === 'en' ? 'en_CH' : 'de_CH')->isoFormat('LL')]) }}</p>
+                    <p>{{ $t('invoice_enclosed', ['date' => $page['invoice']['dueDate']->locale(\App\Enums\Locale::from($locale)->carbon())->isoFormat('LL')]) }}</p>
                 @endif
             @endunless
 

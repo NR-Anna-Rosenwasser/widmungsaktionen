@@ -23,7 +23,7 @@ return [
         'seoTitle' => '{shop} · Order signed books',
         'seoDescription' => 'Order your personally dedicated book by {shop}.',
         'deadline' => 'Order deadline',
-        'signingDate' => 'Signing day',
+        'signingDate' => 'Signing day approx.',
         'shipping' => 'Ships approx.',
         'full' => 'Sorry, this round is fully booked.',
         'shippingFrom' => 'Prices plus shipping from {price} (letter for one book, parcel from two books).',
@@ -153,7 +153,7 @@ return [
             'cancelled' => 'Cancelled',
         ],
         'expected' => [
-            'signed' => 'Signing day: {date}',
+            'signed' => 'Signing day approx.: {date}',
             'shipped' => 'Expected from {date}',
         ],
         'paymentPending' => [

@@ -7,7 +7,7 @@ return [
     'gotenberg_url' => env('GOTENBERG_URL', 'http://gotenberg:3000'),
 
     // Slugs that would collide with storefront routes.
-    'reserved_slugs' => ['new', 'login', 'logout', 'password-reset', 'horizon', 'livewire', 'filament', 'storage', 'webhooks', 'api', 'admin', 'bestellen', 'bestellung', 'order', 'en', 'de', '_nuxt', 'fonts', 'datenschutz', 'impressum', 'vorschau', 'testzahlung'],
+    'reserved_slugs' => ['new', 'login', 'logout', 'password-reset', 'horizon', 'livewire', 'filament', 'storage', 'webhooks', 'api', 'admin', 'bestellen', 'bestellung', 'order', 'de', 'fr', 'it', 'en', '_nuxt', 'fonts', 'datenschutz', 'impressum', 'vorschau', 'testzahlung'],
 
     // A4 label sheets (mm). Dimensions from the manufacturers' specs; please
     // measure a sheet before the first big print run.
@@ -20,6 +20,9 @@ return [
 
     // Defaults for Tenant::$settings; each tenant can override them.
     'tenant_defaults' => [
+        // Languages of the shop (App\Enums\Locale) and the one visitors get first.
+        'locales' => ['de', 'en'],
+        'default_locale' => 'de',
         'payment_methods' => ['online', 'invoice_advance', 'invoice_in_parcel'],
         'max_copies_per_order' => 4,
         'shipping_tiers' => [

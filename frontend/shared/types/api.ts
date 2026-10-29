@@ -41,6 +41,10 @@ export interface Tenant {
   name: string
   slug: string
   contact_email: string | null
+  /** Languages the shop offers, in platform order. */
+  locales: string[]
+  /** What visitors get until they choose (and crawlers always). */
+  default_locale: string
   legal: { terms_url: string | null, privacy_url: string | null, imprint_url: string | null }
   max_copies_per_order: number
   dedication_max_length: number

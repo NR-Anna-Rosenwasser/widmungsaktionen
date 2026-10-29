@@ -1,6 +1,6 @@
 @php
     $t = fn (string $key, array $replace = []) => $text("invoice.$key", $replace);
-    $date = fn ($d) => $d->locale($locale === 'en' ? 'en_CH' : 'de_CH')->isoFormat('LL');
+    $date = fn ($d) => $d->locale(\App\Enums\Locale::from($locale)->carbon())->isoFormat('LL');
     $chf = fn (int $rappen) => number_format($rappen / 100, 2, '.', "'");
 @endphp
 <div class="page">

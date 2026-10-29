@@ -165,7 +165,7 @@ class TestModeTest extends TestCase
         Http::assertNothingSent();
         $this->assertTrue($order->events()->where('type', 'newsletter_skipped_test')->exists());
         Mail::assertQueued(OrderConfirmationMail::class, fn ($mail) => str_starts_with($mail->envelope()->subject, '[TEST] '));
-        $this->assertSame($this->test->previewUrl('/bestellen?t='.$order->token), $order->resumeUrl());
+        $this->assertSame($this->test->previewUrl('/bestellen?t='.$order->token.'&lang=de'), $order->resumeUrl());
         $this->assertStringContainsString('/vorschau/'.$this->test->preview_token.'?weiter=%2Fbestellen%3Ft%3D', $order->resumeUrl());
     }
 

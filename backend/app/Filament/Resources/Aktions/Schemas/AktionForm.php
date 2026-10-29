@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Aktions\Schemas;
 
 use App\Enums\AktionStatus;
+use App\Enums\Locale;
 use App\Filament\Pages\Texte;
 use App\Models\Aktion;
 use App\Support\Texts\TextCatalog;
@@ -146,11 +147,11 @@ class AktionForm
             ->collapsed(fn (?Aktion $record) => ! collect($record?->texts)->flatten()->filter()->count())
             ->schema([
                 Tabs::make()->tabs(array_map(
-                    fn (string $locale) => Tab::make($locale === 'de' ? 'Deutsch' : 'English')->schema(
+                    fn (string $locale) => Tab::make(Locale::from($locale)->getLabel())->schema(
                         collect(TextCatalog::extras())->map(fn (string $label, string $name) => Texte::field($name, $locale, TextCatalog::extraKind($name), ['shop'], default: '', statePrefix: 'texts.')
                             ->label($label))->values()->all(),
                     ),
-                    TextCatalog::LOCALES,
+                    filament()->getTenant()->locales(),
                 )),
             ]);
     }

@@ -91,7 +91,7 @@ export default defineNuxtPlugin((nuxtApp) => {
       },
       language: {
         default: i18n.locale.value,
-        translations: { de: async () => translation(), en: async () => translation() },
+        translations: Object.fromEntries(nuxtApp.$i18n.availableLocales.map(code => [code, async () => translation()])),
       },
       onConsent: () => applyTrackingConsent(accepted()),
       onChange: () => applyTrackingConsent(accepted()),

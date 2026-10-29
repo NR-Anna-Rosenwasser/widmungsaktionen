@@ -23,7 +23,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     const key = `storefront:${slug}`
     // Same lookup as useNuxtData(), without registering a dependency per call.
     const data = (nuxtApp._asyncData[key]?.data.value ?? nuxtApp.payload.data[key]) as StorefrontResponse | undefined
-    return data?.tenant.texts?.[i18n.locale.value] ?? data?.tenant.texts?.de
+    return data?.tenant.texts?.[i18n.locale.value] ?? data?.tenant.texts?.[data.tenant.default_locale]
   }
 
   const fill = (text: string, params: Params, escape = (value: string) => value) =>

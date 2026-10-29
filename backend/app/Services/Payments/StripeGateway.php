@@ -5,6 +5,7 @@ namespace App\Services\Payments;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Tenant;
+use App\Support\Texts\Texts;
 use Stripe\Exception\SignatureVerificationException;
 use Stripe\StripeClient;
 use Stripe\Webhook;
@@ -49,7 +50,7 @@ class StripeGateway implements PaymentGateway
                 'price_data' => [
                     'currency' => 'chf',
                     'unit_amount' => $order->shipping_cost,
-                    'product_data' => ['name' => $order->locale === 'en' ? 'Shipping' : 'Versand'],
+                    'product_data' => ['name' => app(Texts::class)->for($order->tenant, $order->aktion, $order->language())('invoice.shipping')],
                 ],
             ];
         }
@@ -59,7 +60,7 @@ class StripeGateway implements PaymentGateway
             'line_items' => $lines,
             'customer_email' => $order->email,
             'client_reference_id' => $order->number,
-            'locale' => $order->locale === 'en' ? 'en' : 'de',
+            'locale' => $order->language(),
             'success_url' => $successUrl,
             'cancel_url' => $cancelUrl,
             'metadata' => [
