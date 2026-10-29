@@ -6,8 +6,8 @@ use App\Listeners\SendOrderMails;
 use App\Models\Tenant;
 use App\Services\Payments\PaymentGateway;
 use App\Services\Payments\StripeGateway;
-use Illuminate\Cache\RateLimiting\Limit;
 use Filament\Events\TenantSet;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Routing\Events\RouteMatched;
@@ -33,6 +33,7 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('storefront', fn (Request $request) => Limit::perMinute(120)->by($request->ip()));
         RateLimiter::for('order-lookup', fn (Request $request) => Limit::perMinute(10)->by($request->ip()));
+        RateLimiter::for('address-search', fn (Request $request) => Limit::perMinute(60)->by($request->ip()));
 
         // Tag error reports with the shop (storefront API and admin panel).
         // RouteMatched runs before model binding, so the parameter is still the slug.

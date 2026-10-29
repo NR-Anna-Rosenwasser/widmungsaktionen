@@ -6,6 +6,17 @@ return [
     'storefront_domain' => parse_url(env('STOREFRONT_URL', 'https://widmungen.ddev.site'), PHP_URL_HOST),
     'gotenberg_url' => env('GOTENBERG_URL', 'http://gotenberg:3000'),
 
+    // Address autocomplete in the order form: self-hosted Photon (OSM, CH + LI only).
+    'address_search' => [
+        'photon_url' => env('PHOTON_URL', 'http://photon:2322'),
+        'timeout' => 2,
+        'cache_ttl' => 60 * 60 * 24 * 30,
+        // Empty results expire sooner, so a newly built street shows up after the next data import.
+        'empty_cache_ttl' => 60 * 60 * 24,
+        // Official directory of postal codes and localities (CH + LI), see address:import-postcodes.
+        'postcodes_url' => env('POSTCODES_URL', 'https://data.geo.admin.ch/ch.swisstopo-vd.ortschaftenverzeichnis_plz/ortschaftenverzeichnis_plz/ortschaftenverzeichnis_plz_4326.csv.zip'),
+    ],
+
     // Slugs that would collide with storefront routes.
     'reserved_slugs' => ['new', 'login', 'logout', 'password-reset', 'horizon', 'livewire', 'filament', 'storage', 'webhooks', 'api', 'admin', 'bestellen', 'bestellung', 'order', 'de', 'fr', 'it', 'en', '_nuxt', 'fonts', 'datenschutz', 'impressum', 'vorschau', 'testzahlung'],
 

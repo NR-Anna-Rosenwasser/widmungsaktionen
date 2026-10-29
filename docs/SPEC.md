@@ -106,7 +106,12 @@ One question per screen, large type, progress indicator, back button. State is s
    - «Nur Unterschrift» anbieten (default on). Off: every copy needs a name; drafts that still ask for a plain signature need a name before submitting.
    - Widmungswunsch anbieten (default on). Off: name only. A name without a wish means «lass dich überraschen» (shown that way in the summary, the confirmation email and on the order page, editable under «Texte»).
    - Namen ohne Wunsch automatisch freigeben (default off). Otherwise every copy with a name goes through «Widmungswünsche prüfen»; plain signatures never do. In the admin, a name without a wish shows «Kein Wunsch: frei widmen».
-4. **Adresse** – billing address. Checkbox "Als Geschenk / an jemand anderes senden" opens:
+4. **Adresse** – billing address. Both address forms suggest addresses in CH and LI as you type:
+   - «Strasse und Nr.»: the most likely addresses (street, number, ZIP, town). Picking one fills ZIP, town and country.
+   - «PLZ»: postal code and locality pairs from the official directory (swisstopo). Picking one fills the town.
+   - Typing without picking always works. Lookups go through Laravel (self-hosted Photon geocoder, Redis cache), so the browser makes no third-party requests.
+
+   Checkbox "Als Geschenk / an jemand anderes senden" opens:
    - delivery address
    - a message printed on the cover letter (required)
    - a note that the sender's name always appears on the letter (no anonymous deliveries)
@@ -299,6 +304,7 @@ docker-compose services:
 - `horizon` and `scheduler`: same image, different command
 - `frontend`: Node, Nuxt SSR
 - `postgres`, `redis`, `gotenberg`
+- `photon`: geocoder for address autocomplete (OSM data for CH + LI)
 
 Reverse proxy routing: `admin.*` → app; storefront hosts → `/api/*` to app, everything else to frontend.
 
@@ -307,7 +313,7 @@ Reverse proxy routing: `admin.*` → app; storefront hosts → `/api/*` to app, 
 - `web` container: PHP for Laravel, plus Nuxt dev server as `web_extra_daemons`. nginx routes by hostname:
   - `admin.widmungen.ddev.site` → Laravel
   - `widmungen.ddev.site` and `*.ddev.site` test tenant domains → Nuxt
-- Postgres as the DDEV database, Redis add-on, Gotenberg as an extra compose service, Mailpit built in.
+- Postgres as the DDEV database, Redis add-on, Gotenberg and Photon as extra compose services, Mailpit built in.
 - Stripe webhooks locally through `stripe listen --forward-to`.
 
 ## 13. Phases

@@ -1,0 +1,22 @@
+# Photon geocoder (OSM, CH + LI only) for address autocomplete.
+# First start downloads and imports the switzerland-liechtenstein dump (~260 MB), which takes a few minutes.
+services:
+  photon:
+    container_name: ddev-${DDEV_SITENAME}-photon
+    image: rtuszik/photon-docker:2.4.0
+    labels:
+      com.ddev.site-name: ${DDEV_SITENAME}
+      com.ddev.approot: ${DDEV_APPROOT}
+    restart: "no"
+    expose:
+      - 2322
+    environment:
+      IMPORT_MODE: jsonl
+      REGION: switzerland-liechtenstein
+      LANGUAGES: de,fr,it,en
+      JAVA_PARAMS: -Xmx2g
+    volumes:
+      - "photon:/photon/data"
+
+volumes:
+  photon:
