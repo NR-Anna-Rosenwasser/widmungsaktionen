@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AddressController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\StorefrontController;
 use App\Http\Controllers\StripeWebhookController;
@@ -10,6 +11,9 @@ Route::middleware('throttle:storefront')->group(function () {
     Route::get('resolve', [StorefrontController::class, 'resolve']);
     Route::get('tenants', [StorefrontController::class, 'index']);
     Route::get('tenants/{tenant:slug}', [StorefrontController::class, 'show']);
+
+    Route::get('tenants/{tenant:slug}/address/streets', [AddressController::class, 'streets'])->middleware('throttle:address-search');
+    Route::get('tenants/{tenant:slug}/address/postcodes', [AddressController::class, 'postcodes'])->middleware('throttle:address-search');
 
     Route::post('tenants/{tenant:slug}/orders', [OrderController::class, 'store']);
     Route::post('tenants/{tenant:slug}/orders/lookup', [OrderController::class, 'lookup'])->middleware('throttle:order-lookup');

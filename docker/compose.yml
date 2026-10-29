@@ -87,6 +87,24 @@ services:
     image: gotenberg/gotenberg:8
     restart: unless-stopped
 
+  # Geocoder for address autocomplete (OSM data, CH + LI). The first start downloads
+  # and imports ~260 MB (a few minutes); until then the order form just has no suggestions.
+  photon:
+    image: rtuszik/photon-docker:2.4.0
+    restart: unless-stopped
+    environment:
+      IMPORT_MODE: jsonl
+      REGION: switzerland-liechtenstein
+      LANGUAGES: de,fr,it,en
+      JAVA_PARAMS: -Xmx2g
+    volumes:
+      - photon:/photon/data
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:2322/status"]
+      interval: 30s
+      retries: 5
+      start_period: 15m
+
   backup:
     image: ghcr.io/nr-anna-rosenwasser/widmungsaktionen-backup:${APP_VERSION:-latest}
     restart: unless-stopped
@@ -110,4 +128,5 @@ services:
 volumes:
   postgres:
   redis:
+  photon:
   uploads:

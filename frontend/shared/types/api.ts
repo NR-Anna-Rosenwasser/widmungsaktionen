@@ -99,6 +99,16 @@ export interface Address {
   country: string | null
 }
 
+/** Suggestion from /address/streets (house_number etc. may be missing) or /address/postcodes. */
+export interface AddressSuggestion {
+  label: string
+  street?: string
+  house_number?: string | null
+  postal_code: string | null
+  town: string | null
+  country: 'CH' | 'LI'
+}
+
 export interface Copy {
   book_id: number
   title?: string

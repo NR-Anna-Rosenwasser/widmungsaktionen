@@ -47,7 +47,12 @@ docker compose ps
 
 # 4. First super admin (prompts for name and password)
 docker compose exec app php artisan users:create-super-admin
+
+# 5. Postal codes for the address form (refreshed monthly by the scheduler)
+docker compose exec app php artisan address:import-postcodes
 ```
+
+On its first start, the `photon` container (street suggestions in the order form) downloads and imports the OSM data for Switzerland and Liechtenstein: about 260 MB, a few minutes. It needs about 2 GB of RAM. Until it is ready, the form simply shows no street suggestions. To load newer OSM data, recreate its volume: `docker compose rm -sf photon && docker volume rm widmungen_photon && docker compose up -d photon`.
 
 Then log in at `https://admin.widmungen.rose-water.ch` and create the shop with **Neuer Shop**: seller data, IBAN, Stripe keys, shipping, first admin.
 
@@ -152,6 +157,8 @@ docker compose logs -f app          # Laravel / admin
 docker compose logs -f horizon      # queue: mails, PDFs, webhooks
 docker compose exec app php artisan horizon:status
 docker compose exec app php artisan aktionen:sync-status
+docker compose exec app php artisan address:import-postcodes
+docker compose logs -f photon       # address autocomplete (import progress on first start)
 docker compose exec app php artisan tinker
 ```
 

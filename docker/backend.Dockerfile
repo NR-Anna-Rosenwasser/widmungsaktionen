@@ -3,7 +3,8 @@ FROM serversideup/php:8.4-fpm-nginx
 
 USER root
 # gd: the QR bill draws the Swiss cross into the QR code (not declared by Composer).
-RUN install-php-extensions intl bcmath gd
+# zip: address:import-postcodes unpacks the official postal code directory.
+RUN install-php-extensions intl bcmath gd zip
 
 ARG APP_VERSION=dev
 ENV PHP_OPCACHE_ENABLE=1 \
