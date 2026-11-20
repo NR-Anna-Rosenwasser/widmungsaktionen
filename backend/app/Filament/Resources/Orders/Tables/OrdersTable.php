@@ -5,9 +5,12 @@ namespace App\Filament\Resources\Orders\Tables;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
+use App\Filament\Exports\OrderExporter;
 use App\Models\Aktion;
 use App\Models\Order;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\ExportAction;
+use Filament\Actions\ExportBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -58,11 +61,32 @@ class OrdersTable
                         false: fn ($query) => $query->whereHas('aktion', fn ($q) => $q->where('is_test', false)),
                     ),
             ])
+            ->headerActions([
+                ExportAction::make()
+                    ->label('Exportieren')
+                    ->modalDescription('Exportiert die Bestellungen, die die Tabelle gerade zeigt (Reiter, Filter, Suche). Der Download-Link kommt in den Benachrichtigungen.')
+                    ->exporter(OrderExporter::class)
+                    ->modifyQueryUsing(fn ($query) => self::scopeToTenant($query)),
+            ])
+            ->toolbarActions([
+                ExportBulkAction::make()
+                    ->label('Auswahl exportieren')
+                    ->exporter(OrderExporter::class)
+                    ->modifyQueryUsing(fn ($query) => self::scopeToTenant($query)),
+            ])
             ->recordActions([
                 ViewAction::make(),
                 // Test orders only (OrderPolicy).
                 DeleteAction::make()->iconButton()->modalHeading('Testbestellung löschen'),
             ]);
+    }
+
+    /**
+     * The export runs on the queue, without a Filament tenant: scope explicitly.
+     */
+    public static function scopeToTenant($query)
+    {
+        return $query->where('orders.tenant_id', filament()->getTenant()->getKey());
     }
 
     public static function statusColor(OrderStatus $status): string

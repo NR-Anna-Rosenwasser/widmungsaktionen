@@ -25,4 +25,7 @@ return [
     'newsletter_skipped_test' => 'Newsletter: not forwarded (test order)',
     'newsletter_sent' => 'Sent to newsletter',
     'abandoned_reminder_sent' => 'Abandoned order reminder',
+    'edited' => 'Order edited',
+    'created_by_admin' => 'Entered in the admin',
+    'replacement_created' => 'Replacement order created',
 ];

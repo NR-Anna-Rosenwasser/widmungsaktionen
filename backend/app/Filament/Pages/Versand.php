@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Enums\AktionStatus;
 use App\Enums\OrderStatus;
 use App\Enums\TenantRole;
+use App\Filament\Exports\OrderExporter;
 use App\Livewire\Versand\OpenOrdersTable;
 use App\Livewire\Versand\ShippingTable;
 use App\Models\Aktion;
@@ -12,6 +13,7 @@ use App\Services\Pdf\PrintService;
 use App\Services\SigningService;
 use BackedEnum;
 use Filament\Actions\Action;
+use Filament\Actions\ExportAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
@@ -23,6 +25,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Text;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -306,13 +309,19 @@ class Versand extends Page
             ));
     }
 
-    protected function exportAction(): Action
+    protected function exportAction(): ExportAction
     {
-        return Action::make('export')
-            ->label('Bestellungen exportieren (CSV)')
+        return ExportAction::make('export')
+            ->label('Bestellungen exportieren')
             ->icon(Heroicon::OutlinedTableCells)
             ->color('gray')
-            ->action(fn () => $this->csvResponse());
+            ->modalDescription('Alle abgeschickten Bestellungen dieser Aktion. Der Download-Link kommt in den Benachrichtigungen.')
+            ->exporter(OrderExporter::class)
+            ->modifyQueryUsing(fn (Builder $query) => $query
+                ->where('orders.tenant_id', filament()->getTenant()->getKey())
+                ->where('aktion_id', $this->selected->id)
+                ->whereNot('status', OrderStatus::Draft)
+                ->orderBy('submitted_at'));
     }
 
     protected function pdfResponse(string $html, string $filename): StreamedResponse
@@ -325,52 +334,5 @@ class Versand extends Page
         }
 
         return response()->streamDownload(fn () => print ($pdf), $filename, ['Content-Type' => 'application/pdf']);
-    }
-
-    /**
-     * All submitted orders of the Aktion, Excel-friendly (semicolon, UTF-8 BOM).
-     */
-    protected function csvResponse(): StreamedResponse
-    {
-        $orders = $this->selected->orders()
-            ->whereNot('status', OrderStatus::Draft)
-            ->with('items.book', 'payments')
-            ->orderBy('submitted_at')
-            ->get();
-
-        $filename = 'bestellungen-'.str($this->selected->name)->slug().'.csv';
-
-        return response()->streamDownload(function () use ($orders) {
-            $out = fopen('php://output', 'w');
-            fwrite($out, "\xEF\xBB\xBF");
-            fputcsv($out, ['Nr.', 'Post-it', 'Datum', 'Status', 'Zahlung', 'Zahlungsart', 'Bezahlt am', 'Bücher', 'Exemplare', 'Bücher CHF', 'Versand CHF', 'Total CHF', 'Erstattet CHF', 'Name', 'E-Mail', 'PLZ', 'Ort', 'Geschenk', 'Newsletter'], ';');
-
-            foreach ($orders as $order) {
-                $paid = $order->payments->where('status.value', 'paid')->sortByDesc('paid_at')->first();
-                fputcsv($out, [
-                    $order->number,
-                    $order->stack_number,
-                    $order->submitted_at?->format('d.m.Y H:i'),
-                    $order->status->getLabel(),
-                    $order->payment_status->getLabel(),
-                    $order->payment_method?->getLabel(),
-                    $paid?->paid_at?->format('d.m.Y'),
-                    $order->items->map(fn ($item) => $item->book->title)->countBy()->map(fn ($n, $title) => "{$n}× {$title}")->implode(', '),
-                    $order->items->count(),
-                    number_format($order->subtotal / 100, 2, '.', ''),
-                    number_format($order->shipping_cost / 100, 2, '.', ''),
-                    number_format($order->total / 100, 2, '.', ''),
-                    number_format($order->payments->sum('refunded_amount') / 100, 2, '.', ''),
-                    $order->billingName(),
-                    $order->email,
-                    $order->billing_postal_code,
-                    $order->billing_town,
-                    $order->is_gift ? 'ja' : 'nein',
-                    $order->newsletter_opt_in ? 'ja' : 'nein',
-                ], ';');
-            }
-
-            fclose($out);
-        }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
     }
 }

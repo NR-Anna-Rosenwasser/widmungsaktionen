@@ -16,10 +16,13 @@ use App\Services\Pdf\PdfRenderer;
 use App\Services\Pdf\PrintService;
 use App\Services\SigningService;
 use Database\Seeders\DatabaseSeeder;
+use Filament\Actions\Exports\Models\Export;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Mockery;
 use Tests\Concerns\CreatesOrders;
@@ -155,6 +158,9 @@ class PrintTest extends TestCase
 
     public function test_versand_page_downloads(): void
     {
+        Storage::fake('local');
+        // The export itself runs on the queue (covered in OrderManagementTest).
+        Bus::fake();
         $renderer = Mockery::mock(PdfRenderer::class);
         $renderer->shouldReceive('render')->andReturn('%PDF');
         $this->app->instance(PdfRenderer::class, $renderer);
@@ -166,7 +172,10 @@ class PrintTest extends TestCase
             ->callAction(TestAction::make('stackList')->schemaComponent('prepareActions', schema: 'content'))
             ->assertFileDownloaded('stapelliste-herbst-widmungsaktion-2026.pdf')
             ->callAction(TestAction::make('export')->schemaComponent('prepareActions', schema: 'content'))
-            ->assertFileDownloaded('bestellungen-herbst-widmungsaktion-2026.csv');
+            ->assertHasNoActionErrors();
+
+        // Queued export of this Aktion's submitted orders; the link arrives as a notification.
+        $this->assertSame($this->aktion->orders()->whereNot('status', 'draft')->count(), Export::query()->sole()->total_rows);
     }
 
     public function test_orders_ship_one_by_one_or_in_bulk(): void

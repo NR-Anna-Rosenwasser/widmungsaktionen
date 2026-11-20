@@ -25,4 +25,7 @@ return [
     'newsletter_skipped_test' => 'Newsletter : non transmis (commande de test)',
     'newsletter_sent' => 'Transmis à la newsletter',
     'abandoned_reminder_sent' => 'Rappel de commande abandonnée',
+    'edited' => 'Commande modifiée',
+    'created_by_admin' => 'Saisie dans l’admin',
+    'replacement_created' => 'Commande de remplacement créée',
 ];

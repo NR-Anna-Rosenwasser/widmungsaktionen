@@ -145,7 +145,7 @@ class PaymentService
     /**
      * Mark a payment (and its order) as paid. Safe to call more than once.
      */
-    public function markPaid(Payment $payment, ?CarbonInterface $at = null, ?User $by = null, array $meta = []): void
+    public function markPaid(Payment $payment, ?CarbonInterface $at = null, ?User $by = null, array $meta = [], bool $notify = true): void
     {
         $paid = DB::transaction(function () use ($payment, $at, $by, $meta) {
             $payment = Payment::query()->lockForUpdate()->findOrFail($payment->id);
@@ -178,7 +178,7 @@ class PaymentService
             return true;
         });
 
-        if ($paid) {
+        if ($paid && $notify) {
             OrderPaid::dispatch($payment->order);
         }
     }
@@ -186,7 +186,7 @@ class PaymentService
     /**
      * Record a bank transfer or cash payment entered by an admin.
      */
-    public function markOrderPaid(Order $order, CarbonInterface $at, User $by, ?string $note = null): void
+    public function markOrderPaid(Order $order, CarbonInterface $at, User $by, ?string $note = null, bool $notify = true): void
     {
         $payment = $order->payments()
             ->whereIn('method', [PaymentMethod::InvoiceAdvance, PaymentMethod::InvoiceInParcel])
@@ -201,7 +201,7 @@ class PaymentService
             'reference' => PaymentReference::for($order),
         ]);
 
-        $this->markPaid($payment, $at, $by, array_filter(['note' => $note, 'recorded_by' => $by->id]));
+        $this->markPaid($payment, $at, $by, array_filter(['note' => $note, 'recorded_by' => $by->id]), $notify);
     }
 
     /**

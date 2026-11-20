@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Enums\ModerationStatus;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Events\OrderSubmitted;
@@ -14,6 +13,7 @@ use App\Models\Tenant;
 use App\Services\OrderPricer;
 use App\Services\Payments\PaymentService;
 use App\Services\Pdf\InvoicePdf;
+use App\Support\Dedication;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -316,22 +316,14 @@ class OrderController extends Controller
         $tenant = $order->tenant;
 
         foreach (array_values($copies) as $index => $copy) {
-            // Options the shop doesn't offer are dropped (e.g. a draft started before the setting changed).
-            $signatureOnly = (bool) ($copy['signature_only'] ?? false) && $tenant->setting('dedication_signature_only');
-            $wish = $signatureOnly || ! $tenant->setting('dedication_wish') ? null : (trim((string) ($copy['wish'] ?? '')) ?: null);
-            $recipient = $signatureOnly ? null : (trim((string) ($copy['recipient_name'] ?? '')) ?: null);
-            $autoApproved = $wish === null && ($recipient === null || $tenant->setting('dedication_auto_approve_names'));
+            $dedication = Dedication::normalize($tenant, $copy);
 
             $order->items()->create([
                 'book_id' => $copy['book_id'],
                 'unit_price' => 0,
                 'position' => $index + 1,
-                'signature_only' => $signatureOnly,
-                'recipient_name' => $recipient,
-                'wish' => $wish,
-                // Anything customers wrote gets reviewed; plain signatures don't need it,
-                // names without a wish only if the shop says so.
-                'moderation_status' => $autoApproved ? ModerationStatus::Approved : ModerationStatus::Pending,
+                ...$dedication,
+                'moderation_status' => Dedication::moderationStatus($tenant, $dedication),
             ]);
         }
 

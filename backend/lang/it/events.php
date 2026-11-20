@@ -25,4 +25,7 @@ return [
     'newsletter_skipped_test' => 'Newsletter: non trasmesso (ordine di prova)',
     'newsletter_sent' => 'Trasmesso alla newsletter',
     'abandoned_reminder_sent' => 'Promemoria per ordine abbandonato',
+    'edited' => 'Ordine modificato',
+    'created_by_admin' => 'Inserito nell’admin',
+    'replacement_created' => 'Ordine sostitutivo creato',
 ];
