@@ -28,8 +28,9 @@ class SendOrderMails
 {
     public function submitted(OrderSubmitted $event): void
     {
-        // Online orders are confirmed once the payment went through (one mail instead of two).
-        if ($event->order->payment_method !== PaymentMethod::Online) {
+        // Online orders are confirmed once the payment went through (one mail instead of two),
+        // unless the order was entered in the admin (already paid, or pay later from the order page).
+        if ($event->order->payment_method !== PaymentMethod::Online || $event->confirmNow) {
             $this->send(new OrderConfirmationMail($event->order));
         }
     }

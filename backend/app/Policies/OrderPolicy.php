@@ -23,8 +23,8 @@ class OrderPolicy
 
     public function create(User $user): bool
     {
-        // Orders come from the storefront.
-        return false;
+        // Entered by hand, e.g. replacing an order that should have gone to two addresses.
+        return $this->allows($user, [TenantRole::Admin, TenantRole::Fulfillment]);
     }
 
     public function update(User $user, Order $order): bool

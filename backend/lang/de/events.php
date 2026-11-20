@@ -25,4 +25,7 @@ return [
     'newsletter_skipped_test' => 'Newsletter: nicht übermittelt (Testbestellung)',
     'newsletter_sent' => 'An Newsletter übermittelt',
     'abandoned_reminder_sent' => 'Erinnerung an abgebrochene Bestellung',
+    'edited' => 'Bestellung bearbeitet',
+    'created_by_admin' => 'Im Admin erfasst',
+    'replacement_created' => 'Ersatzbestellung erstellt',
 ];

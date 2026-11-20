@@ -7,6 +7,7 @@ use App\Enums\PaymentStatus;
 use App\Filament\Actions\OrderActions;
 use App\Filament\Resources\Orders\OrderResource;
 use App\Models\Order;
+use App\Services\AdminOrders;
 use App\Services\Payments\PaymentService;
 use App\Services\Pdf\InvoicePdf;
 use App\Services\ShippingService;
@@ -14,6 +15,7 @@ use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -40,6 +42,11 @@ class ViewOrder extends ViewRecord
 
         return [
             OrderActions::markPaid()->after(fn () => $this->refreshRecord()),
+
+            EditAction::make()
+                ->label('Bearbeiten')
+                ->color('gray')
+                ->visible(fn () => AdminOrders::canEdit($this->record)),
 
             Action::make('ship')
                 ->label('Versenden')
@@ -102,6 +109,12 @@ class ViewOrder extends ViewRecord
 
                         return response()->streamDownload(fn () => print ($pdf), $invoices->filename($this->record), ['Content-Type' => 'application/pdf']);
                     }),
+
+                Action::make('duplicate')
+                    ->label('Neue Bestellung auf Basis dieser')
+                    ->icon(Heroicon::OutlinedDocumentDuplicate)
+                    ->visible(fn () => $this->record->status !== OrderStatus::Draft)
+                    ->url(fn () => OrderResource::getUrl('create', ['from' => $this->record->id])),
 
                 OrderActions::refund()->after(fn () => $this->refreshRecord()),
                 OrderActions::move()->after(fn () => $this->refreshRecord()),
