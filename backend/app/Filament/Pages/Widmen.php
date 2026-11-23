@@ -197,6 +197,14 @@ class Widmen extends Page
         return $item->order->items()->count();
     }
 
+    /**
+     * «Buch 2 von 3»: place of the copy under its post-it, in signing order.
+     */
+    public function copyNumber(OrderItem $item): int
+    {
+        return $this->signing()->copyNumber($item);
+    }
+
     public function selectAktion(int $id): void
     {
         $this->aktion = $id;

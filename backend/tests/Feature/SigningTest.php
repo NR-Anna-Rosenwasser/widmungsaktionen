@@ -96,6 +96,45 @@ class SigningTest extends TestCase
         $this->assertSame(4, $this->signing->addToStack($unpaid->fresh()));
     }
 
+    public function test_stack_puts_orders_with_fewer_books_first(): void
+    {
+        $sig = fn (string $title) => ['book_id' => $this->book($title), 'signature_only' => true];
+        $pair = $this->confirmedOrder([$sig('Herz'), $sig('Herz')]);
+        $three = $this->confirmedOrder([$sig('Herz'), $sig('Rosa Buch'), $sig('Herz')]);
+        $rosa = $this->confirmedOrder([$sig('Rosa Buch')]);
+        $herz = $this->confirmedOrder([$sig('Herz')]);
+        $flagged = $this->confirmedOrder([['book_id' => $this->book('Herz'), 'recipient_name' => 'X']]);
+        $flagged->items()->update(['moderation_status' => ModerationStatus::Flagged]);
+
+        $this->prepareStack($this->aktion);
+
+        // Single books first (by book, then order date), then pairs, then three; queries still last.
+        $this->assertSame(1, $herz->fresh()->stack_number);
+        $this->assertSame(2, $rosa->fresh()->stack_number);
+        $this->assertSame(3, $pair->fresh()->stack_number);
+        $this->assertSame(4, $three->fresh()->stack_number);
+        $this->assertSame(5, $flagged->fresh()->stack_number);
+    }
+
+    public function test_books_of_an_order_come_up_in_catalogue_order(): void
+    {
+        $order = $this->confirmedOrder([
+            ['book_id' => $this->book('Rosa Buch'), 'recipient_name' => 'Rosa'],
+            ['book_id' => $this->book('Herz'), 'recipient_name' => 'Herz 1'],
+            ['book_id' => $this->book('Herz'), 'recipient_name' => 'Herz 2'],
+        ]);
+        $order->items()->update(['moderation_status' => ModerationStatus::Approved]);
+        $this->prepareStack($this->aktion);
+
+        $queue = $this->signing->toSign($this->aktion);
+        $this->assertSame(['Herz 1', 'Herz 2', 'Rosa'], $queue->pluck('recipient_name')->all());
+        $this->assertSame([1, 2, 3], $queue->map(fn ($item) => $this->signing->copyNumber($item))->all());
+
+        // Signing follows the same order.
+        $this->signing->sign($queue->first(), User::first());
+        $this->assertSame('Herz 2', $this->signing->current($this->aktion)->recipient_name);
+    }
+
     public function test_query_raised_after_preparing_is_put_aside_and_signed_at_the_end(): void
     {
         $sig = fn () => ['book_id' => $this->book('Herz'), 'signature_only' => true];

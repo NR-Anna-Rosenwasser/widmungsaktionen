@@ -231,11 +231,11 @@ Settings → «Texte» (admins only): every customer-facing text, one area at a 
 
 The goal is focus and safety without extra paper.
 
-1. After the order deadline, Admin or Fulfillment presses **«Widmungsaktion vorbereiten»** on «Vorbereiten & Versand» (once per Aktion; test Aktionen any time). The page first shows a checklist (deadline, unchecked wishes, queries, unpaid orders) and the books to prepare per title. Every confirmed order gets a **Stapelnummer** 1…n, sorted by book and then by order date, and the Aktion stops taking orders. Only then do the overview, Stapelliste, letters, labels and shipping appear.
+1. After the order deadline, Admin or Fulfillment presses **«Widmungsaktion vorbereiten»** on «Vorbereiten & Versand» (once per Aktion; test Aktionen any time). The page first shows a checklist (deadline, unchecked wishes, queries, unpaid orders) and the books to prepare per title. Every confirmed order gets a **Stapelnummer** 1…n, sorted by number of books (single books first), then by book (catalogue order) and then by order date, and the Aktion stops taking orders. Only then do the overview, Stapelliste, letters, labels and shipping appear.
    - Admins can undo it as long as no book has been signed (the numbers are removed).
    - Orders confirmed later (e.g. a late bank transfer) are added one by one with the next number («Auf den Stapel» in «Offene Bestellungen»).
    - Orders with an open query get the last numbers, so they can't get lost and lie at the end of the stack; nothing has to be put aside. An order is always handled as a whole: if one of its books has a query, none of its books is signed until it is resolved.
-2. The team prepares the stack as before: one post-it with the Stapelnummer per order, the order's books side by side, the next order turned 90°.
+2. The team prepares the stack as before: one post-it with the Stapelnummer per order, the order's books side by side in catalogue order (the order in which the Widmen page shows them, regardless of how the customer ordered them), the next order turned 90°.
 3. The Widmen page (a full-screen toggle using the browser fullscreen API, with a stripped-down layout) shows exactly one copy at a time:
    - large Stapelnummer and "Buch 2 von 3"
    - book title
