@@ -140,7 +140,7 @@
                             <div @class(['wm-list-row', 'is-current' => $n->id === $this->current?->id])>
                                 <b>#{{ $n->order->stack_number }}</b>
                                 <span>
-                                    {{ $n->book->title }} · Buch {{ $n->position }} von {{ $this->copiesInOrder($n) }}
+                                    {{ $n->book->title }} · Buch {{ $this->copyNumber($n) }} von {{ $this->copiesInOrder($n) }}
                                     @if ($n->signed_at) · <em>schon gewidmet</em>
                                     @elseif ($this->isHeld($n)) · <em>Rückfrage, beiseitelegen</em> @endif
                                     @if ($n->recipient_name) · für {{ $n->recipient_name }} @endif
@@ -163,7 +163,7 @@
                                 <div class="wm-passed">Nachgeholt</div>
                             @endif
                             <div class="wm-stack"><small>Post-it</small>#{{ $item->order->stack_number }}</div>
-                            <div class="wm-meta">Buch {{ $item->position }} von {{ $this->copiesInOrder($item) }} dieser Bestellung</div>
+                            <div class="wm-meta">Buch {{ $this->copyNumber($item) }} von {{ $this->copiesInOrder($item) }} dieser Bestellung</div>
                             <div class="wm-book">{{ $item->book->title }}</div>
                         </div>
 
@@ -202,7 +202,7 @@
                             @if ($this->upcoming->order_id !== $item->order_id)
                                 Danach: <span class="wm-next-new">neuer Post-it #{{ $this->upcoming->order->stack_number }}</span>
                             @else
-                                Danach: <strong>Buch {{ $this->upcoming->position }}</strong> mit dem gleichen Post-it
+                                Danach: <strong>Buch {{ $this->copyNumber($this->upcoming) }}</strong> mit dem gleichen Post-it
                             @endif
                         </div>
                     @endif
@@ -237,7 +237,7 @@
                                     <span>
                                         {{ $o->items->count() }} {{ $o->items->count() === 1 ? 'Buch' : 'Bücher' }} · <em>{{ $this->isPutAside($o) ? 'beiseitegelegt' : 'am Ende des Stapels' }}</em>
                                         @foreach ($o->items->where('moderation_status', '!==', \App\Enums\ModerationStatus::Approved) as $flagged)
-                                            <br>Rückfrage zu {{ $flagged->book->title }} (Buch {{ $flagged->position }})@if ($flagged->moderation_note): {{ $flagged->moderation_note }}@endif
+                                            <br>Rückfrage zu {{ $flagged->book->title }} (Buch {{ $this->copyNumber($flagged) }})@if ($flagged->moderation_note): {{ $flagged->moderation_note }}@endif
                                         @endforeach
                                     </span>
                                 </div>

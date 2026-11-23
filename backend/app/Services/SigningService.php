@@ -119,10 +119,12 @@ class SigningService
                 ->whereNull('stack_number')
                 ->with('items.book')
                 ->get()
-                // Open queries last, then grouped by book so the stack on the table is sorted.
+                // Open queries last, then orders with fewer books first, then
+                // grouped by book so the stack on the table is sorted.
                 ->sortBy(fn (Order $order) => sprintf(
-                    '%d-%05d-%s-%010d',
+                    '%d-%03d-%05d-%s-%010d',
                     $order->items->contains(fn ($item) => $item->moderation_status === ModerationStatus::Flagged),
+                    $order->items->count(),
                     $order->items->min(fn ($item) => $item->book->sort),
                     $order->submitted_at?->format('YmdHis'),
                     $order->id,
@@ -194,19 +196,43 @@ class SigningService
     }
 
     /**
-     * Copies on the stack, in signing order.
+     * Copies on the stack, in signing order: by post-it, and within a post-it
+     * in catalogue order (copies of the same title as the customer ordered them).
      */
     public function queue(Aktion $aktion): Builder
     {
         return OrderItem::query()
             ->select('order_items.*')
             ->join('orders', 'orders.id', '=', 'order_items.order_id')
+            ->join('books', 'books.id', '=', 'order_items.book_id')
             ->where('orders.aktion_id', $aktion->id)
             ->whereNotNull('orders.stack_number')
             ->whereIn('orders.status', [OrderStatus::Confirmed, OrderStatus::Signed])
             ->orderBy('orders.stack_number')
+            ->orderBy('books.sort')
+            ->orderBy('books.title')
             ->orderBy('order_items.position')
             ->with('order', 'book');
+    }
+
+    /**
+     * The copies of an order in signing order (catalogue order).
+     *
+     * @return Collection<int, OrderItem>
+     */
+    public function copiesInSigningOrder(Order $order): Collection
+    {
+        return $order->loadMissing('items.book')->items
+            ->sortBy(fn (OrderItem $item) => [$item->book->sort, $item->book->title, $item->position])
+            ->values();
+    }
+
+    /**
+     * «Buch 2 von 3»: the place of a copy within its order, in signing order.
+     */
+    public function copyNumber(OrderItem $item): int
+    {
+        return $this->copiesInSigningOrder($item->order)->search(fn (OrderItem $other) => $other->id === $item->id) + 1;
     }
 
     /**
@@ -283,7 +309,10 @@ class SigningService
             ->whereHas('items', fn ($q) => $q->whereNull('signed_at'))
             ->with(['items' => fn ($q) => $q->orderBy('position'), 'items.book'])
             ->orderBy('stack_number')
-            ->get();
+            ->get()
+            ->each(fn (Order $order) => $order->setRelation('items', $order->items->sortBy(
+                fn (OrderItem $item) => [$item->book->sort, $item->book->title, $item->position]
+            )->values()));
     }
 
     /**
