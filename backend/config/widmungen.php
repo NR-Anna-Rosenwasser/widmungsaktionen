@@ -53,6 +53,8 @@ return [
         // one by one in «Offene Bestellungen» (manual), move (once) or cancel.
         'unpaid_after_deadline' => 'manual',
         'checkpoint_interval' => 5,
+        // Little encouragements on the Widmen screen every few books (App\Support\Motivation).
+        'widmen_motivation' => true,
         // «Dein Buch ist gewidmet» mail; the order page shows the step either way.
         'notify_signed' => false,
         'print' => [

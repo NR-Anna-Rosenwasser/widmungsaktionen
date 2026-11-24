@@ -65,9 +65,30 @@
                     <div class="wm-progress-fill" style="width: {{ $this->progress['total'] ? round($this->progress['signed'] / $this->progress['total'] * 100) : 0 }}%"></div>
                 </div>
             </div>
-            <button type="button" class="wm-btn" x-on:click="toggleFocus()">
-                <span x-text="focus ? 'Fokus beenden' : 'Fokus-Modus'"></span>
-            </button>
+            <div class="wm-bar-actions">
+                @if ($this->motivationAvailable())
+                    {{-- Subtle, only outside focus mode: settings for this session. --}}
+                    <div class="wm-settings" x-data="{ open: false }" x-show="! focus" x-on:click.outside="open = false" x-on:keydown.escape.window="open = false">
+                        <x-filament::icon-button
+                            icon="heroicon-o-cog-6-tooth"
+                            color="gray"
+                            label="Einstellungen"
+                            tooltip="Einstellungen"
+                            x-on:click="open = ! open"
+                        />
+                        <div class="wm-pop" x-show="open" x-cloak x-transition.opacity>
+                            <label class="wm-pop-row">
+                                <input type="checkbox" wire:click="toggleMotivation" x-on:change="$el.blur()" @checked($motivationOn)>
+                                Motivationssprüche anzeigen
+                            </label>
+                            <p class="wm-pop-hint">Gilt für diese Sitzung. Ganz ausschalten lassen sie sich in den Shop-Einstellungen.</p>
+                        </div>
+                    </div>
+                @endif
+                <button type="button" class="wm-btn" x-on:click="toggleFocus()">
+                    <span x-text="focus ? 'Fokus beenden' : 'Fokus-Modus'"></span>
+                </button>
+            </div>
         </div>
 
         @switch($mode)
@@ -157,6 +178,12 @@
             @case('sign')
                 @php($item = $this->current)
                 @if ($item)
+                    @if ($motivationText = $this->motivationText())
+                        <div class="wm-motivation" wire:key="motivation-{{ $motivation }}" role="status">
+                            <span class="wm-motivation-text">{{ $motivationText }}</span>
+                            <button type="button" class="wm-motivation-close" wire:click="dismissMotivation" aria-label="Spruch ausblenden">×</button>
+                        </div>
+                    @endif
                     <div class="wm-card">
                         <div class="wm-center">
                             @if ($this->currentIsPassed)

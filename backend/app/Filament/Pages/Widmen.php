@@ -10,12 +10,14 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\SigningSession;
 use App\Services\SigningService;
+use App\Support\Motivation;
 use BackedEnum;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Session;
 use Livewire\Attributes\Url;
 use UnitEnum;
 
@@ -56,6 +58,22 @@ class Widmen extends Page
 
     public string $flagNote = '';
 
+    /** Motivational messages for this browser session (gear menu); the shop setting can turn them off entirely. */
+    #[Session]
+    public bool $motivationOn = true;
+
+    /** Index into Motivation::MESSAGES on screen, if any. */
+    public ?int $motivation = null;
+
+    /** Books until the next message. */
+    public int $motivationIn = 0;
+
+    /** Books signed since the current message appeared. */
+    public int $motivationAge = 0;
+
+    /** @var array<int, int> Messages already shown in this sitting. */
+    public array $motivationSeen = [];
+
     public static function canAccess(): bool
     {
         $tenant = filament()->getTenant();
@@ -81,6 +99,57 @@ class Widmen extends Page
         if ($this->selectedAktion && ! $this->current) {
             $this->mode = 'done';
         }
+
+        $this->motivationIn = Motivation::gap();
+    }
+
+    /**
+     * Whether the shop allows motivational messages at all (shows the gear menu).
+     */
+    public function motivationAvailable(): bool
+    {
+        return (bool) filament()->getTenant()->setting('widmen_motivation');
+    }
+
+    /**
+     * The message on screen, if any.
+     */
+    public function motivationText(): ?string
+    {
+        return $this->motivation !== null && $this->motivationOn && $this->motivationAvailable()
+            ? Motivation::MESSAGES[$this->motivation] ?? null
+            : null;
+    }
+
+    public function toggleMotivation(): void
+    {
+        $this->motivationOn = ! $this->motivationOn;
+        $this->motivation = null;
+    }
+
+    public function dismissMotivation(): void
+    {
+        $this->motivation = null;
+    }
+
+    /**
+     * After each signed book: let the current message fade after a few books
+     * and bring up a new one every MIN_GAP to MAX_GAP books.
+     */
+    protected function tickMotivation(): void
+    {
+        if ($this->motivation !== null && ++$this->motivationAge >= Motivation::SHOWN_FOR) {
+            $this->motivation = null;
+        }
+
+        if (! $this->motivationOn || ! $this->motivationAvailable() || --$this->motivationIn > 0) {
+            return;
+        }
+
+        $this->motivation = Motivation::pick($this->motivationSeen);
+        $this->motivationSeen[] = $this->motivation;
+        $this->motivationAge = 0;
+        $this->motivationIn = Motivation::gap();
     }
 
     protected function signing(): SigningService
@@ -278,6 +347,7 @@ class Widmen extends Page
         $this->signing()->sign($item, auth()->user());
         $this->signedStack[] = $item->id;
         $this->sinceCheckpoint++;
+        $this->tickMotivation();
 
         $session = $this->session();
         if ($session) {

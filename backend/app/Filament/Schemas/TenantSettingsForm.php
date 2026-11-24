@@ -214,6 +214,10 @@ class TenantSettingsForm
                 TextInput::make('settings.checkpoint_interval')
                     ->label('Kontrollfrage beim Widmen alle … Bücher')
                     ->numeric()->minValue(1)->maxValue(50)->required(),
+                Toggle::make('settings.widmen_motivation')
+                    ->label('Motivationssprüche beim Widmen')
+                    ->helperText('Alle 5 bis 15 Bücher erscheint ein kleiner aufmunternder Spruch. Lässt sich auch beim Widmen über das Zahnrad ausschalten.')
+                    ->columnSpanFull(),
                 TextInput::make('settings.dedication_retention_months')
                     ->label('Widmungstexte anonymisieren nach … Monaten')
                     ->helperText('0 = nie')
