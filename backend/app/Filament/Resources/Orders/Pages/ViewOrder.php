@@ -4,12 +4,14 @@ namespace App\Filament\Resources\Orders\Pages;
 
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
+use App\Enums\TenantRole;
 use App\Filament\Actions\OrderActions;
 use App\Filament\Resources\Orders\OrderResource;
 use App\Models\Order;
 use App\Services\AdminOrders;
 use App\Services\Payments\PaymentService;
 use App\Services\Pdf\InvoicePdf;
+use App\Services\Pdf\PrintService;
 use App\Services\ShippingService;
 use Carbon\Carbon;
 use Filament\Actions\Action;
@@ -23,6 +25,8 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Support\Htmlable;
+use RuntimeException;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * @property Order $record
@@ -83,6 +87,60 @@ class ViewOrder extends ViewRecord
                 }),
 
             ActionGroup::make([
+                Action::make('printLetter')
+                    ->label('Begleitbrief (PDF)')
+                    ->icon(Heroicon::OutlinedEnvelopeOpen)
+                    ->visible(fn () => $this->canPrint())
+                    ->action(fn () => $this->pdfResponse(
+                        fn (PrintService $print, Order $order) => $print->lettersHtml($order->aktion, collect([$order])),
+                        'begleitbrief-'.str($this->record->number)->slug().'.pdf',
+                    )),
+
+                Action::make('printLabel')
+                    ->label('Adressetikett (PDF)')
+                    ->icon(Heroicon::OutlinedTag)
+                    ->visible(fn () => $this->canPrint())
+                    ->modalHeading('Adressetikett')
+                    ->modalDescription(fn (PrintService $print) => $print->needsLabel($this->record)
+                        ? null
+                        : 'Hinweis: Mit der eingestellten Couvert-Art braucht diese Bestellung eigentlich kein Etikett. Du kannst es trotzdem drucken.')
+                    ->schema(fn (PrintService $print) => [
+                        TextInput::make('position')
+                            ->label('Position auf dem Etikettenbogen')
+                            ->helperText('1 = oben links, dann zeilenweise nach rechts. Dieser Bogen hat '.$print->labelsPerSheet($this->record->aktion).' Etiketten.')
+                            ->numeric()
+                            ->required()
+                            ->minValue(1)
+                            ->maxValue($print->labelsPerSheet($this->record->aktion))
+                            ->default(1),
+                    ])
+                    ->modalSubmitActionLabel('PDF erstellen')
+                    ->action(fn (array $data) => $this->pdfResponse(
+                        fn (PrintService $print, Order $order) => $print->labelsHtml($order->aktion, (int) $data['position'] - 1, collect([$order])),
+                        'etikett-'.str($this->record->number)->slug().'.pdf',
+                    )),
+
+                Action::make('printEnvelope')
+                    ->label('Couvert C5 (PDF)')
+                    ->icon(Heroicon::OutlinedEnvelope)
+                    ->visible(fn () => $this->canPrint())
+                    // Straight to the PDF, unless the settings would do it differently.
+                    ->requiresConfirmation(fn (PrintService $print) => $this->envelopeHint($print) !== null)
+                    ->modalHeading('Couvert C5')
+                    ->modalDescription(fn (PrintService $print) => $this->envelopeHint($print))
+                    ->modalSubmitActionLabel('PDF erstellen')
+                    ->action(fn () => $this->pdfResponse(
+                        fn (PrintService $print, Order $order) => $print->envelopesHtml($order->aktion, collect([$order])),
+                        'couvert-'.str($this->record->number)->slug().'.pdf',
+                    )),
+            ])
+                ->label('Drucken')
+                ->icon(Heroicon::OutlinedPrinter)
+                ->button()
+                ->color('gray')
+                ->visible(fn () => $this->canPrint()),
+
+            ActionGroup::make([
                 Action::make('revertPayment')
                     ->label('Zahlung zurücksetzen')
                     ->icon(Heroicon::OutlinedBackward)
@@ -128,5 +186,52 @@ class ViewOrder extends ViewRecord
     protected function refreshRecord(): void
     {
         $this->record->refresh();
+    }
+
+    /**
+     * Letter and label as on «Vorbereiten & Versand», for a single order on
+     * the stack (e.g. a late one).
+     */
+    protected function canPrint(): bool
+    {
+        return $this->record->stack_number !== null
+            && ! in_array($this->record->status, [OrderStatus::Draft, OrderStatus::Cancelled], true)
+            && auth()->user()->hasRoleIn(filament()->getTenant(), [TenantRole::Admin, TenantRole::Fulfillment]);
+    }
+
+    /**
+     * Why a C5 envelope is unusual for this order (null: it's the normal way).
+     */
+    protected function envelopeHint(PrintService $print): ?string
+    {
+        return match (true) {
+            ! $print->isLetter($this->record) => 'Hinweis: Diese Bestellung geht als Paket, ein C5-Couvert passt dafür normalerweise nicht. Du kannst es trotzdem drucken.',
+            $this->record->tenant->setting('print.envelope_mode') !== 'direct_print' => 'Hinweis: In den Einstellungen werden Couverts normalerweise nicht direkt bedruckt. Du kannst es trotzdem drucken.',
+            default => null,
+        };
+    }
+
+    /**
+     * @param  callable(PrintService, Order): string  $html
+     */
+    protected function pdfResponse(callable $html, string $filename): ?StreamedResponse
+    {
+        $print = app(PrintService::class);
+        $order = $print->stackedOrder($this->record);
+
+        if (! $order) {
+            Notification::make()->title('Diese Bestellung ist nicht (mehr) auf dem Stapel')->warning()->send();
+
+            return null;
+        }
+
+        try {
+            $pdf = $print->render($html($print, $order));
+        } catch (RuntimeException $e) {
+            Notification::make()->title('PDF konnte nicht erstellt werden')->body($e->getMessage())->danger()->send();
+            throw $e;
+        }
+
+        return response()->streamDownload(fn () => print ($pdf), $filename, ['Content-Type' => 'application/pdf']);
     }
 }

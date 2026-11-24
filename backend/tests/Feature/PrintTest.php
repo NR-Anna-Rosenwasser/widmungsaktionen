@@ -6,6 +6,7 @@ use App\Enums\AktionStatus;
 use App\Enums\ModerationStatus;
 use App\Enums\OrderStatus;
 use App\Filament\Pages\Versand;
+use App\Filament\Resources\Orders\Pages\ViewOrder;
 use App\Livewire\Versand\ShippingTable;
 use App\Mail\OrderShippedMail;
 use App\Models\Aktion;
@@ -106,6 +107,80 @@ class PrintTest extends TestCase
         // 24 per sheet, 23 skipped: one label on the first sheet, two on the second.
         $this->assertSame(2, substr_count($html, 'class="page"'));
         $this->assertSame(3, substr_count($html, 'class="label"'));
+    }
+
+    public function test_letter_and_label_for_a_single_order(): void
+    {
+        $this->setEnvelopeMode('labels');
+        $print = app(PrintService::class);
+        $order = $print->stackedOrder($this->parcel);
+
+        $letter = $print->lettersHtml($this->aktion, collect([$order]));
+        $this->assertSame(1, substr_count($letter, 'Rechnung '.'AR-'));
+        $this->assertStringContainsString($this->parcel->number, $letter);
+        $this->assertStringNotContainsString($this->letter->number, $letter);
+
+        // Position 5 on a 3×8 sheet: second row, middle column.
+        $label = $print->labelsHtml($this->aktion, 4, collect([$order]));
+        $this->assertSame(1, substr_count($label, 'class="page"'));
+        $this->assertSame(1, substr_count($label, 'class="label"'));
+        $this->assertStringContainsString("#{$this->parcel->stack_number}", $label);
+        $sheet = $print->labelSheet($this->aktion);
+        $this->assertStringContainsString('left: '.($sheet['left'] + $sheet['width'] + $sheet['gap_x']).'mm; top: '.($sheet['top'] + $sheet['height'] + $sheet['gap_y']).'mm;', $label);
+
+        // Cancelled orders aren't on the stack anymore.
+        $this->parcel->update(['status' => OrderStatus::Cancelled]);
+        $this->assertNull($print->stackedOrder($this->parcel));
+    }
+
+    public function test_order_page_prints_letter_and_label(): void
+    {
+        $this->setEnvelopeMode('labels');
+        $html = [];
+        $renderer = Mockery::mock(PdfRenderer::class);
+        $renderer->shouldReceive('render')->andReturnUsing(function (string $page) use (&$html) {
+            $html[] = $page;
+
+            return '%PDF';
+        });
+        $this->app->instance(PdfRenderer::class, $renderer);
+        $slug = str($this->parcel->number)->slug();
+
+        Livewire::test(ViewOrder::class, ['record' => $this->parcel->getRouteKey()])
+            ->callAction('printLetter')
+            ->assertFileDownloaded("begleitbrief-{$slug}.pdf")
+            ->callAction('printLabel', ['position' => 3])
+            ->assertHasNoFormErrors()
+            ->assertFileDownloaded("etikett-{$slug}.pdf")
+            ->callAction('printLabel', ['position' => 25])
+            ->assertHasFormErrors(['position']);
+
+        $this->assertCount(2, $html);
+        $this->assertSame(1, substr_count($html[1], 'class="label"'));
+
+        // Envelopes too, always available, with a hint when the settings would do it differently.
+        $hint = fn (string $text) => fn ($action) => $action->isConfirmationRequired() && str_contains($action->getModalDescription(), $text);
+        $letterSlug = str($this->letter->number)->slug();
+        Livewire::test(ViewOrder::class, ['record' => $this->letter->getRouteKey()])
+            ->assertActionExists('printEnvelope', $hint('normalerweise nicht direkt bedruckt'))
+            ->callAction('printEnvelope')
+            ->assertFileDownloaded("couvert-{$letterSlug}.pdf");
+        Livewire::test(ViewOrder::class, ['record' => $this->parcel->getRouteKey()])
+            ->assertActionExists('printEnvelope', $hint('geht als Paket'));
+        $this->assertSame(1, substr_count(end($html), 'class="envelope"'));
+
+        // The normal case: no hint, no extra click. The label hints instead.
+        $this->setEnvelopeMode('direct_print');
+        Livewire::test(ViewOrder::class, ['record' => $this->letter->getRouteKey()])
+            ->assertActionExists('printEnvelope', fn ($action) => ! $action->isConfirmationRequired())
+            ->assertActionExists('printLabel', fn ($action) => str_contains($action->getModalDescription(), 'braucht diese Bestellung eigentlich kein Etikett'));
+
+        // Not on the stack: no print actions.
+        $this->letter->refresh()->update(['stack_number' => null]);
+        Livewire::test(ViewOrder::class, ['record' => $this->letter->getRouteKey()])
+            ->assertActionHidden('printLetter')
+            ->assertActionHidden('printLabel')
+            ->assertActionHidden('printEnvelope');
     }
 
     public function test_stack_list_is_for_preparing_and_packing(): void

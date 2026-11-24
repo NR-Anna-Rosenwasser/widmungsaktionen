@@ -10,9 +10,11 @@ use App\Models\Order;
 use App\Services\ShippingService;
 use App\Services\SigningService;
 use App\Support\Texts\Texts;
-use Endroid\QrCode\Builder\Builder;
+use Endroid\QrCode\Builder\Builder as QrBuilder;
 use Endroid\QrCode\Color\Color;
 use Endroid\QrCode\Writer\SvgWriter;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 
 /**
@@ -33,12 +35,7 @@ class PrintService
      */
     public function orders(Aktion $aktion): Collection
     {
-        return $aktion->orders()
-            ->whereNotNull('stack_number')
-            ->whereNotIn('status', [OrderStatus::Cancelled, OrderStatus::Draft])
-            ->orderBy('stack_number')
-            ->with('tenant', 'aktion', 'items.book', 'shipments')
-            ->get();
+        return $this->stacked($aktion->orders())->orderBy('stack_number')->get();
     }
 
     public function needsInvoicePage(Order $order): bool
@@ -56,10 +53,8 @@ class PrintService
      */
     public function ordersNeedingLabels(Aktion $aktion): Collection
     {
-        $mode = $aktion->tenant->setting('print.envelope_mode');
-
         return $this->orders($aktion)
-            ->filter(fn (Order $order) => $mode === 'labels' || $this->shipping->methodFor($order) === 'parcel')
+            ->filter(fn (Order $order) => $this->needsLabel($order))
             ->values();
     }
 
@@ -69,14 +64,67 @@ class PrintService
     public function ordersForEnvelopes(Aktion $aktion): Collection
     {
         return $this->orders($aktion)
-            ->filter(fn (Order $order) => $this->shipping->methodFor($order) === 'letter')
+            ->filter(fn (Order $order) => $this->isLetter($order))
             ->values();
     }
 
-    public function lettersHtml(Aktion $aktion): string
+    /**
+     * Whether the order goes as a letter (fits a C5 envelope), not as a parcel.
+     */
+    public function isLetter(Order $order): bool
+    {
+        return $this->shipping->methodFor($order) === 'letter';
+    }
+
+    /**
+     * A single order on the stack (e.g. a late order), with what the
+     * documents need, or null if it isn't on the stack (anymore).
+     */
+    public function stackedOrder(Order $order): ?Order
+    {
+        return $this->stacked(Order::query()->whereKey($order->id))->first();
+    }
+
+    /**
+     * Orders on the stack (not cancelled), with what the documents need.
+     *
+     * @param  Builder<Order>|HasMany<Order, Aktion>  $query
+     * @return Builder<Order>|HasMany<Order, Aktion>
+     */
+    protected function stacked(Builder|HasMany $query): Builder|HasMany
+    {
+        return $query
+            ->whereNotNull('stack_number')
+            ->whereNotIn('status', [OrderStatus::Cancelled, OrderStatus::Draft])
+            ->with('tenant', 'aktion', 'items.book', 'shipments');
+    }
+
+    /**
+     * Whether the order gets an address label in the current envelope mode.
+     */
+    public function needsLabel(Order $order): bool
+    {
+        return $order->tenant->setting('print.envelope_mode') === 'labels'
+            || $this->shipping->methodFor($order) === 'parcel';
+    }
+
+    /**
+     * Labels per sheet in the configured layout.
+     */
+    public function labelsPerSheet(Aktion $aktion): int
+    {
+        $sheet = $this->labelSheet($aktion);
+
+        return max(1, (int) ($sheet['cols'] * $sheet['rows']));
+    }
+
+    /**
+     * @param  Collection<int, Order>|null  $orders  Only these (default: the whole stack)
+     */
+    public function lettersHtml(Aktion $aktion, ?Collection $orders = null): string
     {
         $tenant = $aktion->tenant;
-        $pages = $this->orders($aktion)->map(fn (Order $order) => [
+        $pages = ($orders ?? $this->orders($aktion))->map(fn (Order $order) => [
             'order' => $order,
             'qr' => $tenant->setting('print.letter_qr') && ! $order->is_gift ? $this->qr($order->storefrontUrl()) : null,
             'invoice' => $this->needsInvoicePage($order) ? $this->invoices->pageData($order) : null,
@@ -90,20 +138,26 @@ class PrintService
         ])->render();
     }
 
-    public function labelsHtml(Aktion $aktion, int $skip = 0): string
+    /**
+     * @param  Collection<int, Order>|null  $orders  Only these (default: all orders needing a label)
+     */
+    public function labelsHtml(Aktion $aktion, int $skip = 0, ?Collection $orders = null): string
     {
         return view('pdf.labels', [
-            'orders' => $this->ordersNeedingLabels($aktion),
+            'orders' => $orders ?? $this->ordersNeedingLabels($aktion),
             'sheet' => $this->labelSheet($aktion),
             'skip' => max(0, $skip),
             'sender' => $this->senderLine($aktion),
         ])->render();
     }
 
-    public function envelopesHtml(Aktion $aktion): string
+    /**
+     * @param  Collection<int, Order>|null  $orders  Only these (default: all letters)
+     */
+    public function envelopesHtml(Aktion $aktion, ?Collection $orders = null): string
     {
         return view('pdf.envelopes', [
-            'orders' => $this->ordersForEnvelopes($aktion),
+            'orders' => $orders ?? $this->ordersForEnvelopes($aktion),
             'tenant' => $aktion->tenant,
         ])->render();
     }
@@ -152,7 +206,7 @@ class PrintService
 
     protected function qr(string $url): string
     {
-        return (new Builder(
+        return (new QrBuilder(
             writer: new SvgWriter,
             data: $url,
             size: 240,
