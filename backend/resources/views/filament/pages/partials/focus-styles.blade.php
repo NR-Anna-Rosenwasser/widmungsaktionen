@@ -46,5 +46,16 @@
     .wm-flag { margin-top: 1rem; display: flex; gap: .5rem; justify-content: center; flex-wrap: wrap; }
     .wm-passed { display: inline-block; background: var(--rose); color: #fff; border-radius: 4px; padding: .3rem .8rem; font-weight: 700; margin-bottom: .75rem; }
     .wm-flag input { min-width: 18rem; border: 2px solid var(--navy-soft); border-radius: 4px; padding: .6rem .8rem; color: var(--navy); }
-    @media (prefers-reduced-motion: reduce) { .wm-progress-fill { transition: none; } }
+    .wm-bar-actions { display: flex; align-items: center; gap: .5rem; }
+    .wm-settings { position: relative; }
+    .wm-pop { position: absolute; right: 0; top: calc(100% + .4rem); z-index: 10; width: 17rem; background: #fff; border: 1.5px solid var(--blush); border-radius: 6px; box-shadow: 0 6px 20px rgba(43, 60, 105, .12); padding: .9rem 1rem; }
+    .wm-pop-row { display: flex; align-items: center; gap: .6rem; font-weight: 600; cursor: pointer; }
+    .wm-pop-row input { accent-color: var(--rose); width: 1.05rem; height: 1.05rem; }
+    .wm-pop-hint { font-size: .85rem; color: var(--navy-soft); margin-top: .5rem; line-height: 1.4; }
+    .wm-motivation { position: relative; margin-bottom: 1rem; padding: 1rem 3rem; text-align: center; background: #fff; border: 2px dashed var(--rose); border-radius: 6px;
+                     font-size: 1.15rem; font-weight: 600; line-height: 1.45; color: var(--navy); animation: wm-pop-in .45s ease-out; }
+    .wm-motivation-close { position: absolute; top: .35rem; right: .6rem; font-size: 1.4rem; line-height: 1; color: var(--navy-soft); background: none; border: 0; cursor: pointer; padding: .25rem; }
+    .wm-motivation-close:hover { color: var(--navy); }
+    @keyframes wm-pop-in { from { opacity: 0; transform: translateY(-6px) scale(.98); } to { opacity: 1; transform: none; } }
+    @media (prefers-reduced-motion: reduce) { .wm-progress-fill { transition: none; } .wm-motivation { animation: none; } }
 </style>

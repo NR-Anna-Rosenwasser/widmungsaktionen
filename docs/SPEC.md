@@ -241,6 +241,7 @@ The goal is focus and safety without extra paper.
    - book title
    - recipient name and dedication wish in big type
    - progress ("17 von 63")
+   - every 5–15 copies (random) a short motivational message above the card, for 3 copies or until closed. On by default; off for the browser session via the gear menu (only outside focus mode) or entirely in the shop settings («Motivationssprüche beim Widmen»).
 4. Keyboard: `Space` = gewidmet → next, `U` = undo last, `F` = flag (the whole order is put aside; doesn't block the session), `P` = pause.
    - Orders with a query are skipped as a whole. Resolved before the signing reaches the order: signed in its place. A query raised after preparing (in the moderation queue, or `F` while signing): the screen stops before that post-it and asks to put it aside with all its books; once resolved, the order comes up at the end as «Nachgeholt», with a checkpoint for its post-it.
    - The end screen lists orders with open queries by Stapelnummer (at the end of the stack or put aside) and can continue once they are resolved.
